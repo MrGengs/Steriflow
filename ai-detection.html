@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#0a0a1a" />
+  <title>SteriFlow — AI Detection</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="apple-touch-icon" href="assets/logo.png" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="js/theme.js"></script>
+</head>
+<body>
+
+<!-- Animated Background -->
+<div class="bg-canvas">
+  <div class="bg-orb o1"></div>
+  <div class="bg-orb o2"></div>
+  <div class="bg-orb o3"></div>
+  <div class="bg-orb o4"></div>
+  <div class="bg-mesh"></div>
+  <div class="bg-noise"></div>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- Header -->
+  <header class="app-header fade-in">
+    <div class="header-brand">
+      <div class="header-logo">
+        <img src="assets/logo.png" alt="SteriFlow" width="36" height="36" style="border-radius:6px" />
+      </div>
+      <div>
+        <div class="header-page-title">AI Detection</div>
+        <div class="header-subtitle">Contamination analysis</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="switchCamBtn" aria-label="Switch Camera" title="Switch Camera">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5l2-2h6l2 2h1"/><circle cx="12" cy="12" r="3"/>
+          <path d="M17 22l3-3-3-3"/><path d="M21 19H13"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- Camera View -->
+    <div class="glass card-p fade-in fade-in-delay-1">
+      <div class="flex items-center justify-between mb-10">
+        <div class="section-title" style="margin-bottom:0;">Camera Feed</div>
+        <div class="live-dot" id="liveDot">LIVE</div>
+      </div>
+
+      <div class="camera-view" id="cameraView">
+        <!-- Live video feed -->
+        <video id="cameraVideo" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:none;"></video>
+        <!-- Captured image preview -->
+        <canvas id="captureCanvas" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:none;"></canvas>
+        <!-- Grid overlay -->
+        <div class="camera-grid"></div>
+        <div class="camera-overlay"></div>
+        <!-- Scan line -->
+        <div class="scan-line" id="scanLine"></div>
+        <!-- Corner brackets -->
+        <div class="camera-corners">
+          <div class="camera-corner-tr"></div>
+          <div class="camera-corner-bl"></div>
+        </div>
+        <!-- Idle state -->
+        <div class="camera-icon-center" id="cameraIdleIcon">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.3);letter-spacing:0.06em;">Tap below to start camera</div>
+        </div>
+        <!-- Analyzing overlay -->
+        <div class="analyzing-text" id="analyzingText" style="display:none;">ANALYZING...</div>
+        <!-- Error overlay -->
+        <div id="cameraError" style="display:none;position:absolute;inset:0;z-index:12;display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:rgba(0,0,0,0.6);border-radius:inherit;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent3)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div style="font-size:0.8rem;color:var(--accent3);text-align:center;padding:0 20px;" id="cameraErrorText">Camera access denied</div>
+        </div>
+      </div>
+
+      <div class="flex justify-between mt-10" style="font-size:0.68rem;color:var(--text-dim);">
+        <span>Model: Gemini 2.0 Flash</span>
+        <span id="cameraResolution">Resolution: —</span>
+        <span id="cameraStatus">Status: Idle</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-10 mt-12 fade-in fade-in-delay-2">
+      <!-- Start/Stop Camera -->
+      <button class="btn btn-secondary" id="cameraBtn" style="flex:1;padding:14px;border-radius:var(--radius);justify-content:center;font-size:0.9rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+        </svg>
+        <span id="cameraBtnText">Open Camera</span>
+      </button>
+      <!-- Scan -->
+      <button class="btn btn-primary" id="scanBtn" disabled style="flex:1.5;padding:14px;border-radius:var(--radius);justify-content:center;font-size:0.9rem;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 6px 28px rgba(124,92,252,0.4);opacity:0.5;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/>
+        </svg>
+        <span id="scanBtnText">Start Scan</span>
+      </button>
+    </div>
+
+    <!-- Detection Results (hidden until scan) -->
+    <div class="glass mt-12 fade-in result-card" id="detectionResults" style="display:none;">
+
+      <div class="flex items-center justify-between">
+        <div>
+          <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:5px;">Detection Result</div>
+          <span class="badge badge-clean badge-lg" id="detectionBadge">—</span>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:3px;">Scanned</div>
+          <div style="font-size:0.78rem;font-weight:600;" id="scanTime">—</div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Confidence Score -->
+      <div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:8px;">Confidence Score</div>
+        <div class="confidence-ring">
+          <div class="confidence-num" id="confidenceNum">—</div>
+          <div style="flex:1;">
+            <div class="progress-track" style="height:10px;">
+              <div class="progress-fill teal" id="confidenceBar" style="width:0%;transition:width 0.8s ease;"></div>
+            </div>
+            <div style="font-size:0.68rem;color:var(--text-dim);margin-top:4px;">Gemini AI confidence</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Contamination Level -->
+      <div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:8px;">Contamination Level</div>
+        <div class="flex items-center gap-12">
+          <span class="badge badge-clean" id="contLevelBadge">—</span>
+          <div style="flex:1;">
+            <div class="progress-track" style="height:8px;">
+              <div class="progress-fill teal" id="contaminationBar" style="width:0%;transition:width 0.8s ease;"></div>
+            </div>
+          </div>
+          <span style="font-size:0.78rem;font-weight:600;color:var(--accent2);" id="contPct">—</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- AI Analysis -->
+      <div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:8px;">AI Analysis</div>
+        <div id="aiAnalysis" style="font-size:0.82rem;color:var(--text);line-height:1.6;"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Residue Detected -->
+      <div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:8px;">Residue Analysis</div>
+        <div id="residueList"></div>
+      </div>
+
+    </div>
+
+    <!-- Classification Legend -->
+    <div class="glass card-p mt-12 fade-in fade-in-delay-3">
+      <div class="section-title">Classification Guide</div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--accent2);box-shadow:0 0 6px var(--accent2-glow);"></div>
+        <div>
+          <div class="legend-title" style="color:var(--accent2);">Clean</div>
+          <div class="legend-desc">Surface is sterile. No contamination detected. Ready for use.</div>
+        </div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:var(--accent4);box-shadow:0 0 6px var(--accent4-glow);"></div>
+        <div>
+          <div class="legend-title" style="color:var(--accent4);">Moderate</div>
+          <div class="legend-desc">Minor contamination present. Sterilization recommended before use.</div>
+        </div>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#ff4757;box-shadow:0 0 6px rgba(255,71,87,0.4);"></div>
+        <div>
+          <div class="legend-title" style="color:#ff4757;">Dirty</div>
+          <div class="legend-desc">High contamination level. Immediate sterilization required. Do not use.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scan History -->
+    <div class="glass card-p mt-12 fade-in fade-in-delay-4">
+      <div class="section-title">Recent Scans</div>
+      <div id="scanHistory" style="display:flex;flex-direction:column;gap:0;">
+        <div style="font-size:0.78rem;color:var(--text-dim);text-align:center;padding:16px 0;">No scans yet. Start scanning to see history.</div>
+      </div>
+    </div>
+
+    <div style="height:12px;"></div>
+
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-inner">
+      <a href="dashboard.html" class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+        Home
+      </a>
+      <a href="monitoring.html" class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Monitor
+      </a>
+      <a href="ai-detection.html" class="nav-fab active" title="AI Detection">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </a>
+      <a href="history.html" class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        History
+      </a>
+      <a href="account.html" class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
+        Account
+      </a>
+    </div>
+  </nav>
+
+</div>
+
+<!-- Gemini key: load js/gemini-config.js from gemini-config.example.js (see .gitignore). -->
+<script src="js/gemini-config.js"></script>
+<script type="module" src="js/auth.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  // Key is set in js/gemini-config.js (gitignored). Browser clients still see the key in DevTools; use a backend proxy for real secrecy.
+  const GEMINI_API_KEY = (typeof window.__GEMINI_API_KEY__ === 'string' ? window.__GEMINI_API_KEY__ : '').trim();
+  // gemini-1.5-flash often returns 404 on v1beta (retired for many keys). Use current 2.5 family IDs.
+  // flash-lite = multimodal + budget-friendly for free tier; switch to gemini-2.5-flash if you need more accuracy.
+  const GEMINI_MODEL = 'gemini-2.5-flash-lite';
+  const GEMINI_URL = GEMINI_API_KEY
+    ? `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`
+    : '';
+
+  // ── Free-tier friendly limits (fewer input tokens = less quota burn; still enough for surface inspection) ──
+  const GEMINI_MAX_IMAGE_EDGE = 640; // px on longest side; ~4× fewer pixels than 1280×720
+  const GEMINI_JPEG_QUALITY = 0.72;
+  const GEMINI_MAX_OUTPUT_TOKENS = 350; // JSON reply is small; saves output quota vs 500
+
+  // Shrink canvas image for API: multimodal billing scales with image + text size.
+  function encodeCanvasForGemini(sourceCanvas) {
+    const w = sourceCanvas.width;
+    const h = sourceCanvas.height;
+    const maxEdge = GEMINI_MAX_IMAGE_EDGE;
+    const scale = Math.min(1, maxEdge / Math.max(w, h));
+    const tw = Math.max(1, Math.round(w * scale));
+    const th = Math.max(1, Math.round(h * scale));
+    const c = document.createElement('canvas');
+    c.width = tw;
+    c.height = th;
+    const cx = c.getContext('2d');
+    cx.drawImage(sourceCanvas, 0, 0, tw, th);
+    return c.toDataURL('image/jpeg', GEMINI_JPEG_QUALITY).split(',')[1];
+  }
+
+  // Parse "retry in Xs" from Gemini error body (used for automatic backoff on 429).
+  function parseRetryDelaySeconds(errData) {
+    const raw = errData?.error?.message || '';
+    const m = raw.match(/retry in ([\d.]+)s/i);
+    return m ? Math.ceil(parseFloat(m[1])) : null;
+  }
+
+  // Turn Google API JSON into a short message users can act on (429 = quota / rate limit).
+  function formatGeminiApiError(response, errData) {
+    const raw = errData?.error?.message || `HTTP ${response.status}`;
+    if (response.status === 404) {
+      return (
+        'Model not found or not enabled for this API key. ' +
+        'Update GEMINI_MODEL in ai-detection.html (e.g. gemini-2.5-flash-lite or gemini-2.5-flash). ' +
+        'List models: GET https://generativelanguage.googleapis.com/v1beta/models?key=YOUR_KEY'
+      );
+    }
+    if (response.status === 429) {
+      const secs = parseRetryDelaySeconds(errData);
+      const retryHint = secs ? ` Try again in about ${secs}s.` : '';
+      return (
+        'Gemini quota or rate limit reached.' +
+        retryHint +
+        ' If this persists, wait a few minutes or check quotas in Google AI Studio.'
+      );
+    }
+    return raw.length > 420 ? raw.slice(0, 420) + '…' : raw;
+  }
+
+  // One automatic retry on 429 after the API "retry in Xs" delay (free-tier burst limits).
+  // Only 2 attempts total so we do not block the UI for minutes when daily quota is exhausted.
+  async function geminiGenerateContent(requestBody) {
+    if (!GEMINI_URL) {
+      throw new Error('Gemini API key missing. Copy js/gemini-config.example.js to js/gemini-config.js and add your key.');
+    }
+    let lastResponse = null;
+    let lastErrData = null;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const response = await fetch(GEMINI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+      lastResponse = response;
+      if (response.ok) return response;
+      lastErrData = await response.json().catch(() => ({}));
+      if (response.status === 429 && attempt === 0) {
+        const secs = parseRetryDelaySeconds(lastErrData);
+        const waitMs = (secs != null ? secs * 1000 : 2500) + 400;
+        // Keeps UI honest during the API "retry in Xs" wait (free-tier burst limits).
+        cameraStatus.textContent = 'Status: Rate limit — retrying…';
+        await new Promise(function (resolve) { setTimeout(resolve, waitMs); });
+        continue;
+      }
+      break;
+    }
+    throw new Error(formatGeminiApiError(lastResponse, lastErrData));
+  }
+
+  // Elements
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.getElementById('captureCanvas');
+  const ctx = canvas.getContext('2d');
+  const cameraBtn = document.getElementById('cameraBtn');
+  const cameraBtnText = document.getElementById('cameraBtnText');
+  const scanBtn = document.getElementById('scanBtn');
+  const scanBtnText = document.getElementById('scanBtnText');
+  const idleIcon = document.getElementById('cameraIdleIcon');
+  const analyzingText = document.getElementById('analyzingText');
+  const scanLine = document.getElementById('scanLine');
+  const liveDot = document.getElementById('liveDot');
+  const cameraStatus = document.getElementById('cameraStatus');
+  const cameraResolution = document.getElementById('cameraResolution');
+  const cameraError = document.getElementById('cameraError');
+  const cameraErrorText = document.getElementById('cameraErrorText');
+  const switchCamBtn = document.getElementById('switchCamBtn');
+
+  // Results
+  const detectionResults = document.getElementById('detectionResults');
+  const detectionBadge = document.getElementById('detectionBadge');
+  const scanTime = document.getElementById('scanTime');
+  const confidenceNum = document.getElementById('confidenceNum');
+  const confidenceBar = document.getElementById('confidenceBar');
+  const contLevelBadge = document.getElementById('contLevelBadge');
+  const contaminationBar = document.getElementById('contaminationBar');
+  const contPct = document.getElementById('contPct');
+  const aiAnalysis = document.getElementById('aiAnalysis');
+  const residueList = document.getElementById('residueList');
+  const scanHistory = document.getElementById('scanHistory');
+
+  let stream = null;
+  let cameraActive = false;
+  let scanning = false;
+  let facingMode = 'environment'; // rear camera
+  let scanCount = 0;
+  let scans = [];
+
+  // ── Camera Controls ────────────────────────────────────────
+  async function startCamera() {
+    try {
+      if (stream) stopCamera();
+
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      });
+
+      video.srcObject = stream;
+      video.style.display = 'block';
+      canvas.style.display = 'none';
+      idleIcon.style.display = 'none';
+      cameraError.style.display = 'none';
+
+      video.onloadedmetadata = () => {
+        cameraResolution.textContent = `Resolution: ${video.videoWidth}×${video.videoHeight}`;
+      };
+
+      cameraActive = true;
+      cameraBtnText.textContent = 'Close Camera';
+      if (GEMINI_API_KEY) {
+        scanBtn.disabled = false;
+        scanBtn.style.opacity = '1';
+        scanBtn.removeAttribute('title');
+        cameraStatus.textContent = 'Status: Active';
+      } else {
+        scanBtn.disabled = true;
+        scanBtn.style.opacity = '0.5';
+        scanBtn.title = 'Copy js/gemini-config.example.js to js/gemini-config.js and add your Gemini API key.';
+        cameraStatus.textContent = 'Status: Active — add Gemini key to enable scan';
+      }
+      liveDot.style.display = '';
+
+    } catch (err) {
+      console.error('Camera error:', err);
+      cameraError.style.display = 'flex';
+      if (err.name === 'NotAllowedError') {
+        cameraErrorText.textContent = 'Camera access denied. Please allow camera permission.';
+      } else if (err.name === 'NotFoundError') {
+        cameraErrorText.textContent = 'No camera found on this device.';
+      } else {
+        cameraErrorText.textContent = 'Failed to access camera: ' + err.message;
+      }
+      idleIcon.style.display = 'none';
+    }
+  }
+
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+    video.srcObject = null;
+    video.style.display = 'none';
+    cameraActive = false;
+    cameraBtnText.textContent = 'Open Camera';
+    scanBtn.disabled = true;
+    scanBtn.style.opacity = '0.5';
+    cameraStatus.textContent = 'Status: Idle';
+    liveDot.style.display = 'none';
+    idleIcon.style.display = '';
+    canvas.style.display = 'none';
+  }
+
+  // Full-res preview on canvas; return a downscaled JPEG for Gemini (free tier: fewer input tokens).
+  function captureFrame() {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0);
+    video.style.display = 'none';
+    canvas.style.display = 'block';
+    return encodeCanvasForGemini(canvas);
+  }
+
+  // ── Switch Camera ──────────────────────────────────────────
+  switchCamBtn.addEventListener('click', () => {
+    facingMode = facingMode === 'environment' ? 'user' : 'environment';
+    if (cameraActive) startCamera();
+  });
+
+  // ── Camera Button ──────────────────────────────────────────
+  cameraBtn.addEventListener('click', () => {
+    if (cameraActive) {
+      stopCamera();
+    } else {
+      startCamera();
+    }
+  });
+
+  // ── Scan Button ────────────────────────────────────────────
+  scanBtn.addEventListener('click', async () => {
+    if (scanning || !cameraActive) return;
+    scanning = true;
+
+    // Capture frame
+    const imageBase64 = captureFrame();
+
+    // Show analyzing state
+    analyzingText.style.display = 'flex';
+    scanLine.classList.add('active');
+    scanBtnText.textContent = 'Analyzing...';
+    scanBtn.disabled = true;
+    cameraStatus.textContent = 'Status: Analyzing';
+
+    try {
+      const result = await analyzeWithGemini(imageBase64);
+      displayResults(result);
+      addToHistory(result);
+    } catch (err) {
+      console.error('Gemini error:', err);
+      displayError(err.message);
+    }
+
+    // Reset UI
+    analyzingText.style.display = 'none';
+    scanLine.classList.remove('active');
+    scanBtnText.textContent = 'Scan Again';
+    scanBtn.disabled = !GEMINI_API_KEY;
+    scanBtn.style.opacity = GEMINI_API_KEY ? '1' : '0.5';
+    cameraStatus.textContent = 'Status: Done';
+    scanning = false;
+  });
+
+  // ── Gemini AI Analysis ─────────────────────────────────────
+  async function analyzeWithGemini(imageBase64) {
+    // Short prompt = fewer text tokens on free tier; same JSON contract as before.
+    const prompt =
+      'SteriFlow food-surface inspector (stainless steel). Reply ONLY with valid JSON, no markdown.\n' +
+      '{"classification":"Clean"|"Moderate"|"Dirty","confidence":0-100,"contamination_level":0-100,' +
+      '"analysis":"1-2 sentences","residues":[{"name":"string","percentage":0-100},{"name":"string","percentage":0-100}]}\n' +
+      'Clean=ready; Moderate=light stains; Dirty=heavy residue. Be honest.';
+
+    const response = await geminiGenerateContent({
+      contents: [{
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType: 'image/jpeg', data: imageBase64 } }
+        ]
+      }],
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS
+      }
+    });
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    // Parse JSON from response (strip markdown code blocks if present)
+    const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    try {
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      console.error('Failed to parse Gemini response:', text);
+      throw new Error('Failed to parse AI response');
+    }
+  }
+
+  // ── Display Results ────────────────────────────────────────
+  function displayResults(result) {
+    detectionResults.style.display = '';
+
+    // Classification badge
+    const cls = result.classification || 'Clean';
+    detectionBadge.textContent = cls.toUpperCase();
+    if (cls === 'Clean') {
+      detectionBadge.className = 'badge badge-clean badge-lg';
+    } else if (cls === 'Moderate') {
+      detectionBadge.className = 'badge badge-moderate badge-lg';
+    } else {
+      detectionBadge.className = 'badge badge-dirty badge-lg';
+    }
+
+    // Time
+    const now = new Date();
+    scanTime.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    // Confidence
+    const conf = result.confidence || 0;
+    confidenceNum.textContent = conf + '%';
+    confidenceBar.style.width = conf + '%';
+    if (cls === 'Dirty') {
+      confidenceBar.className = 'progress-fill pink';
+    } else if (cls === 'Moderate') {
+      confidenceBar.className = 'progress-fill yellow';
+    } else {
+      confidenceBar.className = 'progress-fill teal';
+    }
+
+    // Contamination level
+    const contLevel = result.contamination_level || 0;
+    contPct.textContent = contLevel + '%';
+    contaminationBar.style.width = contLevel + '%';
+
+    if (contLevel > 60) {
+      contLevelBadge.textContent = 'HIGH';
+      contLevelBadge.className = 'badge badge-dirty';
+      contaminationBar.className = 'progress-fill pink';
+      contPct.style.color = 'var(--accent3)';
+    } else if (contLevel > 25) {
+      contLevelBadge.textContent = 'MEDIUM';
+      contLevelBadge.className = 'badge badge-moderate';
+      contaminationBar.className = 'progress-fill yellow';
+      contPct.style.color = 'var(--accent4)';
+    } else {
+      contLevelBadge.textContent = 'LOW';
+      contLevelBadge.className = 'badge badge-clean';
+      contaminationBar.className = 'progress-fill teal';
+      contPct.style.color = 'var(--accent2)';
+    }
+
+    // AI Analysis
+    aiAnalysis.textContent = result.analysis || 'No analysis available.';
+
+    // Residues
+    const residues = result.residues || [];
+    if (residues.length > 0) {
+      residueList.innerHTML = residues.map(r => `
+        <div style="margin-bottom:10px;">
+          <div class="flex justify-between" style="font-size:0.78rem;margin-bottom:4px;">
+            <span style="font-weight:500;">${escapeHtml(r.name)}</span>
+            <span style="font-weight:600;color:var(--accent3);">${r.percentage}%</span>
+          </div>
+          <div class="progress-track" style="height:5px;">
+            <div class="progress-fill pink" style="width:${r.percentage}%;transition:width 0.8s ease;"></div>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      residueList.innerHTML = '<div style="font-size:0.78rem;color:var(--text-dim);">No residues detected.</div>';
+    }
+
+    // Scroll to results
+    detectionResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function displayError(message) {
+    detectionResults.style.display = '';
+    detectionBadge.textContent = 'ERROR';
+    detectionBadge.className = 'badge badge-dirty badge-lg';
+    scanTime.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    confidenceNum.textContent = '—';
+    confidenceBar.style.width = '0%';
+    contPct.textContent = '—';
+    contaminationBar.style.width = '0%';
+    contLevelBadge.textContent = '—';
+    aiAnalysis.textContent = 'Error: ' + message;
+    residueList.innerHTML = '';
+  }
+
+  // ── Scan History ───────────────────────────────────────────
+  function addToHistory(result) {
+    scanCount++;
+    const now = new Date();
+    scans.unshift({
+      id: scanCount,
+      time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      date: now.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
+      classification: result.classification
+    });
+
+    // Keep only last 10
+    if (scans.length > 10) scans.pop();
+
+    renderHistory();
+  }
+
+  function renderHistory() {
+    scanHistory.innerHTML = scans.map((s, i) => {
+      let badgeClass = 'badge-clean';
+      if (s.classification === 'Moderate') badgeClass = 'badge-moderate';
+      if (s.classification === 'Dirty') badgeClass = 'badge-dirty';
+
+      const border = i < scans.length - 1 ? 'border-bottom:1px solid var(--glass-border);' : '';
+      return `
+        <div class="flex items-center justify-between" style="padding:10px 0;${border}">
+          <div style="font-size:0.8rem;">
+            <div style="font-weight:500;">Scan #${String(s.id).padStart(3, '0')}</div>
+            <div style="font-size:0.68rem;color:var(--text-dim);">${s.time} — ${s.date}</div>
+          </div>
+          <span class="badge ${badgeClass}">${s.classification}</span>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Helpers ────────────────────────────────────────────────
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+})();
+</script>
+</body>
+</html>

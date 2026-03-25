@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SteriFlow — IoT-based smart sterilization system for stainless food distribution surfaces. AI detection, UV-C, and automatic ethanol spray." />
+  <title>SteriFlow — IoT-Based Smart Sterilization</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="apple-touch-icon" href="assets/logo.png" />
+  <link rel="stylesheet" href="assets/index.css" />
+</head>
+<body class="lp-body">
+
+  <!-- ═══════════════════════════════════════════════
+       ANIMATED BACKGROUND
+  ═══════════════════════════════════════════════ -->
+  <div class="lp-bg-canvas" aria-hidden="true">
+    <div class="lp-orb lp-orb-1"></div>
+    <div class="lp-orb lp-orb-2"></div>
+    <div class="lp-orb lp-orb-3"></div>
+    <div class="lp-orb lp-orb-4"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       1. NAVBAR
+  ═══════════════════════════════════════════════ -->
+  <nav class="lp-nav" id="lpNav" role="navigation" aria-label="Main navigation">
+    <div class="lp-nav-inner">
+      <!-- Logo -->
+      <a href="#" class="lp-nav-logo" aria-label="SteriFlow Home">
+        <img src="assets/logo.png" alt="SteriFlow" class="lp-logo-icon" />
+        <span class="lp-logo-text">SteriFlow</span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <ul class="lp-nav-links" role="list">
+        <li><a href="#beranda" class="lp-nav-link active">Home</a></li>
+        <li><a href="#cara-kerja" class="lp-nav-link">How It Works</a></li>
+        <li><a href="#fitur" class="lp-nav-link">Features</a></li>
+
+        <li><a href="#tim" class="lp-nav-link">Our Team</a></li>
+        <li><a href="#kontak" class="lp-nav-link">Contact</a></li>
+      </ul>
+
+      <!-- CTA + Hamburger -->
+      <div class="lp-nav-right">
+        <a href="auth.html" class="lp-btn lp-btn-primary lp-nav-cta">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3h5v5"/><path d="M8 12l10-9"/><circle cx="7" cy="13" r="4"/></svg>
+          Login / Register
+        </a>
+        <button class="lp-hamburger" id="lpHamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="lpMobileMenu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Drawer -->
+  <div class="lp-mobile-menu" id="lpMobileMenu" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Mobile navigation">
+    <div class="lp-mobile-menu-backdrop" id="lpMenuBackdrop"></div>
+    <nav class="lp-mobile-drawer">
+      <div class="lp-mobile-drawer-header">
+        <a href="#" class="lp-nav-logo">
+          <img src="assets/logo.png" alt="SteriFlow" class="lp-logo-icon" />
+          <span class="lp-logo-text">SteriFlow</span>
+        </a>
+        <button class="lp-mobile-close" id="lpMobileClose" aria-label="Close menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <ul class="lp-mobile-nav-links" role="list">
+        <li><a href="#beranda" class="lp-mobile-link">Home</a></li>
+        <li><a href="#cara-kerja" class="lp-mobile-link">How It Works</a></li>
+        <li><a href="#fitur" class="lp-mobile-link">Features</a></li>
+
+        <li><a href="#tim" class="lp-mobile-link">Our Team</a></li>
+        <li><a href="#kontak" class="lp-mobile-link">Contact</a></li>
+      </ul>
+      <a href="auth.html" class="lp-btn lp-btn-primary lp-mobile-cta">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3h5v5"/><path d="M8 12l10-9"/><circle cx="7" cy="13" r="4"/></svg>
+        Login / Register
+      </a>
+    </nav>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       MAIN CONTENT
+  ═══════════════════════════════════════════════ -->
+  <main id="lpMain">
+
+    <!-- ═══ 2. HERO SECTION ═══ -->
+    <section class="lp-hero" id="beranda" aria-labelledby="heroHeading">
+      <div class="lp-container">
+        <div class="lp-hero-grid">
+
+          <!-- Left: Text Content -->
+          <div class="lp-hero-content">
+            <!-- Badges -->
+            <div class="lp-hero-badges" role="list" aria-label="Product highlights">
+              <span class="lp-badge lp-badge-purple" role="listitem">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2L9.8 6.2L14.4 6.6L11.1 9.4L12.1 14L8 11.5L3.9 14L4.9 9.4L1.6 6.6L6.2 6.2L8 2Z" fill="currentColor"/></svg>
+                AI Powered
+              </span>
+              <span class="lp-badge lp-badge-teal" role="listitem">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="currentColor"/><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="8" y1="2" x2="8" y2="0" stroke="currentColor" stroke-width="1.5"/><line x1="8" y1="16" x2="8" y2="14" stroke="currentColor" stroke-width="1.5"/></svg>
+                Real-time
+              </span>
+              <span class="lp-badge lp-badge-pink" role="listitem">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="2" y="6" width="4" height="4" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="10" y="2" width="4" height="8" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M6 8H10" stroke="currentColor" stroke-width="1.5"/></svg>
+                IoT Connected
+              </span>
+            </div>
+
+            <!-- Headline -->
+            <h1 class="lp-hero-heading" id="heroHeading">
+              <span class="lp-text-white">Smart</span>
+              <span class="lp-text-white"> Sterilization,</span>
+              <br/>
+              <span class="lp-gradient-text">IoT-Based</span>
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="lp-hero-subtitle">
+              Automated sterilization system for stainless food distribution surfaces. AI contamination detection, UV-C, and ethanol spray in one smart device.
+            </p>
+
+            <!-- CTAs -->
+            <div class="lp-hero-ctas">
+              <a href="#cara-kerja" class="lp-btn lp-btn-primary lp-btn-lg">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5,3 19,10 5,17 5,3"/></svg>
+                Get Started
+              </a>
+              <a href="#fitur" class="lp-btn lp-btn-outline lp-btn-lg">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="10" r="7.5"/><path d="M10 7v6M10 15v.5"/></svg>
+                Learn More
+              </a>
+            </div>
+          </div>
+
+          <!-- Right: Device Mockup Card -->
+          <div class="lp-hero-mockup" aria-label="Dashboard preview" role="img">
+            <div class="lp-mockup-card lp-float-anim">
+              <!-- Mockup Header -->
+              <div class="lp-mockup-header">
+                <div class="lp-mockup-dots" aria-hidden="true">
+                  <span class="lp-dot lp-dot-red"></span>
+                  <span class="lp-dot lp-dot-yellow"></span>
+                  <span class="lp-dot lp-dot-green"></span>
+                </div>
+                <span class="lp-mockup-title">SteriFlow Dashboard</span>
+                <div class="lp-mockup-status">
+                  <span class="lp-status-pulse" aria-hidden="true"></span>
+                  <span>LIVE</span>
+                </div>
+              </div>
+
+              <!-- Sensor Readings -->
+              <div class="lp-mockup-sensors">
+                <div class="lp-sensor-card lp-sensor-voc">
+                  <svg class="lp-sensor-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2C8 2 5 6 5 10C5 14 8 18 12 22C16 18 19 14 19 10C19 6 16 2 12 2Z" stroke="#7c5cfc" stroke-width="1.5" fill="none"/><circle cx="12" cy="10" r="3" fill="#7c5cfc" opacity="0.7"/></svg>
+                  <div class="lp-sensor-info">
+                    <span class="lp-sensor-label">VOC Level</span>
+                    <span class="lp-sensor-value lp-sensor-value-purple">350 <small>ppm</small></span>
+                  </div>
+                </div>
+                <div class="lp-sensor-card lp-sensor-temp">
+                  <svg class="lp-sensor-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2v9.17A4 4 0 1 0 14 18V5a2 2 0 0 0-2-2Z" stroke="#ffc247" stroke-width="1.5"/><circle cx="12" cy="18" r="2.5" fill="#ffc247" opacity="0.8"/></svg>
+                  <div class="lp-sensor-info">
+                    <span class="lp-sensor-label">Temperature</span>
+                    <span class="lp-sensor-value lp-sensor-value-yellow">28.5 <small>°C</small></span>
+                  </div>
+                </div>
+                <div class="lp-sensor-card lp-sensor-hum">
+                  <svg class="lp-sensor-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l7 10a7 7 0 1 1-14 0z" stroke="#36d6c3" stroke-width="1.5" fill="none"/></svg>
+                  <div class="lp-sensor-info">
+                    <span class="lp-sensor-label">Humidity</span>
+                    <span class="lp-sensor-value lp-sensor-value-teal">65 <small>%</small></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sterilization Status -->
+              <div class="lp-mockup-sterilizing">
+                <div class="lp-sterilize-header">
+                  <span>System Status</span>
+                  <div class="lp-sterilize-badge">
+                    <span class="lp-pulse-ring" aria-hidden="true"></span>
+                    <span>STERILIZING</span>
+                  </div>
+                </div>
+                <div class="lp-sterilize-progress" role="progressbar" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100" aria-label="Sterilization progress">
+                  <div class="lp-progress-bar">
+                    <div class="lp-progress-fill" style="width:72%"></div>
+                  </div>
+                  <span>72%</span>
+                </div>
+                <div class="lp-sterilize-actions">
+                  <div class="lp-action-chip lp-chip-active">
+                    <span class="lp-chip-dot" style="background:#7c5cfc" aria-hidden="true"></span>
+                    UV-C Lamp ON
+                  </div>
+                  <div class="lp-action-chip lp-chip-active">
+                    <span class="lp-chip-dot" style="background:#36d6c3" aria-hidden="true"></span>
+                    Ethanol Spray
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Decorative glow elements -->
+            <div class="lp-mockup-glow lp-glow-purple" aria-hidden="true"></div>
+            <div class="lp-mockup-glow lp-glow-teal" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scroll indicator -->
+      <a href="#stats" class="lp-scroll-indicator" aria-label="Scroll to next section">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </a>
+    </section>
+
+    <!-- ═══ 3. STATS BAR ═══ -->
+    <section class="lp-stats" id="stats" aria-label="Key statistics">
+      <div class="lp-container">
+        <div class="lp-stats-grid">
+          <div class="lp-stat-item lp-reveal">
+            <span class="lp-stat-value" data-target="99.9" data-suffix="%" data-decimal="1">0%</span>
+            <span class="lp-stat-label">Sterilization Effectiveness</span>
+          </div>
+          <div class="lp-stat-divider" aria-hidden="true"></div>
+          <div class="lp-stat-item lp-reveal">
+            <span class="lp-stat-value lp-stat-teal" data-target="5" data-prefix="<" data-suffix=" Min">0 Min</span>
+            <span class="lp-stat-label">Process Duration</span>
+          </div>
+          <div class="lp-stat-divider" aria-hidden="true"></div>
+          <div class="lp-stat-item lp-reveal">
+            <span class="lp-stat-value lp-stat-pink" data-target="3" data-suffix=" Sensor">0 Sensor</span>
+            <span class="lp-stat-label">Active Sensors</span>
+          </div>
+          <div class="lp-stat-divider" aria-hidden="true"></div>
+          <div class="lp-stat-item lp-reveal">
+            <span class="lp-stat-value lp-stat-yellow">24/7</span>
+            <span class="lp-stat-label">Active Monitoring</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 4. CARA KERJA ═══ -->
+    <section class="lp-section lp-cara-kerja" id="cara-kerja" aria-labelledby="caraKerjaTitle">
+      <div class="lp-container">
+        <div class="lp-section-header lp-reveal">
+          <span class="lp-section-tag">System Flow</span>
+          <h2 class="lp-section-title" id="caraKerjaTitle">How SteriFlow Works</h2>
+          <p class="lp-section-subtitle">Automated sterilization from detection to completion in 6 smart steps</p>
+        </div>
+
+        <div class="lp-timeline">
+
+          <!-- Step 1 -->
+          <div class="lp-timeline-item lp-timeline-left lp-reveal">
+            <div class="lp-timeline-content">
+              <div class="lp-timeline-card">
+                <div class="lp-step-badge lp-step-purple">
+                  <span>01</span>
+                </div>
+                <div class="lp-step-icon lp-step-icon-purple">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </div>
+                <div class="lp-step-body">
+                  <h3 class="lp-step-title">System Initialization</h3>
+                  <p class="lp-step-desc">ESP32-CAM activates all components: SGP30 sensor, DHT22, camera, relay module, and RGB LED indicator ready to operate.</p>
+                </div>
+              </div>
+            </div>
+            <div class="lp-timeline-node" aria-hidden="true">
+              <div class="lp-node-circle lp-node-purple"></div>
+              <div class="lp-node-line"></div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="lp-timeline-item lp-timeline-right lp-reveal">
+            <div class="lp-timeline-node" aria-hidden="true">
+              <div class="lp-node-circle lp-node-teal"></div>
+              <div class="lp-node-line"></div>
+            </div>
+            <div class="lp-timeline-content">
+              <div class="lp-timeline-card">
+                <div class="lp-step-badge lp-step-teal">
+                  <span>02</span>
+                </div>
+                <div class="lp-step-icon lp-step-icon-teal">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2C7 2 3 7 3 12C3 17 7 22 12 22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12 22C17 22 21 17 21 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3 3"/><circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.5"/></svg>
+                </div>
+                <div class="lp-step-body">
+                  <h3 class="lp-step-title">Contamination Detection</h3>
+                  <p class="lp-step-desc">SGP30 sensor analyzes VOC (Volatile Organic Compound) levels in the air. If the threshold is exceeded, the system is automatically activated.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="lp-timeline-item lp-timeline-left lp-reveal">
+            <div class="lp-timeline-content">
+              <div class="lp-timeline-card">
+                <div class="lp-step-badge lp-step-pink">
+                  <span>03</span>
+                </div>
+                <div class="lp-step-icon lp-step-icon-pink">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M12 13v9M8 18h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9 5.5C9 5.5 10 4 12 4C14 4 15 5.5 15 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </div>
+                <div class="lp-step-body">
+                  <h3 class="lp-step-title">Sterilization Process</h3>
+                  <p class="lp-step-desc">UV-C lamp actively kills pathogenic microorganisms directly, along with 70% food-grade ethanol spray through the system nozzle.</p>
+                </div>
+              </div>
+            </div>
+            <div class="lp-timeline-node" aria-hidden="true">
+              <div class="lp-node-circle lp-node-pink"></div>
+              <div class="lp-node-line"></div>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="lp-timeline-item lp-timeline-right lp-reveal">
+            <div class="lp-timeline-node" aria-hidden="true">
+              <div class="lp-node-circle lp-node-yellow"></div>
+              <div class="lp-node-line"></div>
+            </div>
+            <div class="lp-timeline-content">
+              <div class="lp-timeline-card">
+                <div class="lp-step-badge lp-step-yellow">
+                  <span>04</span>
+                </div>
+                <div class="lp-step-icon lp-step-icon-yellow">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2v9.17A4 4 0 1 0 14 18V5a2 2 0 0 0-2-2Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="18" r="2.5" fill="currentColor" opacity="0.6"/><path d="M10 8h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </div>
+                <div class="lp-step-body">
+                  <h3 class="lp-step-title">Environment Monitoring</h3>
+                  <p class="lp-step-desc">DHT22 sensor continuously monitors room temperature and humidity to ensure optimal conditions during the sterilization process.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="lp-timeline-item lp-timeline-left lp-reveal">
+            <div class="lp-timeline-content">
+              <div class="lp-timeline-card">
+                <div class="lp-step-badge lp-step-purple">
+                  <span>05</span>
+                </div>
+                <div class="lp-step-icon lp-step-icon-purple">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 20h8M12 18v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="6" y="7" width="5" height="4" rx="1" fill="currentColor" opacity="0.4"/><rect x="13" y="7" width="4" height="2" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="13" y="11" width="4" height="1.5" rx="0.5" fill="currentColor" opacity="0.4"/></svg>
+                </div>
+                <div class="lp-step-body">
+                  <h3 class="lp-step-title">Real-time Monitoring</h3>
+                  <p class="lp-step-desc">Web dashboard displays real-time sensor data. ESP32-CAM live streaming for AI contamination detection via OpenCV & TensorFlow Lite.</p>
+                </div>
+              </div>
+            </div>
+            <div class="lp-timeline-node" aria-hidden="true">
+              <div class="lp-node-circle lp-node-purple"></div>
+              <div class="lp-node-line"></div>
+            </div>
+          </div>
+
+          <!-- Step 6 -->
+          <div class="lp-timeline-item lp-timeline-right lp-reveal">
+            <div class="lp-timeline-node" aria-hidden="true">
+              <div class="lp-node-circle lp-node-teal"></div>
+            </div>
+            <div class="lp-timeline-content">
+              <div class="lp-timeline-card">
+                <div class="lp-step-badge lp-step-teal">
+                  <span>06</span>
+                </div>
+                <div class="lp-step-icon lp-step-icon-teal">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/></svg>
+                </div>
+                <div class="lp-step-body">
+                  <h3 class="lp-step-title">Process Complete</h3>
+                  <p class="lp-step-desc">System automatically turns off all actuators after sterilization is complete. Logs are saved to the dashboard and RGB LED turns green indicating clean.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 5. KOMPONEN SISTEM ═══ -->
+    <section class="lp-section lp-components" id="fitur" aria-labelledby="komponenTitle">
+      <div class="lp-container">
+        <div class="lp-section-header lp-reveal">
+          <span class="lp-section-tag">Hardware & Software</span>
+          <h2 class="lp-section-title" id="komponenTitle">System Components</h2>
+          <p class="lp-section-subtitle">Selected technology for precise and reliable sterilization</p>
+        </div>
+
+        <div class="lp-components-grid">
+
+          <div class="lp-component-card lp-reveal" tabindex="0">
+            <div class="lp-component-icon lp-comp-purple">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" opacity="0.5"/><path d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <h3 class="lp-component-name">ESP32-CAM</h3>
+            <p class="lp-component-desc">Integrated AI monitoring control center & camera. Built-in WiFi for real-time IoT connectivity.</p>
+            <span class="lp-component-tag">Controller</span>
+          </div>
+
+          <div class="lp-component-card lp-reveal" tabindex="0">
+            <div class="lp-component-icon lp-comp-teal">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8c0 0 3-3 9-3s9 3 9 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M5 12c0 0 2-2 7-2s7 2 7 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 16c0 0 1-1 4-1s4 1 4 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="20" r="1.5" fill="currentColor"/></svg>
+            </div>
+            <h3 class="lp-component-name">SGP30 VOC Sensor</h3>
+            <p class="lp-component-desc">Detects volatile organic compounds (VOC) and CO2 equivalent. Automatically triggers the sterilization process.</p>
+            <span class="lp-component-tag">Sensor</span>
+          </div>
+
+          <div class="lp-component-card lp-reveal" tabindex="0">
+            <div class="lp-component-icon lp-comp-pink">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <h3 class="lp-component-name">UV-C Lamp</h3>
+            <p class="lp-component-desc">UV sterilization kills 99.9% of pathogenic microorganisms including bacteria, viruses, and fungi on surfaces.</p>
+            <span class="lp-component-tag">Actuator</span>
+          </div>
+
+          <div class="lp-component-card lp-reveal" tabindex="0">
+            <div class="lp-component-icon lp-comp-yellow">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2v9.17A4 4 0 1 0 14 18V5a2 2 0 0 0-2-2Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="18" r="2.5" fill="currentColor" opacity="0.6"/><path d="M10 8h4M10 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <h3 class="lp-component-name">DHT22 Sensor</h3>
+            <p class="lp-component-desc">Monitors temperature and humidity with precision. Data displayed in real-time on the web dashboard.</p>
+            <span class="lp-component-tag">Sensor</span>
+          </div>
+
+          <div class="lp-component-card lp-reveal" tabindex="0">
+            <div class="lp-component-icon lp-comp-teal">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l6 12H6L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/><path d="M7 17c0 2.8 2.2 5 5 5s5-2.2 5-5" stroke="currentColor" stroke-width="1.5"/><path d="M9 14c1 2 5 2 6 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <h3 class="lp-component-name">Ethanol Spray System</h3>
+            <p class="lp-component-desc">70% food-grade ethanol spray through system nozzle. Controlled by 12V pump and MOSFET driver.</p>
+            <span class="lp-component-tag">Actuator</span>
+          </div>
+
+          <div class="lp-component-card lp-reveal" tabindex="0">
+            <div class="lp-component-icon lp-comp-pink">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" fill="currentColor" opacity="0.7"/><path d="M12 6V4M18 12h2M12 18v2M6 12H4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <h3 class="lp-component-name">RGB LED Indicator</h3>
+            <p class="lp-component-desc">Visual system status indicator with three colors: red (contamination), yellow (processing), green (sterile &amp; safe).</p>
+            <span class="lp-component-tag">Indicator</span>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 6. DASHBOARD PREVIEW ═══ -->
+    <section class="lp-section lp-dashboard-preview" id="dashboard" aria-labelledby="dashPreviewTitle">
+      <div class="lp-container">
+        <div class="lp-section-header lp-reveal">
+          <span class="lp-section-tag">Web Interface</span>
+          <h2 class="lp-section-title" id="dashPreviewTitle">Dashboard Monitoring</h2>
+          <p class="lp-section-subtitle">Monitor all sensors and control the system from anywhere via web browser</p>
+        </div>
+
+        <div class="lp-browser-mockup lp-reveal">
+          <!-- Browser Chrome -->
+          <div class="lp-browser-chrome">
+            <div class="lp-browser-dots" aria-hidden="true">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="lp-browser-url">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M7 11.5A4.5 4.5 0 1 0 7 2.5a4.5 4.5 0 0 0 0 9ZM13.5 13.5l-2.5-2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <span>192.168.4.1 — SteriFlow Dashboard</span>
+            </div>
+            <div class="lp-browser-actions" aria-hidden="true">
+              <span class="lp-live-badge">● LIVE</span>
+            </div>
+          </div>
+
+          <!-- Dashboard Tabs -->
+          <div class="lp-dash-tabs" role="tablist" aria-label="Dashboard tabs">
+            <button class="lp-dash-tab lp-tab-active" role="tab" aria-selected="true" data-tab="home">
+              <svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 8.5L9 3l6 5.5V15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M7 16v-5h4v5" stroke="currentColor" stroke-width="1.5"/></svg>
+              Home
+            </button>
+            <button class="lp-dash-tab" role="tab" aria-selected="false" data-tab="monitoring">
+              <svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><polyline points="2,12 5,7 8,10 11,5 14,8 16,5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Monitoring
+            </button>
+            <button class="lp-dash-tab" role="tab" aria-selected="false" data-tab="ai">
+              <svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><rect x="2" y="2" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6 8l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 13v3M11 13v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              AI Detection
+            </button>
+            <button class="lp-dash-tab" role="tab" aria-selected="false" data-tab="history">
+              <svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M9 5v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Log
+            </button>
+          </div>
+
+          <!-- Dashboard Content Panels -->
+          <div class="lp-dash-content">
+            <!-- Home Tab -->
+            <div class="lp-dash-panel lp-panel-active" id="panel-home">
+              <div class="lp-dash-overview">
+                <div class="lp-overview-status">
+                  <div class="lp-ov-badge">
+                    <span class="lp-pulse-dot" aria-hidden="true"></span>
+                    <span>System Active</span>
+                  </div>
+                  <span class="lp-ov-time">Tuesday, 25 Mar 2026 · 14:32</span>
+                </div>
+                <div class="lp-ov-grid">
+                  <div class="lp-ov-card lp-ov-voc">
+                    <span class="lp-ov-label">VOC</span>
+                    <span class="lp-ov-val">350</span>
+                    <span class="lp-ov-unit">ppm</span>
+                    <div class="lp-ov-bar"><div style="width:65%;background:linear-gradient(90deg,#7c5cfc,#a78bfa)"></div></div>
+                  </div>
+                  <div class="lp-ov-card lp-ov-temp">
+                    <span class="lp-ov-label">Temp</span>
+                    <span class="lp-ov-val">28.5</span>
+                    <span class="lp-ov-unit">°C</span>
+                    <div class="lp-ov-bar"><div style="width:57%;background:linear-gradient(90deg,#ffc247,#ffdb8e)"></div></div>
+                  </div>
+                  <div class="lp-ov-card lp-ov-hum">
+                    <span class="lp-ov-label">Humidity</span>
+                    <span class="lp-ov-val">65</span>
+                    <span class="lp-ov-unit">%</span>
+                    <div class="lp-ov-bar"><div style="width:65%;background:linear-gradient(90deg,#36d6c3,#7ff5ea)"></div></div>
+                  </div>
+                  <div class="lp-ov-card lp-ov-status">
+                    <span class="lp-ov-label">Status</span>
+                    <span class="lp-ov-val-sm lp-steril-text">STERILIZING</span>
+                    <div class="lp-ov-indicator">
+                      <span class="lp-pulse-dot" aria-hidden="true"></span>
+                      Active
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Monitoring Tab -->
+            <div class="lp-dash-panel" id="panel-monitoring">
+              <div class="lp-dash-charts">
+                <div class="lp-chart-header">
+                  <span>VOC Level — Last 24 Hours</span>
+                  <span class="lp-chart-tag">Real-time</span>
+                </div>
+                <div class="lp-fake-chart" aria-hidden="true">
+                  <svg viewBox="0 0 300 80" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#7c5cfc" stop-opacity="0.4"/>
+                        <stop offset="100%" stop-color="#7c5cfc" stop-opacity="0"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M0 60 C20 55 30 40 50 42 C70 44 80 65 100 60 C120 55 130 30 150 28 C170 26 180 45 200 40 C220 35 230 20 250 25 C270 30 280 50 300 45 L300 80 L0 80 Z" fill="url(#chartGrad)"/>
+                    <path d="M0 60 C20 55 30 40 50 42 C70 44 80 65 100 60 C120 55 130 30 150 28 C170 26 180 45 200 40 C220 35 230 20 250 25 C270 30 280 50 300 45" fill="none" stroke="#7c5cfc" stroke-width="2"/>
+                  </svg>
+                </div>
+                <div class="lp-chart-stats">
+                  <div><span>Min</span><strong>120 ppm</strong></div>
+                  <div><span>Avg</span><strong>312 ppm</strong></div>
+                  <div><span>Max</span><strong>580 ppm</strong></div>
+                </div>
+              </div>
+            </div>
+            <!-- AI Tab -->
+            <div class="lp-dash-panel" id="panel-ai">
+              <div class="lp-ai-preview">
+                <div class="lp-ai-cam">
+                  <div class="lp-cam-frame" aria-label="Camera feed placeholder">
+                    <span class="lp-corner lp-corner-tl" aria-hidden="true"></span>
+                    <span class="lp-corner lp-corner-tr" aria-hidden="true"></span>
+                    <span class="lp-corner lp-corner-bl" aria-hidden="true"></span>
+                    <span class="lp-corner lp-corner-br" aria-hidden="true"></span>
+                    <div class="lp-cam-placeholder">
+                      <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect x="6" y="12" width="36" height="27" rx="4" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><circle cx="24" cy="25" r="7" stroke="rgba(255,255,255,0.3)" stroke-width="2"/><path d="M18 12V10a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2" stroke="rgba(255,255,255,0.3)" stroke-width="2"/></svg>
+                      <span>ESP32-CAM Feed</span>
+                    </div>
+                    <div class="lp-detection-box" aria-label="Detection overlay">
+                      <span class="lp-detection-label">DIRTY</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="lp-ai-results">
+                  <div class="lp-ai-result-item">
+                    <span class="lp-ai-label">Detection Result</span>
+                    <span class="lp-ai-value lp-ai-dirty">DIRTY</span>
+                  </div>
+                  <div class="lp-ai-result-item">
+                    <span class="lp-ai-label">Confidence</span>
+                    <span class="lp-ai-value">87%</span>
+                  </div>
+                  <div class="lp-ai-result-item lp-ai-bar-item">
+                    <span class="lp-ai-label">Contamination Level</span>
+                    <div class="lp-ai-bar-wrap">
+                      <div class="lp-ai-bar-track">
+                        <div class="lp-ai-bar-fill" style="width:87%"></div>
+                      </div>
+                      <span class="lp-ai-bar-label lp-ai-high">HIGH</span>
+                    </div>
+                  </div>
+                  <div class="lp-ai-result-item">
+                    <span class="lp-ai-label">Residue Detected</span>
+                    <span class="lp-ai-value">Food Particles 78%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- History Tab -->
+            <div class="lp-dash-panel" id="panel-history">
+              <div class="lp-history-preview">
+                <div class="lp-history-header">
+                  <span>Sterilization Log</span>
+                  <span class="lp-chart-tag">12 entries today</span>
+                </div>
+                <div class="lp-history-list">
+                  <div class="lp-history-item lp-hist-clean">
+                    <div class="lp-hist-dot lp-hist-green" aria-hidden="true"></div>
+                    <div class="lp-hist-info">
+                      <span class="lp-hist-title">Sterilization Complete</span>
+                      <span class="lp-hist-meta">14:28 · Duration 3m 42s · VOC 120ppm</span>
+                    </div>
+                    <span class="lp-hist-badge lp-hist-badge-green">Clean</span>
+                  </div>
+                  <div class="lp-history-item">
+                    <div class="lp-hist-dot lp-hist-yellow" aria-hidden="true"></div>
+                    <div class="lp-hist-info">
+                      <span class="lp-hist-title">High VOC Detected</span>
+                      <span class="lp-hist-meta">14:15 · VOC 480ppm · Auto-trigger</span>
+                    </div>
+                    <span class="lp-hist-badge lp-hist-badge-yellow">Processing</span>
+                  </div>
+                  <div class="lp-history-item lp-hist-clean">
+                    <div class="lp-hist-dot lp-hist-green" aria-hidden="true"></div>
+                    <div class="lp-hist-info">
+                      <span class="lp-hist-title">Sterilization Complete</span>
+                      <span class="lp-hist-meta">13:52 · Duration 4m 11s · VOC 95ppm</span>
+                    </div>
+                    <span class="lp-hist-badge lp-hist-badge-green">Clean</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lp-dash-cta lp-reveal">
+          <a href="auth.html" class="lp-btn lp-btn-primary lp-btn-lg">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3h5v5"/><path d="M8 12l10-9"/><circle cx="7" cy="13" r="4"/></svg>
+            Login / Register
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 7. TEKNOLOGI (removed) ═══ -->
+    <section class="lp-section lp-teknologi" id="teknologi" style="display:none">
+      <div class="lp-container">
+        <div class="lp-section-header lp-reveal">
+          <span class="lp-section-tag">Stack</span>
+          <h2 class="lp-section-title" id="teknologiTitle">Technology Used</h2>
+          <p class="lp-section-subtitle">Cutting-edge combination of IoT hardware and AI for future sterilization solutions</p>
+        </div>
+
+        <div class="lp-tech-groups">
+          <!-- Hardware -->
+          <div class="lp-tech-group lp-reveal">
+            <h3 class="lp-tech-group-title">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="6" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 6V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10.5" r="1.5" fill="currentColor" opacity="0.7"/></svg>
+              Hardware Components
+            </h3>
+            <div class="lp-tech-pills">
+              <div class="lp-tech-pill lp-pill-purple">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><rect x="8" y="8" width="4" height="4" rx="0.5" fill="currentColor" opacity="0.5"/><path d="M8 3v2M12 3v2M8 15v2M12 15v2M3 8h2M3 12h2M15 8h2M15 12h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <div class="lp-pill-content">
+                  <span class="lp-pill-name">ESP32-CAM</span>
+                  <span class="lp-pill-cat">Microcontroller</span>
+                </div>
+              </div>
+              <div class="lp-tech-pill lp-pill-teal">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 8c2-3 10-3 12 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6 11.5c1.5-2 6.5-2 8 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="14.5" r="1.5" fill="currentColor"/></svg>
+                <div class="lp-pill-content">
+                  <span class="lp-pill-name">SGP30</span>
+                  <span class="lp-pill-cat">VOC Sensor</span>
+                </div>
+              </div>
+              <div class="lp-tech-pill lp-pill-yellow">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3a2 2 0 0 0-1.5 3.3V13a1.5 1.5 0 0 0 3 0V6.3A2 2 0 0 0 10 3Z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="15" r="2" fill="currentColor" opacity="0.6"/></svg>
+                <div class="lp-pill-content">
+                  <span class="lp-pill-name">DHT22</span>
+                  <span class="lp-pill-cat">Temp &amp; Humidity</span>
+                </div>
+              </div>
+              <div class="lp-tech-pill lp-pill-pink">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 3V1M10 19v-2M3 10H1M19 10h-2M4.9 4.9L3.5 3.5M16.5 16.5l-1.4-1.4M4.9 15.1L3.5 16.5M16.5 3.5l-1.4 1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <div class="lp-pill-content">
+                  <span class="lp-pill-name">UV-C Lamp</span>
+                  <span class="lp-pill-cat">Sterilization</span>
+                </div>
+              </div>
+              <div class="lp-tech-pill lp-pill-teal">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2l5 9H5L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M6.5 14.5a3.5 3.5 0 0 0 7 0" stroke="currentColor" stroke-width="1.5"/></svg>
+                <div class="lp-pill-content">
+                  <span class="lp-pill-name">Ethanol 70%</span>
+                  <span class="lp-pill-cat">Spray System</span>
+                </div>
+              </div>
+              <div class="lp-tech-pill lp-pill-purple">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="4" y="8" width="12" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M7 8V6a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <div class="lp-pill-content">
+                  <span class="lp-pill-name">Relay Module</span>
+                  <span class="lp-pill-cat">Switching</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI & Vision -->
+          <div class="lp-tech-group lp-reveal">
+            <h3 class="lp-tech-group-title">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2a3 3 0 0 1 3 3 3 3 0 0 1-1.5 2.6V9h-3V7.6A3 3 0 0 1 7 5a3 3 0 0 1 3-3Z" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 9h3v2l1.5 3H7L8.5 11V9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              AI & Computer Vision
+            </h3>
+            <div class="lp-tech-pills">
+              <div class="lp-tech-pill lp-pill-purple">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="4" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 9l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div class="lp-pill-content">
+                  <span class="lp-pill-name">OpenCV</span>
+                  <span class="lp-pill-cat">Computer Vision</span>
+                </div>
+              </div>
+              <div class="lp-tech-pill lp-pill-teal">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 16L10 4L16 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 12h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <div class="lp-pill-content">
+                  <span class="lp-pill-name">TensorFlow Lite</span>
+                  <span class="lp-pill-cat">ML Framework</span>
+                </div>
+              </div>
+              <div class="lp-tech-pill lp-pill-pink">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2" y="5" width="8" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="3" width="7" height="4" rx="1" stroke="currentColor" stroke-width="1.5"/><rect x="11" y="9" width="7" height="4" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M10 7.5h1M10 11.5h1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <div class="lp-pill-content">
+                  <span class="lp-pill-name">YOLO Detection</span>
+                  <span class="lp-pill-cat">Object Detection</span>
+                </div>
+              </div>
+              <div class="lp-tech-pill lp-pill-yellow">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 7h14M3 10h14M3 13h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <div class="lp-pill-content">
+                  <span class="lp-pill-name">Python</span>
+                  <span class="lp-pill-cat">Backend AI</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Connectivity -->
+          <div class="lp-tech-group lp-reveal">
+            <h3 class="lp-tech-group-title">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M10 3c-2 2-3 4-3 7s1 5 3 7M10 3c2 2 3 4 3 7s-1 5-3 7M3 10h14" stroke="currentColor" stroke-width="1.5"/></svg>
+              Connectivity & Web
+            </h3>
+            <div class="lp-tech-pills">
+              <div class="lp-tech-pill lp-pill-teal">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2C5.5 2 2 6 2 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 2C14.5 2 18 6 18 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6 9.5C7 8 8.5 7 10 7s3 1 4 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="13" r="2" fill="currentColor" opacity="0.7"/></svg>
+                <div class="lp-pill-content">
+                  <span class="lp-pill-name">WiFi / IoT</span>
+                  <span class="lp-pill-cat">Communication</span>
+                </div>
+              </div>
+              <div class="lp-tech-pill lp-pill-purple">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="5" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 9h6M7 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <div class="lp-pill-content">
+                  <span class="lp-pill-name">Web Dashboard</span>
+                  <span class="lp-pill-cat">HTML/CSS/JS</span>
+                </div>
+              </div>
+              <div class="lp-tech-pill lp-pill-yellow">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="4" cy="10" r="2" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="4" r="2" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="16" r="2" stroke="currentColor" stroke-width="1.5"/><path d="M6 10l8-4.5M6 10l8 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                <div class="lp-pill-content">
+                  <span class="lp-pill-name">REST API</span>
+                  <span class="lp-pill-cat">Data Interface</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 8. AI DETECTION HIGHLIGHT ═══ -->
+    <section class="lp-section lp-ai-highlight" id="ai-detection" aria-labelledby="aiTitle">
+      <div class="lp-container">
+        <div class="lp-ai-split">
+          <!-- Left: Text -->
+          <div class="lp-ai-text lp-reveal">
+            <span class="lp-section-tag">Computer Vision</span>
+            <h2 class="lp-section-title lp-text-left" id="aiTitle">Real-time<br/><span class="lp-gradient-text">AI Detection</span></h2>
+            <p class="lp-ai-desc">Integrated AI system analyzes surface visuals in real-time using ESP32-CAM and YOLO model running on TensorFlow Lite.</p>
+            <ul class="lp-ai-features" role="list">
+              <li class="lp-ai-feature-item">
+                <div class="lp-ai-feature-icon lp-feat-purple">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div>
+                  <strong>3-Level Classification</strong>
+                  <p>Automatic status detection: Clean, Moderate, and Dirty with high accuracy</p>
+                </div>
+              </li>
+              <li class="lp-ai-feature-item">
+                <div class="lp-ai-feature-icon lp-feat-teal">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="3" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6 7l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+                <div>
+                  <strong>YOLO Computer Vision</strong>
+                  <p>Optimized object detection model for efficient operation on ESP32 microcontroller</p>
+                </div>
+              </li>
+              <li class="lp-ai-feature-item">
+                <div class="lp-ai-feature-icon lp-feat-pink">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3v2M10 15v2M3 10h2M15 10h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="10" r="4" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="1.5" fill="currentColor" opacity="0.7"/></svg>
+                </div>
+                <div>
+                  <strong>Automatic Integration</strong>
+                  <p>"Dirty" detection directly triggers UV-C sterilization and ethanol spray process automatically</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Right: AI Detection Card -->
+          <div class="lp-ai-card-wrap lp-reveal">
+            <div class="lp-ai-detect-card lp-float-anim">
+              <!-- Camera feed with corner brackets -->
+              <div class="lp-ai-camera">
+                <div class="lp-cam-corners" aria-label="Camera detection frame">
+                  <span class="lp-c-corner lp-c-tl" aria-hidden="true"></span>
+                  <span class="lp-c-corner lp-c-tr" aria-hidden="true"></span>
+                  <span class="lp-c-corner lp-c-bl" aria-hidden="true"></span>
+                  <span class="lp-c-corner lp-c-br" aria-hidden="true"></span>
+                  <div class="lp-cam-interior">
+                    <svg viewBox="0 0 80 60" fill="none" aria-hidden="true" class="lp-cam-graphic">
+                      <rect x="10" y="10" width="60" height="40" rx="4" fill="rgba(124,92,252,0.1)" stroke="rgba(124,92,252,0.3)" stroke-width="1"/>
+                      <circle cx="40" cy="30" r="12" fill="rgba(124,92,252,0.15)" stroke="rgba(255,107,157,0.5)" stroke-width="1.5" stroke-dasharray="4 2"/>
+                      <rect x="22" y="18" width="36" height="24" rx="2" fill="none" stroke="rgba(255,107,157,0.4)" stroke-width="1" stroke-dasharray="3 2"/>
+                    </svg>
+                    <div class="lp-scan-line" aria-hidden="true"></div>
+                  </div>
+                  <div class="lp-cam-badge-dirty" role="status">DIRTY DETECTED</div>
+                </div>
+              </div>
+
+              <!-- Detection Results -->
+              <div class="lp-detect-results">
+                <div class="lp-detect-row">
+                  <span class="lp-detect-label">Classification</span>
+                  <span class="lp-detect-val lp-classify-dirty">DIRTY</span>
+                </div>
+                <div class="lp-detect-row">
+                  <span class="lp-detect-label">Confidence</span>
+                  <span class="lp-detect-val">87%</span>
+                </div>
+                <div class="lp-detect-row lp-detect-bar-row">
+                  <span class="lp-detect-label">Contamination</span>
+                  <div class="lp-detect-bar-group">
+                    <div class="lp-detect-track">
+                      <div class="lp-detect-fill lp-detect-fill-high" style="width:87%"></div>
+                    </div>
+                    <span class="lp-level-badge lp-level-high">HIGH</span>
+                  </div>
+                </div>
+                <div class="lp-detect-row">
+                  <span class="lp-detect-label">Residue Type</span>
+                  <div class="lp-residue-bar">
+                    <div class="lp-residue-label-row">
+                      <span>Food Particles</span>
+                      <span>78%</span>
+                    </div>
+                    <div class="lp-residue-track">
+                      <div class="lp-residue-fill" style="width:78%"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="lp-detect-action">
+                  <span class="lp-action-badge">
+                    <span class="lp-pulse-dot" aria-hidden="true"></span>
+                    Auto-Sterilizing Triggered
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 9. OUR TEAM ═══ -->
+    <section class="lp-section lp-team" id="tim" aria-labelledby="timTitle">
+      <div class="lp-container">
+        <div class="lp-section-header lp-reveal">
+          <span class="lp-section-tag">Our Team</span>
+          <h2 class="lp-section-title" id="timTitle">Our Team</h2>
+          <p class="lp-section-subtitle">The innovators behind SteriFlow smart sterilization system</p>
+        </div>
+
+        <div class="lp-team-grid">
+          <!-- 1. Dzikron Zaidan Ahmad -->
+          <div class="lp-team-card lp-reveal">
+            <div class="lp-team-avatar lp-avatar-1">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.5"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <h3 class="lp-team-name">Dzikron Zaidan Ahmad</h3>
+            <p class="lp-team-role">Team Member</p>
+            <div class="lp-team-socials">
+              <a href="#" class="lp-team-social-btn" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg></a>
+              <a href="#" class="lp-team-social-btn" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4"/><path d="M7 10v7M7 7v.5" stroke-width="2"/><path d="M11 17v-4a2 2 0 0 1 4 0v4M11 10v7"/></svg></a>
+            </div>
+          </div>
+
+          <!-- 2. Saverio Faeyza Aghatallah Ahza -->
+          <div class="lp-team-card lp-reveal">
+            <div class="lp-team-avatar lp-avatar-2">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.5"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <h3 class="lp-team-name">Saverio Faeyza A. Ahza</h3>
+            <p class="lp-team-role">Team Member</p>
+            <div class="lp-team-socials">
+              <a href="#" class="lp-team-social-btn" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg></a>
+              <a href="#" class="lp-team-social-btn" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4"/><path d="M7 10v7M7 7v.5" stroke-width="2"/><path d="M11 17v-4a2 2 0 0 1 4 0v4M11 10v7"/></svg></a>
+            </div>
+          </div>
+
+          <!-- 3. Katya Bakhita Agastya -->
+          <div class="lp-team-card lp-reveal">
+            <div class="lp-team-avatar lp-avatar-3">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.5"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <h3 class="lp-team-name">Katya Bakhita Agastya</h3>
+            <p class="lp-team-role">Team Member</p>
+            <div class="lp-team-socials">
+              <a href="#" class="lp-team-social-btn" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg></a>
+              <a href="#" class="lp-team-social-btn" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4"/><path d="M7 10v7M7 7v.5" stroke-width="2"/><path d="M11 17v-4a2 2 0 0 1 4 0v4M11 10v7"/></svg></a>
+            </div>
+          </div>
+
+          <!-- 4. Nabila Pramudia Azizah -->
+          <div class="lp-team-card lp-reveal">
+            <div class="lp-team-avatar lp-avatar-4">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.5"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <h3 class="lp-team-name">Nabila Pramudia Azizah</h3>
+            <p class="lp-team-role">Team Member</p>
+            <div class="lp-team-socials">
+              <a href="#" class="lp-team-social-btn" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg></a>
+              <a href="#" class="lp-team-social-btn" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4"/><path d="M7 10v7M7 7v.5" stroke-width="2"/><path d="M11 17v-4a2 2 0 0 1 4 0v4M11 10v7"/></svg></a>
+            </div>
+          </div>
+
+          <!-- 5. Farid Athallah Nandra Kusmartono -->
+          <div class="lp-team-card lp-reveal">
+            <div class="lp-team-avatar lp-avatar-5">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.5"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <h3 class="lp-team-name">Farid Athallah N. Kusmartono</h3>
+            <p class="lp-team-role">Team Member</p>
+            <div class="lp-team-socials">
+              <a href="#" class="lp-team-social-btn" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg></a>
+              <a href="#" class="lp-team-social-btn" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4"/><path d="M7 10v7M7 7v.5" stroke-width="2"/><path d="M11 17v-4a2 2 0 0 1 4 0v4M11 10v7"/></svg></a>
+            </div>
+          </div>
+
+          <!-- 6. Quinsha Suci Ramadhani Halim -->
+          <div class="lp-team-card lp-reveal">
+            <div class="lp-team-avatar lp-avatar-6">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="white" stroke-width="1.5"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <h3 class="lp-team-name">Quinsha Suci R. Halim</h3>
+            <p class="lp-team-role">Team Member</p>
+            <div class="lp-team-socials">
+              <a href="#" class="lp-team-social-btn" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2Z" fill="currentColor" stroke="none"/></svg></a>
+              <a href="#" class="lp-team-social-btn" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="4"/><path d="M7 10v7M7 7v.5" stroke-width="2"/><path d="M11 17v-4a2 2 0 0 1 4 0v4M11 10v7"/></svg></a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ 10. CONTACT / CTA / FOOTER ═══ -->
+    <section class="lp-footer-section" id="kontak" aria-labelledby="kontakTitle">
+      <div class="lp-container">
+        <div class="lp-cta-card lp-reveal">
+          <div class="lp-cta-glow" aria-hidden="true"></div>
+          <div class="lp-cta-inner">
+            <!-- Left -->
+            <div class="lp-cta-left">
+              <a href="#" class="lp-nav-logo lp-cta-logo" aria-label="SteriFlow">
+                <img src="assets/logo.png" alt="SteriFlow" class="lp-logo-icon" />
+                <span class="lp-logo-text lp-logo-text-lg">SteriFlow</span>
+              </a>
+              <p class="lp-cta-tagline">IoT-based smart sterilization for stainless food distribution surfaces. Cleaner, safer, smarter.</p>
+              <div class="lp-social-links" role="list" aria-label="Social links">
+                <a href="#" class="lp-social-btn" role="listitem" aria-label="GitHub">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2Z" fill="currentColor"/></svg>
+                </a>
+                <a href="#" class="lp-social-btn" role="listitem" aria-label="Email">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M2 8l10 6 10-6" stroke="currentColor" stroke-width="1.5"/></svg>
+                </a>
+                <a href="#" class="lp-social-btn" role="listitem" aria-label="LinkedIn">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" stroke-width="1.5"/><path d="M7 10v7M7 7v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M11 17v-4a2 2 0 0 1 4 0v4M11 10v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </a>
+              </div>
+            </div>
+
+            <!-- Right -->
+            <div class="lp-cta-right">
+              <div class="lp-contact-info">
+                <div class="lp-contact-item">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M3 8l7 4.5L17 8" stroke="currentColor" stroke-width="1.5"/></svg>
+                  <span>steriflow@university.ac.id</span>
+                </div>
+                <div class="lp-contact-item">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2C7.24 2 5 4.24 5 7c0 4 5 11 5 11s5-7 5-11c0-2.76-2.24-5-5-5Z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="7" r="2" fill="currentColor" opacity="0.6"/></svg>
+                  <span>IoT Laboratory, Indonesia</span>
+                </div>
+                <div class="lp-contact-item">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                  <span>24/7 Active Monitoring</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Bar -->
+      <footer class="lp-footer-bar" role="contentinfo">
+        <div class="lp-container">
+          <div class="lp-footer-bar-inner">
+            <span>&copy; 2026 SteriFlow. All rights reserved.</span>
+            <span class="lp-footer-sep" aria-hidden="true">|</span>
+            <span>Built with IoT &amp; AI</span>
+          </div>
+        </div>
+      </footer>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════
+       LANDING PAGE SCRIPTS
+  ═══════════════════════════════════════════════ -->
+  <script>
+  (function() {
+    'use strict';
+
+    /* ─── Navbar scroll effect ───────────────────────────── */
+    const nav = document.getElementById('lpNav');
+    let lastScroll = 0;
+
+    window.addEventListener('scroll', () => {
+      const scroll = window.scrollY;
+      if (scroll > 20) {
+        nav.classList.add('lp-nav-scrolled');
+      } else {
+        nav.classList.remove('lp-nav-scrolled');
+      }
+      lastScroll = scroll;
+    }, { passive: true });
+
+    /* ─── Mobile Menu ────────────────────────────────────── */
+    const hamburger = document.getElementById('lpHamburger');
+    const mobileMenu = document.getElementById('lpMobileMenu');
+    const mobileClose = document.getElementById('lpMobileClose');
+    const menuBackdrop = document.getElementById('lpMenuBackdrop');
+    const mobileLinks = document.querySelectorAll('.lp-mobile-link');
+
+    function openMenu() {
+      hamburger.setAttribute('aria-expanded', 'true');
+      hamburger.classList.add('lp-hamburger-open');
+      mobileMenu.classList.add('lp-menu-open');
+      mobileMenu.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMenu() {
+      hamburger.setAttribute('aria-expanded', 'false');
+      hamburger.classList.remove('lp-hamburger-open');
+      mobileMenu.classList.remove('lp-menu-open');
+      mobileMenu.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    hamburger.addEventListener('click', openMenu);
+    mobileClose.addEventListener('click', closeMenu);
+    menuBackdrop.addEventListener('click', closeMenu);
+    mobileLinks.forEach(link => link.addEventListener('click', closeMenu));
+
+    // ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && mobileMenu.classList.contains('lp-menu-open')) {
+        closeMenu();
+      }
+    });
+
+    /* ─── Active nav on scroll ───────────────────────────── */
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.lp-nav-link');
+
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.getAttribute('id');
+          navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === '#' + id) {
+              link.classList.add('active');
+            }
+          });
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px', threshold: 0 });
+
+    sections.forEach(s => sectionObserver.observe(s));
+
+    /* ─── Scroll Reveal ──────────────────────────────────── */
+    const revealElements = document.querySelectorAll('.lp-reveal');
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          // Stagger delay based on position in parent
+          const siblings = entry.target.parentElement.querySelectorAll('.lp-reveal');
+          let idx = 0;
+          siblings.forEach((el, j) => { if (el === entry.target) idx = j; });
+          setTimeout(() => {
+            entry.target.classList.add('lp-revealed');
+          }, idx * 80);
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+
+    /* ─── Counter Animation ──────────────────────────────── */
+    const statValues = document.querySelectorAll('.lp-stat-value[data-target]');
+
+    function animateCount(el) {
+      const target = parseFloat(el.dataset.target);
+      const prefix = el.dataset.prefix || '';
+      const suffix = el.dataset.suffix || '';
+      const decimal = parseInt(el.dataset.decimal || '0');
+      const duration = 1800;
+      const start = performance.now();
+
+      function update(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = target * eased;
+        el.textContent = prefix + current.toFixed(decimal) + suffix;
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    }
+
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCount(entry.target);
+          counterObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    statValues.forEach(el => counterObserver.observe(el));
+
+    /* ─── Dashboard Tab Switcher ─────────────────────────── */
+    const tabs = document.querySelectorAll('.lp-dash-tab');
+    const panels = document.querySelectorAll('.lp-dash-panel');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = tab.dataset.tab;
+
+        tabs.forEach(t => {
+          t.classList.remove('lp-tab-active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        panels.forEach(p => p.classList.remove('lp-panel-active'));
+
+        tab.classList.add('lp-tab-active');
+        tab.setAttribute('aria-selected', 'true');
+        const panel = document.getElementById('panel-' + target);
+        if (panel) panel.classList.add('lp-panel-active');
+      });
+    });
+
+    /* ─── Smooth scroll for anchor links ────────────────── */
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', (e) => {
+        const href = a.getAttribute('href');
+        if (href === '#') return;
+        const target = document.querySelector(href);
+        if (target) {
+          e.preventDefault();
+          const navH = nav.offsetHeight;
+          const top = target.getBoundingClientRect().top + window.scrollY - navH - 16;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      });
+    });
+
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#0a0a1a" />
+  <title>SteriFlow — Account</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="apple-touch-icon" href="assets/logo.png" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="js/theme.js"></script>
+</head>
+<body>
+
+<!-- Animated Background -->
+<div class="bg-canvas">
+  <div class="bg-orb o1"></div>
+  <div class="bg-orb o2"></div>
+  <div class="bg-orb o3"></div>
+  <div class="bg-orb o4"></div>
+  <div class="bg-mesh"></div>
+  <div class="bg-noise"></div>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- Header -->
+  <header class="app-header fade-in">
+    <div class="header-brand">
+      <div class="header-logo">
+        <img src="assets/logo.png" alt="SteriFlow" width="36" height="36" style="border-radius:6px" />
+      </div>
+      <div>
+        <div class="header-title">Account</div>
+        <div class="header-subtitle">Profile & Settings</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Profile Card -->
+  <section class="account-profile glass fade-in" style="animation-delay:.1s">
+    <div class="account-avatar-wrap">
+      <img id="accountPhoto" src="" alt="Profile" class="account-avatar" />
+      <div class="account-avatar-fallback" id="accountAvatarFallback">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
+      </div>
+    </div>
+    <h2 class="account-name" id="accountName">Loading...</h2>
+    <p class="account-email" id="accountEmail">Loading...</p>
+    <div class="account-badges">
+      <span class="account-badge" id="accountProvider">Email</span>
+      <span class="account-badge account-badge-active" id="accountStatus">Active</span>
+    </div>
+  </section>
+
+  <!-- Account Info -->
+  <section class="account-section glass fade-in" style="animation-delay:.2s">
+    <h3 class="account-section-title">Account Information</h3>
+    <div class="account-info-list">
+      <div class="account-info-item">
+        <div class="account-info-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 8l10 6 10-6"/></svg>
+        </div>
+        <div class="account-info-content">
+          <span class="account-info-label">Email</span>
+          <span class="account-info-value" id="infoEmail">-</span>
+        </div>
+      </div>
+      <div class="account-info-item">
+        <div class="account-info-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="account-info-content">
+          <span class="account-info-label">Member Since</span>
+          <span class="account-info-value" id="infoCreated">-</span>
+        </div>
+      </div>
+      <div class="account-info-item">
+        <div class="account-info-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M15 3h4v4"/><path d="M10 14L19 3"/><path d="M17 10v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h7"/></svg>
+        </div>
+        <div class="account-info-content">
+          <span class="account-info-label">Last Login</span>
+          <span class="account-info-value" id="infoLastLogin">-</span>
+        </div>
+      </div>
+      <div class="account-info-item">
+        <div class="account-info-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2L4 6v6c0 5.25 3.5 10.15 8 11.4C16.5 22.15 20 17.25 20 12V6L12 2z"/></svg>
+        </div>
+        <div class="account-info-content">
+          <span class="account-info-label">Login Method</span>
+          <span class="account-info-value" id="infoProvider">-</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Appearance -->
+  <section class="account-section glass fade-in" style="animation-delay:.3s">
+    <h3 class="account-section-title">Appearance</h3>
+    <div class="theme-toggle-row">
+      <div class="theme-toggle-label">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <span>Light Mode</span>
+      </div>
+      <label class="theme-switch">
+        <input type="checkbox" id="themeToggle" />
+        <div class="theme-switch-track">
+          <div class="theme-switch-thumb">
+            <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </div>
+        </div>
+      </label>
+    </div>
+  </section>
+
+  <!-- Actions -->
+  <section class="account-section glass fade-in" style="animation-delay:.4s">
+    <div class="account-actions">
+      <button class="account-action-btn account-action-danger" data-logout>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Logout</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <div class="nav-inner">
+      <a href="dashboard.html" class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/>
+        </svg>
+        Home
+      </a>
+      <a href="monitoring.html" class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Monitor
+      </a>
+      <a href="ai-detection.html" class="nav-fab" title="AI Detection">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+      </a>
+      <a href="history.html" class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        History
+      </a>
+      <a href="account.html" class="nav-item active">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>
+        </svg>
+        Account
+      </a>
+    </div>
+  </nav>
+
+</div>
+
+<script type="module" src="js/auth.js"></script>
+<script type="module">
+import { auth, db } from './js/auth.js';
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+
+  const nameEl = document.getElementById('accountName');
+  const emailEl = document.getElementById('accountEmail');
+  const photoEl = document.getElementById('accountPhoto');
+  const fallbackEl = document.getElementById('accountAvatarFallback');
+  const providerBadge = document.getElementById('accountProvider');
+  const infoEmail = document.getElementById('infoEmail');
+  const infoCreated = document.getElementById('infoCreated');
+  const infoLastLogin = document.getElementById('infoLastLogin');
+  const infoProvider = document.getElementById('infoProvider');
+
+  // Set basic info from auth
+  nameEl.textContent = user.displayName || user.email.split('@')[0];
+  emailEl.textContent = user.email;
+  infoEmail.textContent = user.email;
+
+  // Try to load Firestore data for extra info
+  try {
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+
+      // Photo
+      const photoURL = data.photoURL || user.photoURL;
+      if (photoURL) {
+        photoEl.src = photoURL;
+        photoEl.style.display = 'block';
+        fallbackEl.style.display = 'none';
+      } else {
+        photoEl.style.display = 'none';
+        fallbackEl.style.display = 'flex';
+      }
+
+      // Name
+      if (data.displayName) {
+        nameEl.textContent = data.displayName;
+      }
+
+      // Provider
+      const provider = data.provider || 'email';
+      providerBadge.textContent = provider === 'google' ? 'Google' : 'Email';
+      infoProvider.textContent = provider === 'google' ? 'Google Account' : 'Email & Password';
+
+      // Dates
+      if (data.createdAt) {
+        const created = data.createdAt.toDate();
+        infoCreated.textContent = created.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+      if (data.lastLoginAt) {
+        const lastLogin = data.lastLoginAt.toDate();
+        infoLastLogin.textContent = lastLogin.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      }
+    } else {
+      // No Firestore doc, use auth data
+      if (user.photoURL) {
+        photoEl.src = user.photoURL;
+        photoEl.style.display = 'block';
+        fallbackEl.style.display = 'none';
+      } else {
+        photoEl.style.display = 'none';
+        fallbackEl.style.display = 'flex';
+      }
+    }
+  } catch (e) {
+    console.error('Error loading profile:', e);
+    photoEl.style.display = 'none';
+    fallbackEl.style.display = 'flex';
+  }
+});
+</script>
+<script src="js/app.js"></script>
+</body>
+</html>
