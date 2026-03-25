@@ -307,6 +307,91 @@
 
 <script type="module" src="js/auth.js"></script>
 <script type="module" src="js/realtime.js"></script>
+<script type="module">
+// Load dashboard stats from Firestore
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+import {
+  getFirestore, collection, query, where, orderBy, getDocs, limit as firestoreLimit
+} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+import { firebaseConfig } from "./js/firebase-config.js";
+
+let app;
+try { app = initializeApp(firebaseConfig); } catch(e) {
+  const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+  app = getApp();
+}
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+  try {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const q = query(
+      collection(db, 'users', user.uid, 'sterilization_logs'),
+      orderBy('createdAt', 'desc'),
+      firestoreLimit(50)
+    );
+    const snap = await getDocs(q);
+    let todayCount = 0;
+    let lastCycleText = '—';
+
+    snap.forEach((doc, i) => {
+      const data = doc.data();
+      const date = data.createdAt?.toDate?.();
+      if (!date) return;
+
+      if (todayCount === 0 && i === undefined) { /* first doc */ }
+
+      // Count today
+      if (date >= today) todayCount++;
+
+      // Last cycle
+      if (lastCycleText === '—') {
+        lastCycleText = date.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }) +
+          (date.toDateString() === new Date().toDateString() ? ' today' : '');
+      }
+    });
+
+    // First doc is the latest
+    let first = true;
+    snap.forEach(doc => {
+      if (!first) return;
+      first = false;
+      const data = doc.data();
+      const date = data.createdAt?.toDate?.();
+      if (date) {
+        const el = document.getElementById('lastCycleInfo');
+        if (el) el.textContent = date.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }) +
+          (date.toDateString() === new Date().toDateString() ? ' today' : '');
+        const el2 = document.getElementById('lastSterilized');
+        if (el2) el2.textContent = el.textContent;
+      }
+    });
+
+    // Today count
+    snap.forEach(doc => {
+      const d = doc.data().createdAt?.toDate?.();
+      if (d && d >= today) todayCount++;
+    });
+    // Fix double count
+    todayCount = 0;
+    snap.forEach(doc => {
+      const d = doc.data().createdAt?.toDate?.();
+      if (d && d >= today) todayCount++;
+    });
+
+    const el = document.getElementById('cyclesToday');
+    if (el) el.textContent = todayCount;
+
+  } catch(e) {
+    console.error('Dashboard stats error:', e);
+  }
+});
+</script>
 <script src="js/app.js"></script>
 </body>
 </html>

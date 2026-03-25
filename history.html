@@ -66,15 +66,15 @@
     <!-- Summary Stats -->
     <div class="stats-row mt-12 fade-in fade-in-delay-1">
       <div class="glass summary-card">
-        <div class="summary-value" style="color:var(--accent);">47</div>
+        <div class="summary-value" style="color:var(--accent);" id="totalCycles">—</div>
         <div class="summary-label">Total Cycles</div>
       </div>
       <div class="glass summary-card">
-        <div class="summary-value" style="color:var(--accent2);">14<span style="font-size:0.8rem;font-weight:500;">m</span></div>
+        <div class="summary-value" style="color:var(--accent2);" id="avgDuration">—</div>
         <div class="summary-label">Avg Duration</div>
       </div>
       <div class="glass summary-card">
-        <div class="summary-value" style="color:#27c76a;">96<span style="font-size:0.85rem;font-weight:500;">%</span></div>
+        <div class="summary-value" style="color:#27c76a;" id="cleanRate">—</div>
         <div class="summary-label">Clean Rate</div>
       </div>
     </div>
@@ -83,7 +83,7 @@
     <div class="glass card-p mt-12 fade-in fade-in-delay-2">
       <div class="flex items-center justify-between mb-12">
         <div class="section-title" style="margin-bottom:0;">Cycle Records</div>
-        <div style="font-size:0.68rem;color:var(--text-dim);">47 total</div>
+        <div style="font-size:0.68rem;color:var(--text-dim);" id="recordCount">Loading...</div>
       </div>
 
       <div style="overflow-x:auto;">
@@ -97,141 +97,19 @@
             </tr>
           </thead>
           <tbody id="historyBody">
-            <tr>
-              <td>25 Mar</td>
-              <td>13:45</td>
-              <td>15 min</td>
-              <td><span class="badge badge-done" style="font-size:0.62rem;padding:3px 10px;">Sterilized</span></td>
-            </tr>
-            <tr>
-              <td>25 Mar</td>
-              <td>12:20</td>
-              <td>14 min</td>
-              <td><span class="badge badge-done" style="font-size:0.62rem;padding:3px 10px;">Sterilized</span></td>
-            </tr>
-            <tr>
-              <td>25 Mar</td>
-              <td>10:05</td>
-              <td>16 min</td>
-              <td><span class="badge badge-done" style="font-size:0.62rem;padding:3px 10px;">Sterilized</span></td>
-            </tr>
-            <tr>
-              <td>24 Mar</td>
-              <td>17:30</td>
-              <td>13 min</td>
-              <td><span class="badge badge-done" style="font-size:0.62rem;padding:3px 10px;">Sterilized</span></td>
-            </tr>
-            <tr>
-              <td>24 Mar</td>
-              <td>15:10</td>
-              <td>15 min</td>
-              <td><span class="badge badge-done" style="font-size:0.62rem;padding:3px 10px;">Sterilized</span></td>
-            </tr>
-            <tr>
-              <td>24 Mar</td>
-              <td>11:45</td>
-              <td>8 min</td>
-              <td><span class="badge badge-dirty" style="font-size:0.62rem;padding:3px 10px;">Failed</span></td>
-            </tr>
-            <tr>
-              <td>23 Mar</td>
-              <td>16:00</td>
-              <td>15 min</td>
-              <td><span class="badge badge-done" style="font-size:0.62rem;padding:3px 10px;">Sterilized</span></td>
-            </tr>
-            <tr>
-              <td>23 Mar</td>
-              <td>09:30</td>
-              <td>14 min</td>
-              <td><span class="badge badge-done" style="font-size:0.62rem;padding:3px 10px;">Sterilized</span></td>
-            </tr>
-            <tr>
-              <td>22 Mar</td>
-              <td>18:15</td>
-              <td>15 min</td>
-              <td><span class="badge badge-done" style="font-size:0.62rem;padding:3px 10px;">Sterilized</span></td>
-            </tr>
-            <tr>
-              <td>22 Mar</td>
-              <td>14:00</td>
-              <td>7 min</td>
-              <td><span class="badge badge-dirty" style="font-size:0.62rem;padding:3px 10px;">Failed</span></td>
-            </tr>
+            <tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:24px 0;">Loading history...</td></tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Pagination -->
-      <div class="pagination">
-        <div class="page-dot active"></div>
-        <div class="page-dot"></div>
-        <div class="page-dot"></div>
-        <div class="page-dot"></div>
-        <div class="page-dot"></div>
-      </div>
+      <!-- Showing up to 50 most recent records -->
     </div>
 
-    <!-- Recent Data Summary -->
+    <!-- Contamination Breakdown -->
     <div class="glass card-p mt-12 fade-in fade-in-delay-3">
-      <div class="section-title">Avg Sensor Readings</div>
-      <div style="display:flex;flex-direction:column;gap:14px;">
-
-        <div class="progress-wrap">
-          <div class="progress-header">
-            <div class="flex items-center gap-6">
-              <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;"></span>
-              <span>Avg VOC Level</span>
-            </div>
-            <span style="font-weight:600;color:var(--accent);">320 ppm</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill purple" style="width:53%;"></div>
-          </div>
-          <div style="font-size:0.65rem;color:var(--text-muted);text-align:right;">0 ──── 600 ppm</div>
-        </div>
-
-        <div class="progress-wrap">
-          <div class="progress-header">
-            <div class="flex items-center gap-6">
-              <span style="width:8px;height:8px;border-radius:50%;background:var(--accent2);display:inline-block;"></span>
-              <span>Avg Temperature</span>
-            </div>
-            <span style="font-weight:600;color:var(--accent2);">27.8 °C</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill teal" style="width:46%;"></div>
-          </div>
-          <div style="font-size:0.65rem;color:var(--text-muted);text-align:right;">20 ──── 40 °C</div>
-        </div>
-
-        <div class="progress-wrap">
-          <div class="progress-header">
-            <div class="flex items-center gap-6">
-              <span style="width:8px;height:8px;border-radius:50%;background:var(--accent3);display:inline-block;"></span>
-              <span>Avg Humidity</span>
-            </div>
-            <span style="font-weight:600;color:var(--accent3);">62 %</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill pink" style="width:62%;"></div>
-          </div>
-          <div style="font-size:0.65rem;color:var(--text-muted);text-align:right;">0 ──── 100 %</div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Monthly Performance Chart -->
-    <div class="glass card-p mt-12 fade-in fade-in-delay-4">
-      <div class="flex items-center justify-between mb-8">
-        <div class="section-title" style="margin-bottom:0;">Daily Cycles — March</div>
-        <div style="font-size:0.68rem;color:var(--text-dim);">2026</div>
-      </div>
-      <div class="chart-container" style="height:120px;">
-        <canvas id="historyBarChart" data-h="120"></canvas>
-      </div>
-      <div class="flex justify-between mt-4" style="font-size:0.6rem;color:var(--text-muted);">
-        <span>Mar 1</span><span>Mar 8</span><span>Mar 15</span><span>Mar 22</span><span>Mar 29</span>
+      <div class="section-title">Detection Breakdown</div>
+      <div style="display:flex;flex-direction:column;gap:8px;" id="breakdownList">
+        <div style="text-align:center;color:var(--text-dim);font-size:0.78rem;padding:12px 0;">Loading...</div>
       </div>
     </div>
 
@@ -239,31 +117,28 @@
     <div class="glass card-p mt-12 fade-in fade-in-delay-4">
       <div class="section-title">Cycle Success Rate</div>
       <div class="flex items-center gap-16">
-        <div class="ring-canvas-wrap" style="width:90px;height:90px;">
-          <canvas id="successRateRing" width="90" height="90"></canvas>
-          <div class="ring-inner-text">
-            <div class="ring-percent" style="font-size:1.2rem;color:#27c76a;">96%</div>
-          </div>
+        <div style="width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid var(--glass-border);position:relative;" id="rateRing">
+          <span style="font-family:'Sora',sans-serif;font-size:1.3rem;font-weight:700;color:#27c76a;" id="ratePercent">—</span>
         </div>
         <div style="flex:1;">
           <div style="display:flex;flex-direction:column;gap:8px;font-size:0.78rem;">
             <div class="flex justify-between">
               <div class="flex items-center gap-6">
                 <span style="width:8px;height:8px;border-radius:50%;background:#27c76a;display:inline-block;"></span>
-                Successful
+                Sterilized
               </div>
-              <span style="font-weight:600;">45 cycles</span>
+              <span style="font-weight:600;" id="sterilizedCount">—</span>
             </div>
             <div class="flex justify-between">
               <div class="flex items-center gap-6">
-                <span style="width:8px;height:8px;border-radius:50%;background:#ff4757;display:inline-block;"></span>
-                Failed
+                <span style="width:8px;height:8px;border-radius:50%;background:var(--accent4);display:inline-block;"></span>
+                Skipped
               </div>
-              <span style="font-weight:600;">2 cycles</span>
+              <span style="font-weight:600;" id="skippedCount">—</span>
             </div>
             <div class="flex justify-between" style="padding-top:4px;border-top:1px solid var(--glass-border);">
               <span style="color:var(--text-dim);">Total</span>
-              <span style="font-weight:700;">47 cycles</span>
+              <span style="font-weight:700;" id="totalCount">—</span>
             </div>
           </div>
         </div>
@@ -302,6 +177,191 @@
 </div>
 
 <script type="module" src="js/auth.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+import {
+  getFirestore, collection, query, where, orderBy, getDocs, limit as firestoreLimit
+} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+import { firebaseConfig } from "./js/firebase-config.js";
+
+let app;
+try { app = initializeApp(firebaseConfig); } catch(e) {
+  const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+  app = getApp();
+}
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let allLogs = [];
+let currentFilter = 'all';
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+  await loadAndRender();
+
+  // Filter chips
+  document.querySelectorAll('.chip[data-filter]').forEach(chip => {
+    chip.addEventListener('click', async () => {
+      document.querySelectorAll('.chip[data-filter]').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentFilter = chip.dataset.filter;
+      renderHistory();
+    });
+  });
+});
+
+async function loadAndRender() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  try {
+    const q = query(
+      collection(db, 'users', user.uid, 'sterilization_logs'),
+      orderBy('createdAt', 'desc'),
+      firestoreLimit(100)
+    );
+    const snapshot = await getDocs(q);
+    allLogs = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const date = data.createdAt?.toDate?.() || new Date();
+      allLogs.push({ id: doc.id, ...data, date });
+    });
+  } catch (e) {
+    console.error('Failed to load history:', e);
+  }
+
+  renderHistory();
+}
+
+function filterLogs() {
+  const now = new Date();
+  return allLogs.filter(log => {
+    if (currentFilter === 'today') return log.date.toDateString() === now.toDateString();
+    if (currentFilter === 'week') return log.date > new Date(now.getTime() - 7*24*60*60*1000);
+    if (currentFilter === 'month') return log.date.getMonth() === now.getMonth() && log.date.getFullYear() === now.getFullYear();
+    return true;
+  });
+}
+
+function renderHistory() {
+  const logs = filterLogs();
+  const tbody = document.getElementById('historyBody');
+  const recordCount = document.getElementById('recordCount');
+  const totalCycles = document.getElementById('totalCycles');
+  const avgDuration = document.getElementById('avgDuration');
+  const cleanRate = document.getElementById('cleanRate');
+
+  // Summary
+  const total = logs.length;
+  totalCycles.textContent = total;
+  recordCount.textContent = total + ' total';
+
+  if (total > 0) {
+    const totalDur = logs.reduce((s, l) => s + (l.durationMinutes || 0), 0);
+    const avg = Math.round(totalDur / total);
+    avgDuration.innerHTML = avg + '<span style="font-size:0.8rem;font-weight:500;">m</span>';
+
+    const sterilized = logs.filter(l => l.status === 'Sterilized').length;
+    const rate = Math.round((sterilized / total) * 100);
+    cleanRate.innerHTML = rate + '<span style="font-size:0.85rem;font-weight:500;">%</span>';
+  } else {
+    avgDuration.textContent = '—';
+    cleanRate.textContent = '—';
+  }
+
+  // Table
+  if (total === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:24px 0;">No sterilization records found.</td></tr>';
+    renderBreakdown([]);
+    renderSuccessRate([]);
+    return;
+  }
+
+  tbody.innerHTML = logs.map(log => {
+    const d = log.date;
+    const dateStr = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+    const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const dur = (log.durationMinutes || 0) + ' min';
+
+    let badge = '';
+    if (log.status === 'Sterilized') {
+      badge = '<span class="badge badge-done" style="font-size:0.62rem;padding:3px 10px;">Sterilized</span>';
+    } else if (log.status === 'Skipped') {
+      badge = '<span class="badge badge-moderate" style="font-size:0.62rem;padding:3px 10px;">Skipped</span>';
+    } else {
+      badge = '<span class="badge badge-dirty" style="font-size:0.62rem;padding:3px 10px;">' + (log.status || 'Unknown') + '</span>';
+    }
+
+    return `<tr><td>${dateStr}</td><td>${timeStr}</td><td>${dur}</td><td>${badge}</td></tr>`;
+  }).join('');
+
+  renderBreakdown(logs);
+  renderSuccessRate(logs);
+}
+
+function renderBreakdown(logs) {
+  const el = document.getElementById('breakdownList');
+  if (!el) return;
+
+  if (logs.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text-dim);font-size:0.78rem;padding:12px 0;">No data</div>';
+    return;
+  }
+
+  const clean = logs.filter(l => l.classification === 'Clean').length;
+  const moderate = logs.filter(l => l.classification === 'Moderate').length;
+  const dirty = logs.filter(l => l.classification === 'Dirty').length;
+  const total = logs.length;
+
+  const items = [
+    { label: 'Clean', count: clean, color: 'var(--accent2)', pct: Math.round((clean/total)*100) },
+    { label: 'Moderate', count: moderate, color: 'var(--accent4)', pct: Math.round((moderate/total)*100) },
+    { label: 'Dirty', count: dirty, color: 'var(--accent3)', pct: Math.round((dirty/total)*100) }
+  ];
+
+  el.innerHTML = items.map(i => `
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <div class="flex items-center gap-6">
+          <span style="width:8px;height:8px;border-radius:50%;background:${i.color};display:inline-block;"></span>
+          <span>${i.label}</span>
+        </div>
+        <span style="font-weight:600;color:${i.color};">${i.count} (${i.pct}%)</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width:${i.pct}%;background:${i.color};"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSuccessRate(logs) {
+  const ratePercent = document.getElementById('ratePercent');
+  const sterilizedCount = document.getElementById('sterilizedCount');
+  const skippedCount = document.getElementById('skippedCount');
+  const totalCount = document.getElementById('totalCount');
+  const rateRing = document.getElementById('rateRing');
+
+  if (!ratePercent) return;
+
+  const total = logs.length;
+  const sterilized = logs.filter(l => l.status === 'Sterilized').length;
+  const skipped = logs.filter(l => l.status === 'Skipped').length;
+  const rate = total > 0 ? Math.round((sterilized / total) * 100) : 0;
+
+  ratePercent.textContent = total > 0 ? rate + '%' : '—';
+  sterilizedCount.textContent = sterilized + ' cycles';
+  skippedCount.textContent = skipped + ' cycles';
+  totalCount.textContent = total + ' cycles';
+
+  if (rateRing && total > 0) {
+    rateRing.style.borderColor = rate > 80 ? '#27c76a' : rate > 50 ? 'var(--accent4)' : 'var(--accent3)';
+    ratePercent.style.color = rate > 80 ? '#27c76a' : rate > 50 ? 'var(--accent4)' : 'var(--accent3)';
+  }
+}
+</script>
 <script src="js/app.js"></script>
 </body>
 </html>

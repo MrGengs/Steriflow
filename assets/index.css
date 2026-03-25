@@ -99,6 +99,9 @@ body {
 }
 
 .lp-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+/* Bootstrap Icons on CTA buttons (same visual weight as previous inline SVGs) */
+.lp-btn .bi { font-size: 18px; line-height: 1; flex-shrink: 0; }
+.lp-btn-lg .bi { font-size: 20px; }
 
 .lp-btn-primary {
   background: linear-gradient(135deg, #7c5cfc, #5e3de0);

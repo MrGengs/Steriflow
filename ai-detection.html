@@ -178,6 +178,61 @@
 
     </div>
 
+    <!-- Sterilization Panel (shown when contamination detected) -->
+    <div class="glass card-p mt-12 fade-in" id="sterilPanel" style="display:none;">
+      <div class="section-title">Sterilization</div>
+
+      <!-- Recommendation -->
+      <div id="sterilRecommendation" style="font-size:0.82rem;color:var(--text);line-height:1.5;margin-bottom:14px;"></div>
+
+      <!-- Duration info -->
+      <div class="flex items-center justify-between mb-12" style="font-size:0.8rem;">
+        <div>
+          <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;">Duration</div>
+          <span style="font-weight:700;font-family:'Sora',sans-serif;font-size:1.1rem;color:var(--accent);" id="sterilDuration">—</span>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;">Status</div>
+          <span class="badge badge-standby" id="sterilStatus">Ready</span>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-wrap mb-12">
+        <div class="progress-header">
+          <span>Cycle Progress</span>
+          <span id="sterilPercent">0%</span>
+        </div>
+        <div class="progress-track" style="height:8px;">
+          <div class="progress-fill purple" id="sterilBar" style="width:0%;transition:width 0.5s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Countdown -->
+      <div style="text-align:center;margin-bottom:14px;">
+        <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;" id="sterilCountdownLabel">Time remaining</div>
+        <div style="font-family:'Sora',sans-serif;font-size:1.8rem;font-weight:700;letter-spacing:0.04em;color:var(--accent);" id="sterilCountdown">00:00</div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex gap-10">
+        <button class="btn btn-primary" id="sterilStartBtn" style="flex:1;padding:14px;border-radius:var(--radius);justify-content:center;font-size:0.9rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21 5,3"/></svg>
+          <span id="sterilStartText">Start Sterilization</span>
+        </button>
+        <button class="btn btn-secondary" id="sterilSkipBtn" style="padding:14px 20px;border-radius:var(--radius);justify-content:center;font-size:0.85rem;">
+          Skip
+        </button>
+      </div>
+
+      <!-- Complete message -->
+      <div id="sterilComplete" style="display:none;text-align:center;padding:16px 0;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="16 8 10 16 7 13"/></svg>
+        <div style="font-size:1rem;font-weight:600;margin-top:8px;color:var(--accent2);">Sterilization Complete!</div>
+        <div style="font-size:0.78rem;color:var(--text-dim);margin-top:4px;">Log saved to history.</div>
+      </div>
+    </div>
+
     <!-- Classification Legend -->
     <div class="glass card-p mt-12 fade-in fade-in-delay-3">
       <div class="section-title">Classification Guide</div>
@@ -246,6 +301,7 @@
 <!-- Gemini key: load js/gemini-config.js from gemini-config.example.js (see .gitignore). -->
 <script src="js/gemini-config.js"></script>
 <script type="module" src="js/auth.js"></script>
+<script type="module" src="js/sterilization.js"></script>
 <script>
 (function() {
   'use strict';
@@ -485,8 +541,10 @@
 
     try {
       const result = await analyzeWithGemini(imageBase64);
+      window.__lastScanResult = result; // Store for sterilization module
       displayResults(result);
       addToHistory(result);
+      showSterilizationPanel(result);
     } catch (err) {
       console.error('Gemini error:', err);
       displayError(err.message);
@@ -662,6 +720,215 @@
           <span class="badge ${badgeClass}">${s.classification}</span>
         </div>`;
     }).join('');
+  }
+
+  // ── Sterilization Panel Logic ────────────────────────────
+  const sterilPanel = document.getElementById('sterilPanel');
+  const sterilRecommendation = document.getElementById('sterilRecommendation');
+  const sterilDuration = document.getElementById('sterilDuration');
+  const sterilStatus = document.getElementById('sterilStatus');
+  const sterilPercent = document.getElementById('sterilPercent');
+  const sterilBar = document.getElementById('sterilBar');
+  const sterilCountdown = document.getElementById('sterilCountdown');
+  const sterilCountdownLabel = document.getElementById('sterilCountdownLabel');
+  const sterilStartBtn = document.getElementById('sterilStartBtn');
+  const sterilStartText = document.getElementById('sterilStartText');
+  const sterilSkipBtn = document.getElementById('sterilSkipBtn');
+  const sterilComplete = document.getElementById('sterilComplete');
+
+  let sterilTimer = null;
+  let currentSterilResult = null;
+  let currentDurationMin = 0;
+
+  function getRecommendedDuration(cls, contLevel) {
+    if (cls === 'Clean') return 0;
+    if (cls === 'Moderate') return contLevel > 40 ? 3 : 2;
+    if (contLevel > 80) return 7;
+    if (contLevel > 60) return 5;
+    return 4;
+  }
+
+  function showSterilizationPanel(result) {
+    const cls = result.classification || 'Clean';
+    const contLevel = result.contamination_level || 0;
+    currentDurationMin = getRecommendedDuration(cls, contLevel);
+    currentSterilResult = result;
+
+    // Show panel
+    sterilPanel.style.display = '';
+    sterilComplete.style.display = 'none';
+    sterilStartBtn.style.display = 'none';
+    sterilSkipBtn.style.display = 'none';
+
+    if (cls === 'Clean') {
+      // No sterilization needed — auto-save
+      sterilRecommendation.innerHTML = '<span style="color:var(--accent2);font-weight:600;">Surface is clean!</span> No sterilization needed.';
+      sterilDuration.textContent = '0 min';
+      sterilStatus.textContent = 'Clean';
+      sterilStatus.className = 'badge badge-clean';
+      sterilComplete.style.display = '';
+      sterilComplete.querySelector('div:first-of-type').textContent = 'Surface is Clean!';
+      sterilComplete.querySelector('div:last-of-type').textContent = 'No sterilization required. Log saved.';
+      sterilBar.style.width = '100%';
+      sterilPercent.textContent = '100%';
+      sterilCountdown.textContent = '00:00';
+      saveLog(result, 0, 'Skipped');
+      sterilPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    // Contaminated — show info then auto-start sterilization
+    const levelText = cls === 'Dirty' ? 'heavily contaminated' : 'lightly contaminated';
+    sterilRecommendation.innerHTML = `Surface is <span style="color:${cls === 'Dirty' ? 'var(--accent3)' : 'var(--accent4)'};font-weight:600;">${levelText}</span>. Auto-sterilizing for <strong>${currentDurationMin} minutes</strong> (UV-C + Fan).`;
+    sterilDuration.textContent = currentDurationMin + ' min';
+    sterilStatus.textContent = 'Starting...';
+    sterilStatus.className = 'badge badge-sterilizing';
+    sterilBar.style.width = '0%';
+    sterilPercent.textContent = '0%';
+    sterilCountdown.textContent = String(currentDurationMin).padStart(2, '0') + ':00';
+    sterilCountdownLabel.textContent = 'Time remaining';
+
+    // Show stop button instead
+    sterilSkipBtn.style.display = '';
+    sterilSkipBtn.textContent = 'Stop';
+
+    sterilPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Auto-start sterilization after 1 second
+    setTimeout(() => beginSterilization(), 1000);
+  }
+
+  // Auto-start sterilization function
+  async function beginSterilization() {
+    if (sterilTimer) return;
+
+    sterilStatus.textContent = 'Sterilizing';
+    sterilStatus.className = 'badge badge-sterilizing';
+
+    try {
+      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+      const { getDatabase, ref, set } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js");
+      const { firebaseConfig } = await import("./js/firebase-config.js");
+      let rtApp;
+      try { rtApp = initializeApp(firebaseConfig); } catch(e) {
+        const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+        rtApp = getApp();
+      }
+      const rtdb = getDatabase(rtApp);
+      await set(ref(rtdb, 'relayCommand/uv'), true);
+      await set(ref(rtdb, 'relayCommand/fan'), true);
+
+      const totalSec = Math.round(currentDurationMin * 60);
+      let elapsed = 0;
+
+      sterilTimer = setInterval(async () => {
+        elapsed++;
+        const pct = Math.min(100, Math.round((elapsed / totalSec) * 100));
+        const remaining = totalSec - elapsed;
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
+
+        sterilPercent.textContent = pct + '%';
+        sterilBar.style.width = pct + '%';
+        sterilCountdown.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+
+        if (elapsed >= totalSec) {
+          clearInterval(sterilTimer);
+          sterilTimer = null;
+
+          // Turn off relays
+          await set(ref(rtdb, 'relayCommand/uv'), false);
+          await set(ref(rtdb, 'relayCommand/fan'), false);
+
+          // Show complete
+          sterilStatus.textContent = 'Complete';
+          sterilStatus.className = 'badge badge-done';
+          sterilCountdown.textContent = '00:00';
+          sterilSkipBtn.style.display = 'none';
+          sterilComplete.style.display = '';
+          sterilComplete.querySelector('div:first-of-type').textContent = 'Sterilization Complete!';
+          sterilComplete.querySelector('div:last-of-type').textContent = 'Log saved to history.';
+
+          // Save to Firestore
+          saveLog(currentSterilResult, currentDurationMin, 'Sterilized');
+        }
+      }, 1000);
+
+    } catch (e) {
+      console.error('Sterilization error:', e);
+      sterilStatus.textContent = 'Error';
+      sterilStatus.className = 'badge badge-dirty';
+    }
+  }
+
+  // Stop button (was Skip)
+  if (sterilSkipBtn) {
+    sterilSkipBtn.addEventListener('click', async () => {
+      // Stop the timer
+      if (sterilTimer) {
+        clearInterval(sterilTimer);
+        sterilTimer = null;
+      }
+
+      // Turn off relays
+      try {
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+        const { getDatabase, ref, set } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js");
+        const { firebaseConfig } = await import("./js/firebase-config.js");
+        let rtApp;
+        try { rtApp = initializeApp(firebaseConfig); } catch(e) {
+          const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+          rtApp = getApp();
+        }
+        const rtdb = getDatabase(rtApp);
+        await set(ref(rtdb, 'relayCommand/uv'), false);
+        await set(ref(rtdb, 'relayCommand/fan'), false);
+      } catch(e) { console.error(e); }
+
+      sterilStatus.textContent = 'Stopped';
+      sterilStatus.className = 'badge badge-moderate';
+      sterilSkipBtn.style.display = 'none';
+      sterilComplete.style.display = '';
+      sterilComplete.querySelector('div:first-of-type').textContent = 'Sterilization Stopped';
+      sterilComplete.querySelector('div:last-of-type').textContent = 'Log saved. Surface may still be contaminated.';
+      sterilComplete.querySelector('svg').setAttribute('stroke', 'var(--accent4)');
+      saveLog(currentSterilResult, 0, 'Stopped');
+    });
+  }
+
+  // Save log to Firestore
+  async function saveLog(result, durationMin, status) {
+    try {
+      const { getFirestore, collection, addDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js");
+      const { getAuth } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js");
+      const { firebaseConfig } = await import("./js/firebase-config.js");
+      let fsApp;
+      try {
+        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+        fsApp = initializeApp(firebaseConfig);
+      } catch(e) {
+        const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+        fsApp = getApp();
+      }
+      const auth = getAuth(fsApp);
+      const fsdb = getFirestore(fsApp);
+      const user = auth.currentUser;
+      if (!user) return;
+
+      await addDoc(collection(fsdb, 'users', user.uid, 'sterilization_logs'), {
+        classification: result.classification || 'Unknown',
+        confidence: result.confidence || 0,
+        contaminationLevel: result.contamination_level || 0,
+        analysis: result.analysis || '',
+        residues: result.residues || [],
+        durationMinutes: durationMin,
+        status: status,
+        createdAt: serverTimestamp()
+      });
+      console.log('Sterilization log saved');
+    } catch (e) {
+      console.error('Failed to save log:', e);
+    }
   }
 
   // ── Helpers ────────────────────────────────────────────────

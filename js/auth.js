@@ -48,23 +48,24 @@ function isAuthPage(page) {
   return page === AUTH_PAGE;
 }
 
+// Flag: true while login/register is in progress (prevents onAuthStateChanged redirect)
+let authActionInProgress = false;
+
 // Listen for auth state changes globally
 onAuthStateChanged(auth, (user) => {
   const currentPage = getCurrentPage();
 
   if (!user && isProtectedPage(currentPage)) {
-    // Not logged in, trying to access protected page → redirect to auth
     window.location.href = 'auth.html';
     return;
   }
 
-  if (user && isAuthPage(currentPage)) {
-    // Already logged in, on auth page → redirect to dashboard
+  if (user && isAuthPage(currentPage) && !authActionInProgress) {
+    // Already logged in (e.g. returning to auth page), redirect to dashboard
     window.location.href = 'dashboard.html';
     return;
   }
 
-  // If on a protected page and logged in, update UI elements
   if (user && isProtectedPage(currentPage)) {
     updateUserUI(user);
   }
@@ -169,6 +170,7 @@ function initAuthPage() {
 
       setLoading(btn, true);
       hideMessage();
+      authActionInProgress = true;
 
       try {
         const cred = await signInWithEmailAndPassword(auth, email, password);
@@ -176,6 +178,7 @@ function initAuthPage() {
         showMessage('Login successful! Redirecting...', 'success');
         setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
       } catch (err) {
+        authActionInProgress = false;
         showMessage(getErrorMessage(err.code), 'error');
         setLoading(btn, false);
       }
@@ -204,6 +207,7 @@ function initAuthPage() {
 
       setLoading(btn, true);
       hideMessage();
+      authActionInProgress = true;
 
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -212,6 +216,7 @@ function initAuthPage() {
         showMessage('Registration successful! Redirecting...', 'success');
         setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
       } catch (err) {
+        authActionInProgress = false;
         showMessage(getErrorMessage(err.code), 'error');
         setLoading(btn, false);
       }
@@ -223,6 +228,7 @@ function initAuthPage() {
     btn.addEventListener('click', async () => {
       btn.disabled = true;
       hideMessage();
+      authActionInProgress = true;
 
       try {
         const result = await signInWithPopup(auth, googleProvider);
@@ -230,6 +236,7 @@ function initAuthPage() {
         showMessage('Login successful! Redirecting...', 'success');
         setTimeout(() => { window.location.href = 'dashboard.html'; }, 800);
       } catch (err) {
+        authActionInProgress = false;
         if (err.code !== 'auth/popup-closed-by-user') {
           showMessage(getErrorMessage(err.code), 'error');
         }

@@ -2,19 +2,17 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users collection — user can read/write only their own document
-    // setDoc with merge needs both create and update permissions
+    // Users collection
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Sterilization logs — subcollection inside user document
+      match /sterilization_logs/{logId} {
+        allow read, create, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
-    // Sterilization logs — authenticated users can read/write their own logs
-    match /sterilization_logs/{logId} {
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-    }
-
-    // Sensor data — authenticated users can read and write
+    // Sensor data
     match /sensor_data/{docId} {
       allow read, write: if request.auth != null;
     }
