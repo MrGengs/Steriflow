@@ -120,6 +120,7 @@
         <div style="margin-top:10px;font-size:0.72rem;font-weight:600;" id="uvcStatus">
           <span style="color:var(--text-muted);">OFF</span>
         </div>
+        <div style="font-size:0.6rem;color:var(--text-muted);margin-top:2px;">Mode: <span id="dashUvMode">—</span></div>
       </div>
 
       <!-- Fan Card -->
@@ -140,6 +141,7 @@
         <div style="margin-top:10px;font-size:0.72rem;font-weight:600;" id="fanStatus">
           <span style="color:var(--text-muted);">OFF</span>
         </div>
+        <div style="font-size:0.6rem;color:var(--text-muted);margin-top:2px;">Mode: <span id="dashFanMode">—</span></div>
       </div>
 
     </div>
@@ -199,36 +201,33 @@
       <div class="section-title">Live Sensors</div>
       <div class="sensor-row">
         <div class="glass stat-card">
-          <div class="stat-label">VOC Level</div>
+          <div class="stat-label">Gas (Avg)</div>
           <div class="flex items-center gap-8">
-            <div class="stat-value" id="homeVoc" style="color:var(--accent);">350</div>
-            <div class="stat-unit">ppm</div>
+            <div class="stat-value" id="homeVoc" style="color:var(--accent);">—</div>
+            <div class="stat-unit">adc</div>
           </div>
-          <div class="stat-trend" id="vocTrend">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-            Normal
+          <div class="stat-trend" id="vocTrend" style="color:var(--text-dim);">
+            Waiting...
           </div>
         </div>
         <div class="glass stat-card">
           <div class="stat-label">Temperature</div>
           <div class="flex items-center gap-8">
-            <div class="stat-value" id="homeTemp" style="color:var(--accent2);">28.5</div>
+            <div class="stat-value" id="homeTemp" style="color:var(--accent2);">—</div>
             <div class="stat-unit">°C</div>
           </div>
-          <div class="stat-trend trend-up">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
-            +0.3°C
+          <div class="stat-trend" style="color:var(--text-dim);">
+            Waiting...
           </div>
         </div>
         <div class="glass stat-card">
           <div class="stat-label">Humidity</div>
           <div class="flex items-center gap-8">
-            <div class="stat-value" id="homeHumidity" style="color:var(--accent3);">65</div>
+            <div class="stat-value" id="homeHumidity" style="color:var(--accent3);">—</div>
             <div class="stat-unit">%</div>
           </div>
           <div class="stat-trend" style="color:var(--text-dim);">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Stable
+            Waiting...
           </div>
         </div>
       </div>

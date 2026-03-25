@@ -175,22 +175,22 @@
                 <div class="lp-sensor-card lp-sensor-voc">
                   <svg class="lp-sensor-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2C8 2 5 6 5 10C5 14 8 18 12 22C16 18 19 14 19 10C19 6 16 2 12 2Z" stroke="#7c5cfc" stroke-width="1.5" fill="none"/><circle cx="12" cy="10" r="3" fill="#7c5cfc" opacity="0.7"/></svg>
                   <div class="lp-sensor-info">
-                    <span class="lp-sensor-label">VOC Level</span>
-                    <span class="lp-sensor-value lp-sensor-value-purple">350 <small>ppm</small></span>
+                    <span class="lp-sensor-label">Gas Level</span>
+                    <span class="lp-sensor-value lp-sensor-value-purple">1950 <small>adc</small></span>
                   </div>
                 </div>
                 <div class="lp-sensor-card lp-sensor-temp">
                   <svg class="lp-sensor-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2v9.17A4 4 0 1 0 14 18V5a2 2 0 0 0-2-2Z" stroke="#ffc247" stroke-width="1.5"/><circle cx="12" cy="18" r="2.5" fill="#ffc247" opacity="0.8"/></svg>
                   <div class="lp-sensor-info">
                     <span class="lp-sensor-label">Temperature</span>
-                    <span class="lp-sensor-value lp-sensor-value-yellow">28.5 <small>°C</small></span>
+                    <span class="lp-sensor-value lp-sensor-value-yellow">30.3 <small>°C</small></span>
                   </div>
                 </div>
                 <div class="lp-sensor-card lp-sensor-hum">
                   <svg class="lp-sensor-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l7 10a7 7 0 1 1-14 0z" stroke="#36d6c3" stroke-width="1.5" fill="none"/></svg>
                   <div class="lp-sensor-info">
                     <span class="lp-sensor-label">Humidity</span>
-                    <span class="lp-sensor-value lp-sensor-value-teal">65 <small>%</small></span>
+                    <span class="lp-sensor-value lp-sensor-value-teal">69.6 <small>%</small></span>
                   </div>
                 </div>
               </div>
@@ -251,7 +251,7 @@
           </div>
           <div class="lp-stat-divider" aria-hidden="true"></div>
           <div class="lp-stat-item lp-reveal">
-            <span class="lp-stat-value lp-stat-pink" data-target="3" data-suffix=" Sensor">0 Sensor</span>
+            <span class="lp-stat-value lp-stat-pink" data-target="5" data-suffix=" Sensor">0 Sensor</span>
             <span class="lp-stat-label">Active Sensors</span>
           </div>
           <div class="lp-stat-divider" aria-hidden="true"></div>
@@ -286,7 +286,7 @@
                 </div>
                 <div class="lp-step-body">
                   <h3 class="lp-step-title">System Initialization</h3>
-                  <p class="lp-step-desc">ESP32-CAM activates all components: SGP30 sensor, DHT22, camera, relay module, and RGB LED indicator ready to operate.</p>
+                  <p class="lp-step-desc">ESP32 activates all components: MQ3, MQ6, MQ8 gas sensors, DHT11, relay module, UV-C lamp and fan ready to operate.</p>
                 </div>
               </div>
             </div>
@@ -312,7 +312,7 @@
                 </div>
                 <div class="lp-step-body">
                   <h3 class="lp-step-title">Contamination Detection</h3>
-                  <p class="lp-step-desc">SGP30 sensor analyzes VOC (Volatile Organic Compound) levels in the air. If the threshold is exceeded, the system is automatically activated.</p>
+                  <p class="lp-step-desc">MQ3, MQ6, and MQ8 sensors analyze gas contamination (alcohol, LPG, hydrogen) in the air. If the threshold is exceeded, the system is automatically activated.</p>
                 </div>
               </div>
             </div>
@@ -356,7 +356,7 @@
                 </div>
                 <div class="lp-step-body">
                   <h3 class="lp-step-title">Environment Monitoring</h3>
-                  <p class="lp-step-desc">DHT22 sensor continuously monitors room temperature and humidity to ensure optimal conditions during the sterilization process.</p>
+                  <p class="lp-step-desc">DHT11 sensor continuously monitors room temperature and humidity to ensure optimal conditions during the sterilization process.</p>
                 </div>
               </div>
             </div>
@@ -374,7 +374,7 @@
                 </div>
                 <div class="lp-step-body">
                   <h3 class="lp-step-title">Real-time Monitoring</h3>
-                  <p class="lp-step-desc">Web dashboard displays real-time sensor data. ESP32-CAM live streaming for AI contamination detection via OpenCV & TensorFlow Lite.</p>
+                  <p class="lp-step-desc">Web dashboard displays real-time sensor data from Firebase Realtime Database. Monitor gas levels, temperature, humidity, and relay status from anywhere.</p>
                 </div>
               </div>
             </div>
@@ -433,8 +433,8 @@
             <div class="lp-component-icon lp-comp-teal">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 8c0 0 3-3 9-3s9 3 9 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M5 12c0 0 2-2 7-2s7 2 7 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 16c0 0 1-1 4-1s4 1 4 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="20" r="1.5" fill="currentColor"/></svg>
             </div>
-            <h3 class="lp-component-name">SGP30 VOC Sensor</h3>
-            <p class="lp-component-desc">Detects volatile organic compounds (VOC) and CO2 equivalent. Automatically triggers the sterilization process.</p>
+            <h3 class="lp-component-name">MQ3 / MQ6 / MQ8</h3>
+            <p class="lp-component-desc">Triple gas sensors detecting alcohol (MQ3), LPG (MQ6), and hydrogen (MQ8). Automatically triggers sterilization when gas levels are dangerous.</p>
             <span class="lp-component-tag">Sensor</span>
           </div>
 
@@ -451,8 +451,8 @@
             <div class="lp-component-icon lp-comp-yellow">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3a2 2 0 0 0-2 2v9.17A4 4 0 1 0 14 18V5a2 2 0 0 0-2-2Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="18" r="2.5" fill="currentColor" opacity="0.6"/><path d="M10 8h4M10 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             </div>
-            <h3 class="lp-component-name">DHT22 Sensor</h3>
-            <p class="lp-component-desc">Monitors temperature and humidity with precision. Data displayed in real-time on the web dashboard.</p>
+            <h3 class="lp-component-name">DHT11 Sensor</h3>
+            <p class="lp-component-desc">Monitors temperature and humidity. Data displayed in real-time on the web dashboard.</p>
             <span class="lp-component-tag">Sensor</span>
           </div>
 
@@ -460,8 +460,8 @@
             <div class="lp-component-icon lp-comp-teal">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l6 12H6L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" fill="none"/><path d="M7 17c0 2.8 2.2 5 5 5s5-2.2 5-5" stroke="currentColor" stroke-width="1.5"/><path d="M9 14c1 2 5 2 6 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             </div>
-            <h3 class="lp-component-name">Ethanol Spray System</h3>
-            <p class="lp-component-desc">70% food-grade ethanol spray through system nozzle. Controlled by 12V pump and MOSFET driver.</p>
+            <h3 class="lp-component-name">Exhaust Fan</h3>
+            <p class="lp-component-desc">Ventilation fan for air circulation during sterilization. Controlled by relay module with AUTO/MANUAL mode.</p>
             <span class="lp-component-tag">Actuator</span>
           </div>
 
@@ -536,29 +536,29 @@
                 </div>
                 <div class="lp-ov-grid">
                   <div class="lp-ov-card lp-ov-voc">
-                    <span class="lp-ov-label">VOC</span>
-                    <span class="lp-ov-val">350</span>
-                    <span class="lp-ov-unit">ppm</span>
-                    <div class="lp-ov-bar"><div style="width:65%;background:linear-gradient(90deg,#7c5cfc,#a78bfa)"></div></div>
+                    <span class="lp-ov-label">Gas (Avg)</span>
+                    <span class="lp-ov-val">1950</span>
+                    <span class="lp-ov-unit">adc</span>
+                    <div class="lp-ov-bar"><div style="width:48%;background:linear-gradient(90deg,#7c5cfc,#a78bfa)"></div></div>
                   </div>
                   <div class="lp-ov-card lp-ov-temp">
                     <span class="lp-ov-label">Temp</span>
-                    <span class="lp-ov-val">28.5</span>
+                    <span class="lp-ov-val">30.3</span>
                     <span class="lp-ov-unit">°C</span>
-                    <div class="lp-ov-bar"><div style="width:57%;background:linear-gradient(90deg,#ffc247,#ffdb8e)"></div></div>
+                    <div class="lp-ov-bar"><div style="width:50%;background:linear-gradient(90deg,#ffc247,#ffdb8e)"></div></div>
                   </div>
                   <div class="lp-ov-card lp-ov-hum">
                     <span class="lp-ov-label">Humidity</span>
-                    <span class="lp-ov-val">65</span>
+                    <span class="lp-ov-val">69.6</span>
                     <span class="lp-ov-unit">%</span>
-                    <div class="lp-ov-bar"><div style="width:65%;background:linear-gradient(90deg,#36d6c3,#7ff5ea)"></div></div>
+                    <div class="lp-ov-bar"><div style="width:70%;background:linear-gradient(90deg,#36d6c3,#7ff5ea)"></div></div>
                   </div>
                   <div class="lp-ov-card lp-ov-status">
-                    <span class="lp-ov-label">Status</span>
-                    <span class="lp-ov-val-sm lp-steril-text">STERILIZING</span>
+                    <span class="lp-ov-label">Gas Alert</span>
+                    <span class="lp-ov-val-sm" style="color:#ff6b9d;">BAHAYA</span>
                     <div class="lp-ov-indicator">
                       <span class="lp-pulse-dot" aria-hidden="true"></span>
-                      Active
+                      Fan: ON
                     </div>
                   </div>
                 </div>
@@ -568,8 +568,8 @@
             <div class="lp-dash-panel" id="panel-monitoring">
               <div class="lp-dash-charts">
                 <div class="lp-chart-header">
-                  <span>VOC Level — Last 24 Hours</span>
-                  <span class="lp-chart-tag">Real-time</span>
+                  <span>Gas Level (MQ3+MQ6+MQ8 Avg) — Real-time</span>
+                  <span class="lp-chart-tag">Live</span>
                 </div>
                 <div class="lp-fake-chart" aria-hidden="true">
                   <svg viewBox="0 0 300 80" preserveAspectRatio="none">
@@ -584,9 +584,9 @@
                   </svg>
                 </div>
                 <div class="lp-chart-stats">
-                  <div><span>Min</span><strong>120 ppm</strong></div>
-                  <div><span>Avg</span><strong>312 ppm</strong></div>
-                  <div><span>Max</span><strong>580 ppm</strong></div>
+                  <div><span>MQ3</span><strong>2448</strong></div>
+                  <div><span>MQ6</span><strong>2671</strong></div>
+                  <div><span>MQ8</span><strong>731</strong></div>
                 </div>
               </div>
             </div>
@@ -707,14 +707,14 @@
               <div class="lp-tech-pill lp-pill-teal">
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 8c2-3 10-3 12 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6 11.5c1.5-2 6.5-2 8 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10" cy="14.5" r="1.5" fill="currentColor"/></svg>
                 <div class="lp-pill-content">
-                  <span class="lp-pill-name">SGP30</span>
-                  <span class="lp-pill-cat">VOC Sensor</span>
+                  <span class="lp-pill-name">MQ3/MQ6/MQ8</span>
+                  <span class="lp-pill-cat">Gas Sensors</span>
                 </div>
               </div>
               <div class="lp-tech-pill lp-pill-yellow">
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3a2 2 0 0 0-1.5 3.3V13a1.5 1.5 0 0 0 3 0V6.3A2 2 0 0 0 10 3Z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="15" r="2" fill="currentColor" opacity="0.6"/></svg>
                 <div class="lp-pill-content">
-                  <span class="lp-pill-name">DHT22</span>
+                  <span class="lp-pill-name">DHT11</span>
                   <span class="lp-pill-cat">Temp &amp; Humidity</span>
                 </div>
               </div>

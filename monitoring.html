@@ -64,25 +64,64 @@
       </div>
     </div>
 
-    <!-- Sensor Cards Row -->
+    <!-- Gas Sensor Cards -->
     <div class="sensor-row fade-in fade-in-delay-1">
 
-      <!-- VOC -->
+      <!-- MQ3 (Alcohol) -->
       <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent);">
-        <div class="stat-label">VOC Level</div>
+        <div class="stat-label">MQ3 · Alcohol</div>
         <div class="flex items-center gap-4">
-          <div class="stat-value" id="vocValue" style="color:var(--accent);">—</div>
-          <div class="stat-unit" style="padding-top:6px;">ppm</div>
+          <div class="stat-value" id="mq3Value" style="color:var(--accent);">—</div>
+          <div class="stat-unit" style="padding-top:6px;">adc</div>
         </div>
         <div style="margin-top:4px;">
           <div class="progress-track" style="height:4px;">
-            <div class="progress-fill purple" id="vocBar" style="width:0%;animation:none;"></div>
+            <div class="progress-fill purple" id="mq3Bar" style="width:0%;animation:none;"></div>
           </div>
         </div>
-        <div class="stat-trend" id="vocTrendMonitor" style="margin-top:4px;color:var(--text-dim);">
-          Waiting for data...
+        <div class="stat-trend" id="mq3Status" style="margin-top:4px;color:var(--text-dim);">
+          Waiting...
         </div>
       </div>
+
+      <!-- MQ6 (LPG) -->
+      <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent4,#ffc247);">
+        <div class="stat-label">MQ6 · LPG</div>
+        <div class="flex items-center gap-4">
+          <div class="stat-value" id="mq6Value" style="color:var(--accent4,#ffc247);">—</div>
+          <div class="stat-unit" style="padding-top:6px;">adc</div>
+        </div>
+        <div style="margin-top:4px;">
+          <div class="progress-track" style="height:4px;">
+            <div class="progress-fill yellow" id="mq6Bar" style="width:0%;animation:none;"></div>
+          </div>
+        </div>
+        <div class="stat-trend" id="mq6Status" style="margin-top:4px;color:var(--text-dim);">
+          Waiting...
+        </div>
+      </div>
+
+      <!-- MQ8 (Hydrogen) -->
+      <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent3);">
+        <div class="stat-label">MQ8 · Hydrogen</div>
+        <div class="flex items-center gap-4">
+          <div class="stat-value" id="mq8Value" style="color:var(--accent3);">—</div>
+          <div class="stat-unit" style="padding-top:6px;">adc</div>
+        </div>
+        <div style="margin-top:4px;">
+          <div class="progress-track" style="height:4px;">
+            <div class="progress-fill pink" id="mq8Bar" style="width:0%;animation:none;"></div>
+          </div>
+        </div>
+        <div class="stat-trend" id="mq8Status" style="margin-top:4px;color:var(--text-dim);">
+          Waiting...
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Environment Sensor Cards -->
+    <div class="sensor-row fade-in fade-in-delay-1" style="margin-top:10px;">
 
       <!-- Temperature -->
       <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent2);">
@@ -96,8 +135,8 @@
             <div class="progress-fill teal" id="tempBar" style="width:0%;animation:none;"></div>
           </div>
         </div>
-        <div class="stat-trend" style="margin-top:4px;color:var(--text-dim);">
-          Waiting for data...
+        <div class="stat-trend" id="tempTrend" style="margin-top:4px;color:var(--text-dim);">
+          Waiting...
         </div>
       </div>
 
@@ -113,8 +152,8 @@
             <div class="progress-fill pink" id="humidityBar" style="width:0%;animation:none;"></div>
           </div>
         </div>
-        <div class="stat-trend" style="margin-top:4px;color:var(--text-dim);">
-          Waiting for data...
+        <div class="stat-trend" id="humTrend" style="margin-top:4px;color:var(--text-dim);">
+          Waiting...
         </div>
       </div>
 
@@ -124,12 +163,12 @@
     <div class="glass card-p mt-16 fade-in fade-in-delay-2">
       <div class="flex items-center justify-between mb-8">
         <div>
-          <div class="section-title" style="margin-bottom:2px;">VOC Level</div>
-          <div style="font-size:0.68rem;color:var(--text-dim);">Last 20 readings</div>
+          <div class="section-title" style="margin-bottom:2px;">Gas Level (Avg)</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);">Last 20 readings · MQ3+MQ6+MQ8 average</div>
         </div>
         <div class="flex items-center gap-8" style="font-size:0.7rem;color:var(--text-dim);">
           <span style="display:inline-block;width:10px;height:3px;border-radius:2px;background:var(--accent);"></span>
-          ppm
+          adc
         </div>
       </div>
       <div class="chart-container" style="height:160px;">
@@ -186,10 +225,12 @@
         <div>
           <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;">UV-C Lamp</div>
           <span class="status-pill inactive" id="monitorUvc">INACTIVE</span>
+          <div style="font-size:0.6rem;color:var(--text-muted);margin-top:3px;">Mode: <span id="monitorUvMode">—</span></div>
         </div>
         <div>
           <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;">Fan</div>
           <span class="status-pill inactive" id="monitorEthanol">INACTIVE</span>
+          <div style="font-size:0.6rem;color:var(--text-muted);margin-top:3px;">Mode: <span id="monitorFanMode">—</span></div>
         </div>
       </div>
 
@@ -227,11 +268,31 @@
         <div class="flex items-center justify-between" style="font-size:0.8rem;">
           <div class="flex items-center gap-8">
             <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div>
-            <span>VOC Level</span>
+            <span>MQ3 · Alcohol</span>
           </div>
           <div style="text-align:right;">
-            <span style="color:var(--text-dim);font-size:0.7rem;">Safe: </span>
-            <span style="font-weight:600;">&lt; 500 ppm</span>
+            <span style="color:var(--text-dim);font-size:0.7rem;">Digital: </span>
+            <span style="font-weight:600;">LOW = AMAN</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between" style="font-size:0.8rem;">
+          <div class="flex items-center gap-8">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--accent4,#ffc247);flex-shrink:0;"></div>
+            <span>MQ6 · LPG</span>
+          </div>
+          <div style="text-align:right;">
+            <span style="color:var(--text-dim);font-size:0.7rem;">Digital: </span>
+            <span style="font-weight:600;">LOW = AMAN</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between" style="font-size:0.8rem;">
+          <div class="flex items-center gap-8">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--accent3);flex-shrink:0;"></div>
+            <span>MQ8 · Hydrogen</span>
+          </div>
+          <div style="text-align:right;">
+            <span style="color:var(--text-dim);font-size:0.7rem;">Digital: </span>
+            <span style="font-weight:600;">LOW = AMAN</span>
           </div>
         </div>
         <div class="flex items-center justify-between" style="font-size:0.8rem;">

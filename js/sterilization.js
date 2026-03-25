@@ -92,11 +92,13 @@ export async function loadHistory(filterType = 'all') {
 }
 
 // ── Start sterilization process ──────────────────────────────
-export async function startSterilization(durationMinutes, onTick, onComplete) {
-  // Turn ON UV and Fan via RTDB
+export async function startSterilization(deviceId, { uvNeeded = true, fanNeeded = true, durationMinutes = 5 }, onTick, onComplete) {
+  const path = deviceId || 'steriflow-001';
+
+  // Turn ON only what's needed via RTDB
   try {
-    await set(ref(rtdb, 'relayCommand/uv'), true);
-    await set(ref(rtdb, 'relayCommand/fan'), true);
+    if (uvNeeded) await set(ref(rtdb, `${path}/relayCommand/uv`), true);
+    if (fanNeeded) await set(ref(rtdb, `${path}/relayCommand/fan`), true);
   } catch (e) {
     console.error('Failed to activate relays:', e);
   }
@@ -115,7 +117,7 @@ export async function startSterilization(durationMinutes, onTick, onComplete) {
 
     if (elapsed >= totalSeconds) {
       clearInterval(timer);
-      stopSterilization();
+      stopSterilization(deviceId, { uvNeeded, fanNeeded });
       if (onComplete) onComplete();
     }
   }, 1000);
@@ -124,10 +126,11 @@ export async function startSterilization(durationMinutes, onTick, onComplete) {
 }
 
 // ── Stop sterilization ───────────────────────────────────────
-export async function stopSterilization() {
+export async function stopSterilization(deviceId, { uvNeeded = true, fanNeeded = true } = {}) {
+  const path = deviceId || 'steriflow-001';
   try {
-    await set(ref(rtdb, 'relayCommand/uv'), false);
-    await set(ref(rtdb, 'relayCommand/fan'), false);
+    if (uvNeeded) await set(ref(rtdb, `${path}/relayCommand/uv`), false);
+    if (fanNeeded) await set(ref(rtdb, `${path}/relayCommand/fan`), false);
   } catch (e) {
     console.error('Failed to deactivate relays:', e);
   }

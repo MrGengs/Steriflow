@@ -22,10 +22,11 @@ try { app = initializeApp(firebaseConfig); } catch (e) {
 const auth = getAuth(app);
 const db = getDatabase(app);
 
+// ── Device ID ────────────────────────────────────────────────
+const DEVICE_ID = 'steriflow-001';
+
 // ── References ───────────────────────────────────────────────
-const sensorDataRef = ref(db, 'sensorData');
-const relayCommandRef = ref(db, 'relayCommand');
-const statusRef = ref(db, 'status');
+const sensorDataRef = ref(db, `${DEVICE_ID}/sensorData`);
 
 // ── State ────────────────────────────────────────────────────
 let currentData = {
@@ -43,6 +44,8 @@ let currentStatus = {
   timestamp: 0
 };
 
+// Relay command is no longer a separate node — relay state is inside sensorData.relay
+// For manual control, we write to a separate relayCommand node
 let currentRelayCommand = {
   fan: false,
   uv: false
@@ -61,7 +64,7 @@ window.__realtimeActive = false;
 // ── Toggle UV relay command ──────────────────────────────────
 export async function toggleUV(value) {
   try {
-    await set(ref(db, 'relayCommand/uv'), value);
+    await set(ref(db, `${DEVICE_ID}/relayCommand/uv`), value);
   } catch (e) {
     console.error('Failed to toggle UV:', e);
   }
@@ -70,7 +73,7 @@ export async function toggleUV(value) {
 // ── Toggle Fan relay command ─────────────────────────────────
 export async function toggleFan(value) {
   try {
-    await set(ref(db, 'relayCommand/fan'), value);
+    await set(ref(db, `${DEVICE_ID}/relayCommand/fan`), value);
   } catch (e) {
     console.error('Failed to toggle Fan:', e);
   }
@@ -116,35 +119,40 @@ function updateDashboardUI(sensorData, relayCmd, status) {
     vocTrend.style.color = gasInfo.color;
   }
 
-  // UV toggle
+  // UV toggle + label: both follow RTDB relayCommand/uv (boolean) so slider and text never disagree
   const uvcToggle = document.getElementById('uvcToggle');
   const uvcStatus = document.getElementById('uvcStatus');
   const uvcCard = document.getElementById('uvcCard');
 
+  const uvCmdOn = relayCmd.uv === true;
   if (uvcToggle) {
-    uvcToggle.checked = relayCmd.uv === true;
-    // Also reflect actual relay state
-    const uvRelay = sensorData.relay?.uv || 'OFF';
+    uvcToggle.checked = uvCmdOn;
     if (uvcStatus) {
-      uvcStatus.innerHTML = uvRelay === 'ON'
+      uvcStatus.innerHTML = uvCmdOn
         ? '<span style="color:var(--accent);">ON</span>'
         : '<span style="color:var(--text-muted);">OFF</span>';
     }
   }
 
-  // Fan/Ethanol toggle
+  // Fan toggle + label: same as UV — relayCommand/fan (boolean)
   const fanToggle = document.getElementById('fanToggle');
   const fanStatus = document.getElementById('fanStatus');
 
+  const fanCmdOn = relayCmd.fan === true;
   if (fanToggle) {
-    fanToggle.checked = relayCmd.fan === true;
-    const fanRelay = sensorData.relay?.fan || 'OFF';
+    fanToggle.checked = fanCmdOn;
     if (fanStatus) {
-      fanStatus.innerHTML = fanRelay === 'ON'
+      fanStatus.innerHTML = fanCmdOn
         ? '<span style="color:var(--accent2);">ON</span>'
         : '<span style="color:var(--text-muted);">OFF</span>';
     }
   }
+
+  // Relay modes
+  const dashUvMode = document.getElementById('dashUvMode');
+  const dashFanMode = document.getElementById('dashFanMode');
+  if (dashUvMode) dashUvMode.textContent = sensorData.relay?.uv_mode || 'MANUAL';
+  if (dashFanMode) dashFanMode.textContent = sensorData.relay?.fan_mode || 'MANUAL';
 
   // System status
   const systemStatus = document.getElementById('systemStatus');
@@ -216,17 +224,41 @@ function updateMonitoringUI(sensorData, relayCmd, status) {
     humHistory.shift();
   }
 
-  // VOC
-  const vocValue = document.getElementById('vocValue');
-  const vocBar = document.getElementById('vocBar');
-  const vocTrendMonitor = document.getElementById('vocTrendMonitor');
-  if (vocValue) vocValue.textContent = avgVOC;
-  if (vocBar) vocBar.style.width = Math.min(100, (avgVOC / 4095) * 100) + '%';
-  if (vocTrendMonitor) {
-    const gasInfo = getGasLevel(sensorData);
-    vocTrendMonitor.textContent = gasInfo.level === 'Normal' ? 'Normal range' : gasInfo.level;
-    vocTrendMonitor.style.color = gasInfo.color;
+  // ── Individual MQ Sensor Cards ──
+  const mq3Val = document.getElementById('mq3Value');
+  const mq6Val = document.getElementById('mq6Value');
+  const mq8Val = document.getElementById('mq8Value');
+  const mq3Bar = document.getElementById('mq3Bar');
+  const mq6Bar = document.getElementById('mq6Bar');
+  const mq8Bar = document.getElementById('mq8Bar');
+  const mq3Status = document.getElementById('mq3Status');
+  const mq6Status = document.getElementById('mq6Status');
+  const mq8Status = document.getElementById('mq8Status');
+
+  const mq3 = sensorData.mq3?.analog || 0;
+  const mq6 = sensorData.mq6?.analog || 0;
+  const mq8 = sensorData.mq8?.analog || 0;
+
+  if (mq3Val) mq3Val.textContent = mq3;
+  if (mq6Val) mq6Val.textContent = mq6;
+  if (mq8Val) mq8Val.textContent = mq8;
+  if (mq3Bar) mq3Bar.style.width = Math.min(100, (mq3 / 4095) * 100) + '%';
+  if (mq6Bar) mq6Bar.style.width = Math.min(100, (mq6 / 4095) * 100) + '%';
+  if (mq8Bar) mq8Bar.style.width = Math.min(100, (mq8 / 4095) * 100) + '%';
+
+  function setMqStatus(el, sensorObj) {
+    if (!el) return;
+    const s = sensorObj?.status || 'AMAN';
+    el.textContent = s;
+    if (s === 'BAHAYA') {
+      el.style.color = 'var(--accent3)';
+    } else {
+      el.style.color = 'var(--accent2)';
+    }
   }
+  setMqStatus(mq3Status, sensorData.mq3);
+  setMqStatus(mq6Status, sensorData.mq6);
+  setMqStatus(mq8Status, sensorData.mq8);
 
   // Temperature
   const tempValue = document.getElementById('tempValue');
@@ -235,16 +267,17 @@ function updateMonitoringUI(sensorData, relayCmd, status) {
   if (tempBar) tempBar.style.width = Math.min(100, (temp / 60) * 100) + '%';
 
   // Temperature trend
-  const tempTrend = document.getElementById('tempBar')?.closest('.stat-card')?.querySelector('.stat-trend');
+  const tempTrend = document.getElementById('tempTrend');
   if (tempTrend) {
+    const alertText = status.temp_alert || 'NORMAL';
     if (temp > 32) {
-      tempTrend.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg> Hot';
+      tempTrend.textContent = 'Hot';
       tempTrend.style.color = 'var(--accent3)';
     } else if (temp > 28) {
-      tempTrend.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg> Warm';
+      tempTrend.textContent = 'Warm';
       tempTrend.style.color = 'var(--accent4)';
     } else {
-      tempTrend.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg> Normal';
+      tempTrend.textContent = alertText === 'NORMAL' ? 'Normal' : alertText;
       tempTrend.style.color = 'var(--accent2)';
     }
   }
@@ -256,8 +289,9 @@ function updateMonitoringUI(sensorData, relayCmd, status) {
   if (humidityBar) humidityBar.style.width = Math.min(100, humidity) + '%';
 
   // Humidity trend
-  const humTrend = document.getElementById('humidityBar')?.closest('.stat-card')?.querySelector('.stat-trend');
+  const humTrend = document.getElementById('humTrend');
   if (humTrend) {
+    const alertText = status.hum_alert || 'NORMAL';
     if (humidity > 80) {
       humTrend.textContent = 'Too humid';
       humTrend.style.color = 'var(--accent3)';
@@ -265,7 +299,7 @@ function updateMonitoringUI(sensorData, relayCmd, status) {
       humTrend.textContent = 'Too dry';
       humTrend.style.color = 'var(--accent4)';
     } else {
-      humTrend.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg> Stable';
+      humTrend.textContent = alertText === 'NORMAL' ? 'Stable' : alertText;
       humTrend.style.color = 'var(--text-dim)';
     }
   }
@@ -288,9 +322,13 @@ function updateMonitoringUI(sensorData, relayCmd, status) {
   const monitorStatus = document.getElementById('monitorStatus');
   const monitorUvc = document.getElementById('monitorUvc');
   const monitorEthanol = document.getElementById('monitorEthanol');
+  const monitorUvMode = document.getElementById('monitorUvMode');
+  const monitorFanMode = document.getElementById('monitorFanMode');
 
   const uvOn = sensorData.relay?.uv === 'ON';
   const fanOn = sensorData.relay?.fan === 'ON';
+  const uvMode = sensorData.relay?.uv_mode || 'MANUAL';
+  const fanMode = sensorData.relay?.fan_mode || 'MANUAL';
 
   if (monitorStatus) {
     if (uvOn || fanOn) {
@@ -312,6 +350,8 @@ function updateMonitoringUI(sensorData, relayCmd, status) {
     monitorEthanol.textContent = fanOn ? 'ACTIVE' : 'INACTIVE';
     monitorEthanol.className = fanOn ? 'status-pill active' : 'status-pill inactive';
   }
+  if (monitorUvMode) monitorUvMode.textContent = uvMode;
+  if (monitorFanMode) monitorFanMode.textContent = fanMode;
 
   // Last updated
   const lastUpdated = document.getElementById('lastUpdated');
@@ -322,7 +362,7 @@ function updateMonitoringUI(sensorData, relayCmd, status) {
 
   // Render charts using app.js functions (exposed on window)
   if (typeof window.drawLineChart === 'function') {
-    window.drawLineChart('vocChart', vocHistory, '#7c5cfc', { unit: ' ppm' });
+    window.drawLineChart('vocChart', vocHistory, '#7c5cfc', { unit: '' });
     window.drawDualLineChart('envChart', tempHistory, humHistory, '#36d6c3', '#ff6b9d');
   }
 }
@@ -394,10 +434,17 @@ if (page === 'dashboard.html' || page === 'monitoring.html') {
     listenersStarted = true;
     window.__realtimeActive = true;
 
-    // Listen to sensor data
+    // Listen to sensorData (contains dht11, mq3, mq6, mq8, relay, status, timestamp)
     onValue(sensorDataRef, (snapshot) => {
       const data = snapshot.val();
       if (!data) return;
+
+      // Extract status from sensorData (new structure nests it inside)
+      if (data.status) {
+        currentStatus = data.status;
+      }
+
+      // Relay state is inside sensorData.relay
       currentData = data;
 
       if (page === 'dashboard.html') {
@@ -407,24 +454,11 @@ if (page === 'dashboard.html' || page === 'monitoring.html') {
       }
     });
 
-    // Listen to relay commands
-    onValue(relayCommandRef, (snapshot) => {
+    // Listen to relay commands (for manual toggle state)
+    onValue(ref(db, `${DEVICE_ID}/relayCommand`), (snapshot) => {
       const data = snapshot.val();
       if (!data) return;
       currentRelayCommand = data;
-
-      if (page === 'dashboard.html') {
-        updateDashboardUI(currentData, currentRelayCommand, currentStatus);
-      } else {
-        updateMonitoringUI(currentData, currentRelayCommand, currentStatus);
-      }
-    });
-
-    // Listen to status
-    onValue(statusRef, (snapshot) => {
-      const data = snapshot.val();
-      if (!data) return;
-      currentStatus = data;
 
       if (page === 'dashboard.html') {
         updateDashboardUI(currentData, currentRelayCommand, currentStatus);

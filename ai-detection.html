@@ -298,6 +298,45 @@
 
 </div>
 
+<!-- Device Selection Modal -->
+<div class="modal-overlay" id="deviceModal" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="section-title" style="margin-bottom:0;">Select Device</div>
+      <button class="icon-btn" id="deviceModalClose" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:14px;">Choose a SteriFlow device to scan and sterilize</div>
+    <div id="deviceList" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="text-align:center;padding:20px 0;font-size:0.8rem;color:var(--text-dim);">
+        <div class="spinner" style="margin:0 auto 10px;"></div>
+        Loading devices...
+      </div>
+    </div>
+    <button class="btn btn-primary" id="deviceStartBtn" disabled style="width:100%;margin-top:16px;padding:14px;border-radius:var(--radius);justify-content:center;font-size:0.9rem;opacity:0.5;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21 5,3"/></svg>
+      <span>Start Scan</span>
+    </button>
+  </div>
+</div>
+
+<style>
+  .modal-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;}
+  .modal-box{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius-lg,16px);padding:24px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto;}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .device-item{display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--radius);border:1.5px solid var(--glass-border);cursor:pointer;transition:all .2s ease;background:transparent;}
+  .device-item:hover{border-color:var(--accent);background:rgba(124,92,252,0.06);}
+  .device-item.selected{border-color:var(--accent);background:rgba(124,92,252,0.1);box-shadow:0 0 0 1px var(--accent);}
+  .device-item .device-icon{width:40px;height:40px;border-radius:10px;background:rgba(124,92,252,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .device-item .device-info{flex:1;min-width:0;}
+  .device-item .device-name{font-size:0.85rem;font-weight:600;color:var(--text);}
+  .device-item .device-meta{font-size:0.68rem;color:var(--text-dim);margin-top:2px;}
+  .device-item .device-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .spinner{width:24px;height:24px;border:3px solid var(--glass-border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+
 <!-- Gemini key: load js/gemini-config.js from gemini-config.example.js (see .gitignore). -->
 <script src="js/gemini-config.js"></script>
 <script type="module" src="js/auth.js"></script>
@@ -426,12 +465,19 @@
   const residueList = document.getElementById('residueList');
   const scanHistory = document.getElementById('scanHistory');
 
+  // Device modal elements
+  const deviceModal = document.getElementById('deviceModal');
+  const deviceList = document.getElementById('deviceList');
+  const deviceStartBtn = document.getElementById('deviceStartBtn');
+  const deviceModalClose = document.getElementById('deviceModalClose');
+
   let stream = null;
   let cameraActive = false;
   let scanning = false;
   let facingMode = 'environment'; // rear camera
   let scanCount = 0;
   let scans = [];
+  let selectedDeviceId = null; // e.g. 'steriflow-001'
 
   // ── Camera Controls ────────────────────────────────────────
   async function startCamera() {
@@ -524,9 +570,115 @@
     }
   });
 
-  // ── Scan Button ────────────────────────────────────────────
-  scanBtn.addEventListener('click', async () => {
+  // ── Device Modal Logic ──────────────────────────────────────
+  async function loadDevicesFromRTDB() {
+    try {
+      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+      const { getDatabase, ref, get } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js");
+      const { firebaseConfig } = await import("./js/firebase-config.js");
+      let rtApp;
+      try { rtApp = initializeApp(firebaseConfig); } catch(e) {
+        const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+        rtApp = getApp();
+      }
+      const rtdb = getDatabase(rtApp);
+      const snapshot = await get(ref(rtdb, '/'));
+      const data = snapshot.val();
+      if (!data) return [];
+
+      // Find all steriflow-XXX keys that have sensorData
+      const devices = [];
+      for (const key of Object.keys(data)) {
+        if (key.startsWith('steriflow-') && data[key]?.sensorData) {
+          const sd = data[key].sensorData;
+          devices.push({
+            id: key,
+            temp: sd.dht11?.temperature || 0,
+            humidity: sd.dht11?.humidity || 0,
+            gasAlert: sd.status?.gas_alert || 'NORMAL',
+            fanOn: sd.relay?.fan === 'ON',
+            uvOn: sd.relay?.uv === 'ON',
+            fanMode: sd.relay?.fan_mode || 'MANUAL',
+            uvMode: sd.relay?.uv_mode || 'MANUAL'
+          });
+        }
+      }
+      return devices;
+    } catch (e) {
+      console.error('Failed to load devices:', e);
+      return [];
+    }
+  }
+
+  function renderDeviceList(devices) {
+    if (devices.length === 0) {
+      deviceList.innerHTML = '<div style="text-align:center;padding:20px 0;font-size:0.8rem;color:var(--text-dim);">No SteriFlow devices found in database.</div>';
+      return;
+    }
+
+    deviceList.innerHTML = devices.map(d => {
+      const isActive = d.fanOn || d.uvOn;
+      const statusColor = d.gasAlert === 'BAHAYA' ? '#ff4757' : (isActive ? 'var(--accent)' : 'var(--accent2)');
+      const statusText = d.gasAlert === 'BAHAYA' ? 'Gas Alert' : (isActive ? 'Sterilizing' : 'Online');
+      return `
+        <div class="device-item" data-device-id="${d.id}">
+          <div class="device-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1" fill="var(--accent)" opacity="0.4"/><path d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2" stroke-linecap="round"/></svg>
+          </div>
+          <div class="device-info">
+            <div class="device-name">${escapeHtml(d.id)}</div>
+            <div class="device-meta">${d.temp}°C · ${d.humidity}% · ${statusText}</div>
+          </div>
+          <div class="device-status-dot" style="background:${statusColor};box-shadow:0 0 6px ${statusColor};"></div>
+        </div>`;
+    }).join('');
+
+    // Click to select
+    deviceList.querySelectorAll('.device-item').forEach(item => {
+      item.addEventListener('click', () => {
+        deviceList.querySelectorAll('.device-item').forEach(el => el.classList.remove('selected'));
+        item.classList.add('selected');
+        selectedDeviceId = item.dataset.deviceId;
+        deviceStartBtn.disabled = false;
+        deviceStartBtn.style.opacity = '1';
+      });
+    });
+
+    // Auto-select if only one device
+    if (devices.length === 1) {
+      deviceList.querySelector('.device-item').click();
+    }
+  }
+
+  function showDeviceModal() {
+    selectedDeviceId = null;
+    deviceStartBtn.disabled = true;
+    deviceStartBtn.style.opacity = '0.5';
+    deviceList.innerHTML = '<div style="text-align:center;padding:20px 0;font-size:0.8rem;color:var(--text-dim);"><div class="spinner" style="margin:0 auto 10px;"></div>Loading devices...</div>';
+    deviceModal.style.display = 'flex';
+
+    loadDevicesFromRTDB().then(devices => renderDeviceList(devices));
+  }
+
+  function hideDeviceModal() {
+    deviceModal.style.display = 'none';
+  }
+
+  deviceModalClose.addEventListener('click', hideDeviceModal);
+  deviceModal.addEventListener('click', (e) => {
+    if (e.target === deviceModal) hideDeviceModal();
+  });
+
+  // ── Scan Button — show device modal ───────────────────────
+  scanBtn.addEventListener('click', () => {
     if (scanning || !cameraActive) return;
+    showDeviceModal();
+  });
+
+  // ── Device modal Start button — do scan ───────────────────
+  deviceStartBtn.addEventListener('click', async () => {
+    if (!selectedDeviceId || scanning) return;
+    hideDeviceModal();
     scanning = true;
 
     // Capture frame
@@ -541,7 +693,8 @@
 
     try {
       const result = await analyzeWithGemini(imageBase64);
-      window.__lastScanResult = result; // Store for sterilization module
+      result.__deviceId = selectedDeviceId; // attach device ID
+      window.__lastScanResult = result;
       displayResults(result);
       addToHistory(result);
       showSterilizationPanel(result);
@@ -566,8 +719,9 @@
     const prompt =
       'SteriFlow food-surface inspector (stainless steel). Reply ONLY with valid JSON, no markdown.\n' +
       '{"classification":"Clean"|"Moderate"|"Dirty","confidence":0-100,"contamination_level":0-100,' +
-      '"analysis":"1-2 sentences","residues":[{"name":"string","percentage":0-100},{"name":"string","percentage":0-100}]}\n' +
-      'Clean=ready; Moderate=light stains; Dirty=heavy residue. Be honest.';
+      '"analysis":"1-2 sentences","residues":[{"name":"string","percentage":0-100}],' +
+      '"sterilization":{"uv_needed":true|false,"fan_needed":true|false,"duration_minutes":0-10,"reason":"short reason"}}\n' +
+      'Clean=ready(uv/fan off,0min); Moderate=light stains(fan on,uv optional,2-3min); Dirty=heavy residue(uv+fan on,4-7min). Be honest.';
 
     const response = await geminiGenerateContent({
       contents: [{
@@ -739,19 +893,27 @@
   let sterilTimer = null;
   let currentSterilResult = null;
   let currentDurationMin = 0;
+  let currentUvNeeded = false;
+  let currentFanNeeded = false;
+  let sterilDeviceId = null;
 
-  function getRecommendedDuration(cls, contLevel) {
-    if (cls === 'Clean') return 0;
-    if (cls === 'Moderate') return contLevel > 40 ? 3 : 2;
-    if (contLevel > 80) return 7;
-    if (contLevel > 60) return 5;
-    return 4;
+  // Fallback if Gemini doesn't return sterilization data
+  function getFallbackSterilization(cls, contLevel) {
+    if (cls === 'Clean') return { uv_needed: false, fan_needed: false, duration_minutes: 0, reason: 'Surface is clean' };
+    if (cls === 'Moderate') return { uv_needed: contLevel > 40, fan_needed: true, duration_minutes: contLevel > 40 ? 3 : 2, reason: 'Light contamination detected' };
+    return { uv_needed: true, fan_needed: true, duration_minutes: contLevel > 80 ? 7 : (contLevel > 60 ? 5 : 4), reason: 'Heavy contamination detected' };
   }
 
   function showSterilizationPanel(result) {
     const cls = result.classification || 'Clean';
     const contLevel = result.contamination_level || 0;
-    currentDurationMin = getRecommendedDuration(cls, contLevel);
+    sterilDeviceId = result.__deviceId || selectedDeviceId;
+
+    // Get Gemini sterilization recommendation or fallback
+    const sterilRec = result.sterilization || getFallbackSterilization(cls, contLevel);
+    currentDurationMin = sterilRec.duration_minutes || 0;
+    currentUvNeeded = sterilRec.uv_needed || false;
+    currentFanNeeded = sterilRec.fan_needed || false;
     currentSterilResult = result;
 
     // Show panel
@@ -760,7 +922,7 @@
     sterilStartBtn.style.display = 'none';
     sterilSkipBtn.style.display = 'none';
 
-    if (cls === 'Clean') {
+    if (cls === 'Clean' || (!currentUvNeeded && !currentFanNeeded)) {
       // No sterilization needed — auto-save
       sterilRecommendation.innerHTML = '<span style="color:var(--accent2);font-weight:600;">Surface is clean!</span> No sterilization needed.';
       sterilDuration.textContent = '0 min';
@@ -777,9 +939,19 @@
       return;
     }
 
-    // Contaminated — show info then auto-start sterilization
+    // Contaminated — show Gemini recommendation
+    const activeParts = [];
+    if (currentUvNeeded) activeParts.push('UV-C');
+    if (currentFanNeeded) activeParts.push('Fan');
+    const activeText = activeParts.join(' + ');
     const levelText = cls === 'Dirty' ? 'heavily contaminated' : 'lightly contaminated';
-    sterilRecommendation.innerHTML = `Surface is <span style="color:${cls === 'Dirty' ? 'var(--accent3)' : 'var(--accent4)'};font-weight:600;">${levelText}</span>. Auto-sterilizing for <strong>${currentDurationMin} minutes</strong> (UV-C + Fan).`;
+    const reasonText = sterilRec.reason ? ` <span style="font-size:0.75rem;color:var(--text-dim);">(${escapeHtml(sterilRec.reason)})</span>` : '';
+
+    sterilRecommendation.innerHTML =
+      `Surface is <span style="color:${cls === 'Dirty' ? 'var(--accent3)' : 'var(--accent4)'};font-weight:600;">${levelText}</span>. ` +
+      `Gemini recommends <strong>${activeText}</strong> for <strong>${currentDurationMin} min</strong>.${reasonText}` +
+      `<div style="font-size:0.7rem;color:var(--text-muted);margin-top:6px;">Device: <strong>${escapeHtml(sterilDeviceId)}</strong></div>`;
+
     sterilDuration.textContent = currentDurationMin + ' min';
     sterilStatus.textContent = 'Starting...';
     sterilStatus.className = 'badge badge-sterilizing';
@@ -788,7 +960,7 @@
     sterilCountdown.textContent = String(currentDurationMin).padStart(2, '0') + ':00';
     sterilCountdownLabel.textContent = 'Time remaining';
 
-    // Show stop button instead
+    // Show stop button
     sterilSkipBtn.style.display = '';
     sterilSkipBtn.textContent = 'Stop';
 
@@ -798,6 +970,19 @@
     setTimeout(() => beginSterilization(), 1000);
   }
 
+  // Helper: get RTDB instance
+  async function getRTDB() {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+    const { getDatabase, ref, set } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js");
+    const { firebaseConfig } = await import("./js/firebase-config.js");
+    let rtApp;
+    try { rtApp = initializeApp(firebaseConfig); } catch(e) {
+      const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+      rtApp = getApp();
+    }
+    return { rtdb: getDatabase(rtApp), ref, set };
+  }
+
   // Auto-start sterilization function
   async function beginSterilization() {
     if (sterilTimer) return;
@@ -805,18 +990,18 @@
     sterilStatus.textContent = 'Sterilizing';
     sterilStatus.className = 'badge badge-sterilizing';
 
+    const devicePath = sterilDeviceId || 'steriflow-001';
+
     try {
-      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
-      const { getDatabase, ref, set } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js");
-      const { firebaseConfig } = await import("./js/firebase-config.js");
-      let rtApp;
-      try { rtApp = initializeApp(firebaseConfig); } catch(e) {
-        const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
-        rtApp = getApp();
+      const { rtdb, ref, set } = await getRTDB();
+
+      // Only turn on what Gemini recommends
+      if (currentUvNeeded) {
+        await set(ref(rtdb, `${devicePath}/relayCommand/uv`), true);
       }
-      const rtdb = getDatabase(rtApp);
-      await set(ref(rtdb, 'relayCommand/uv'), true);
-      await set(ref(rtdb, 'relayCommand/fan'), true);
+      if (currentFanNeeded) {
+        await set(ref(rtdb, `${devicePath}/relayCommand/fan`), true);
+      }
 
       const totalSec = Math.round(currentDurationMin * 60);
       let elapsed = 0;
@@ -836,9 +1021,13 @@
           clearInterval(sterilTimer);
           sterilTimer = null;
 
-          // Turn off relays
-          await set(ref(rtdb, 'relayCommand/uv'), false);
-          await set(ref(rtdb, 'relayCommand/fan'), false);
+          // Turn off only what was turned on
+          if (currentUvNeeded) {
+            await set(ref(rtdb, `${devicePath}/relayCommand/uv`), false);
+          }
+          if (currentFanNeeded) {
+            await set(ref(rtdb, `${devicePath}/relayCommand/fan`), false);
+          }
 
           // Show complete
           sterilStatus.textContent = 'Complete';
@@ -847,7 +1036,7 @@
           sterilSkipBtn.style.display = 'none';
           sterilComplete.style.display = '';
           sterilComplete.querySelector('div:first-of-type').textContent = 'Sterilization Complete!';
-          sterilComplete.querySelector('div:last-of-type').textContent = 'Log saved to history.';
+          sterilComplete.querySelector('div:last-of-type').textContent = 'UV & Fan auto-off. Log saved to history.';
 
           // Save to Firestore
           saveLog(currentSterilResult, currentDurationMin, 'Sterilized');
@@ -861,7 +1050,7 @@
     }
   }
 
-  // Stop button (was Skip)
+  // Stop button
   if (sterilSkipBtn) {
     sterilSkipBtn.addEventListener('click', async () => {
       // Stop the timer
@@ -870,19 +1059,17 @@
         sterilTimer = null;
       }
 
+      const devicePath = sterilDeviceId || 'steriflow-001';
+
       // Turn off relays
       try {
-        const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
-        const { getDatabase, ref, set } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js");
-        const { firebaseConfig } = await import("./js/firebase-config.js");
-        let rtApp;
-        try { rtApp = initializeApp(firebaseConfig); } catch(e) {
-          const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
-          rtApp = getApp();
+        const { rtdb, ref, set } = await getRTDB();
+        if (currentUvNeeded) {
+          await set(ref(rtdb, `${devicePath}/relayCommand/uv`), false);
         }
-        const rtdb = getDatabase(rtApp);
-        await set(ref(rtdb, 'relayCommand/uv'), false);
-        await set(ref(rtdb, 'relayCommand/fan'), false);
+        if (currentFanNeeded) {
+          await set(ref(rtdb, `${devicePath}/relayCommand/fan`), false);
+        }
       } catch(e) { console.error(e); }
 
       sterilStatus.textContent = 'Stopped';
@@ -923,6 +1110,10 @@
         residues: result.residues || [],
         durationMinutes: durationMin,
         status: status,
+        deviceId: result.__deviceId || selectedDeviceId || '',
+        uvUsed: currentUvNeeded,
+        fanUsed: currentFanNeeded,
+        sterilizationReason: result.sterilization?.reason || '',
         createdAt: serverTimestamp()
       });
       console.log('Sterilization log saved');
