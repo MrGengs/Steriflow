@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#0a0a1a" />
+  <title>SteriFlow — AI Chat</title>
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="apple-touch-icon" href="assets/logo.png" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="js/theme.js"></script>
+</head>
+<body>
+
+<!-- Animated Background -->
+<div class="bg-canvas">
+  <div class="bg-orb o1"></div>
+  <div class="bg-orb o2"></div>
+  <div class="bg-orb o3"></div>
+  <div class="bg-orb o4"></div>
+  <div class="bg-mesh"></div>
+  <div class="bg-noise"></div>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- Header -->
+  <header class="app-header fade-in">
+    <div class="header-brand">
+      <a href="dashboard.html" class="icon-btn" aria-label="Back" style="margin-right:6px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <div>
+        <div class="header-page-title">AI Assistant</div>
+        <div class="header-subtitle">Powered by Gemini</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="clearChatBtn" aria-label="Clear Chat" title="Clear Chat">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Chat Content -->
+  <div class="content chat-content" id="chatContent">
+
+    <!-- Welcome message -->
+    <div class="chat-welcome fade-in" id="chatWelcome">
+      <div class="chat-welcome-icon">
+        <img src="assets/logoAi.png" alt="SteriFlow AI" />
+      </div>
+      <div class="chat-welcome-title">SteriFlow AI</div>
+      <div class="chat-welcome-desc">Tanya apa saja tentang sistem sterilisasi, data sensor, atau riwayat sterilisasi Anda.</div>
+      <div class="chat-suggestions">
+        <button class="chat-suggest-btn" data-q="Bagaimana kondisi sensor saat ini?">Kondisi sensor saat ini</button>
+        <button class="chat-suggest-btn" data-q="Berapa kali sterilisasi hari ini?">Sterilisasi hari ini</button>
+        <button class="chat-suggest-btn" data-q="Apakah kualitas udara aman?">Kualitas udara</button>
+        <button class="chat-suggest-btn" data-q="Berikan ringkasan riwayat sterilisasi terakhir">Riwayat terakhir</button>
+      </div>
+    </div>
+
+    <!-- Messages container -->
+    <div id="chatMessages"></div>
+
+  </div>
+
+  <!-- Chat Input -->
+  <div class="chat-input-bar">
+    <div class="chat-input-inner">
+      <textarea id="chatInput" rows="1" placeholder="Ketik pesan..." autocomplete="off"></textarea>
+      <button class="chat-send-btn" id="chatSendBtn" aria-label="Send" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div><!-- /page-wrapper -->
+
+<!-- Gemini key -->
+<script src="js/gemini-config.js"></script>
+<script type="module" src="js/auth.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js";
+import {
+  getFirestore, collection, query, orderBy, getDocs, limit as firestoreLimit
+} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js";
+import {
+  getDatabase, ref, get
+} from "https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js";
+import { firebaseConfig } from "./js/firebase-config.js";
+
+// ── Firebase Init ──
+let app;
+try { app = initializeApp(firebaseConfig); } catch(e) {
+  const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+  app = getApp();
+}
+const auth = getAuth(app);
+const firestore = getFirestore(app);
+const rtdb = getDatabase(app);
+
+// ── Gemini Config (multi-key rotation) ──
+const GEMINI_KEYS = (Array.isArray(window.__GEMINI_API_KEYS__) ? window.__GEMINI_API_KEYS__ : [])
+  .map(k => (typeof k === 'string' ? k.trim() : '')).filter(Boolean);
+// Fallback: legacy single-key
+if (!GEMINI_KEYS.length && typeof window.__GEMINI_API_KEY__ === 'string' && window.__GEMINI_API_KEY__.trim()) {
+  GEMINI_KEYS.push(window.__GEMINI_API_KEY__.trim());
+}
+const GEMINI_MODEL = 'gemini-2.5-flash-lite';
+let currentKeyIndex = 0;
+
+function getGeminiUrl(keyIndex) {
+  const key = GEMINI_KEYS[keyIndex];
+  return key ? `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(key)}` : '';
+}
+
+// ── Elements ──
+const chatContent = document.getElementById('chatContent');
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const chatSendBtn = document.getElementById('chatSendBtn');
+const chatWelcome = document.getElementById('chatWelcome');
+const clearChatBtn = document.getElementById('clearChatBtn');
+const suggestBtns = document.querySelectorAll('.chat-suggest-btn');
+
+// ── State ──
+let conversationHistory = [];
+let currentUser = null;
+let isLoading = false;
+
+// ── Auth listener ──
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+});
+
+// ── Fetch Realtime Database sensor data ──
+async function fetchRealtimeSensorData() {
+  try {
+    const DEVICE_ID = 'steriflow-001';
+    const snapshot = await get(ref(rtdb, `${DEVICE_ID}/sensorData`));
+    if (snapshot.exists()) return snapshot.val();
+    return null;
+  } catch(e) {
+    console.error('Error fetching RTDB:', e);
+    return null;
+  }
+}
+
+// ── Fetch Firestore sterilization logs ──
+async function fetchSterilizationLogs(uid) {
+  try {
+    const q = query(
+      collection(firestore, 'users', uid, 'sterilization_logs'),
+      orderBy('createdAt', 'desc'),
+      firestoreLimit(10)
+    );
+    const snap = await getDocs(q);
+    const logs = [];
+    snap.forEach(doc => {
+      const data = doc.data();
+      const date = data.createdAt?.toDate?.();
+      logs.push({
+        id: doc.id,
+        classification: data.classification || '—',
+        confidence: data.confidence || 0,
+        contaminationLevel: data.contaminationLevel || 0,
+        analysis: data.analysis || '',
+        durationMinutes: data.durationMinutes || 0,
+        status: data.status || '—',
+        sensorData: data.sensorData || null,
+        residues: data.residues || [],
+        createdAt: date ? date.toISOString() : null,
+        createdAtReadable: date ? date.toLocaleString('id-ID') : '—'
+      });
+    });
+    return logs;
+  } catch(e) {
+    console.error('Error fetching Firestore logs:', e);
+    return [];
+  }
+}
+
+// ── Build context string for Gemini ──
+async function buildDataContext() {
+  const parts = [];
+
+  // Realtime sensor data
+  const sensorData = await fetchRealtimeSensorData();
+  if (sensorData) {
+    parts.push(`DATA SENSOR REALTIME (dari perangkat IoT):
+- Suhu: ${sensorData.dht11?.temperature ?? '—'}°C
+- Kelembapan: ${sensorData.dht11?.humidity ?? '—'}%
+- Gas MQ3 (Alkohol/Etanol): analog=${sensorData.mq3?.analog ?? '—'}, status=${sensorData.mq3?.status ?? '—'}
+- Gas MQ6 (LPG/Propana): analog=${sensorData.mq6?.analog ?? '—'}, status=${sensorData.mq6?.status ?? '—'}
+- Gas MQ8 (Hidrogen): analog=${sensorData.mq8?.analog ?? '—'}, status=${sensorData.mq8?.status ?? '—'}
+- Relay UV-C: ${sensorData.relay?.uv ?? '—'} (mode: ${sensorData.relay?.uv_mode ?? '—'})
+- Relay Fan: ${sensorData.relay?.fan ?? '—'} (mode: ${sensorData.relay?.fan_mode ?? '—'})`);
+  }
+
+  // Firestore sterilization logs
+  if (currentUser) {
+    const logs = await fetchSterilizationLogs(currentUser.uid);
+    if (logs.length > 0) {
+      let logText = 'RIWAYAT STERILISASI TERAKHIR (dari Firestore):\n';
+      logs.forEach((log, i) => {
+        logText += `${i+1}. [${log.createdAtReadable}] Klasifikasi: ${log.classification}, Confidence: ${(log.confidence * 100).toFixed(1)}%, Kontaminasi: ${log.contaminationLevel}%, Status: ${log.status}, Durasi: ${log.durationMinutes} menit`;
+        if (log.analysis) logText += `, Analisis: ${log.analysis}`;
+        if (log.residues?.length) logText += `, Residu: ${log.residues.join(', ')}`;
+        logText += '\n';
+      });
+      parts.push(logText.trim());
+    }
+  }
+
+  return parts.length > 0 ? parts.join('\n\n') : 'Tidak ada data yang tersedia saat ini.';
+}
+
+// ── Gemini API call (with automatic key rotation on 429) ──
+async function callGemini(userMessage) {
+  if (!GEMINI_KEYS.length) {
+    throw new Error('API key Gemini belum dikonfigurasi. Salin js/gemini-config.example.js ke js/gemini-config.js dan tambahkan key Anda.');
+  }
+
+  // Detect if user is asking about sensor/data/sterilization topics
+  const lowerMsg = userMessage.toLowerCase();
+  const dataKeywords = [
+    'sensor', 'suhu', 'temperatur', 'kelembapan', 'humidity', 'gas', 'mq3', 'mq6', 'mq8',
+    'uv', 'lampu', 'fan', 'kipas', 'relay', 'data', 'kondisi', 'status', 'sterilisasi',
+    'riwayat', 'history', 'log', 'kualitas udara', 'kontaminasi', 'deteksi', 'analisis',
+    'berapa kali', 'terakhir', 'siklus', 'cycle', 'clean', 'bersih', 'kotor', 'residu',
+    'perangkat', 'device', 'iot', 'monitoring', 'monitor'
+  ];
+  const needsData = dataKeywords.some(kw => lowerMsg.includes(kw));
+
+  // Only fetch data when the question is relevant
+  let dataSection = '';
+  if (needsData) {
+    const dataContext = await buildDataContext();
+    dataSection = `\n\nBerikut adalah data terkini dari sistem (gunakan ini untuk menjawab):\n\n${dataContext}`;
+  }
+
+  const systemPrompt = `Kamu adalah SteriFlow AI, asisten virtual yang ramah dan cerdas untuk SteriFlow — sebuah sistem sterilisasi pintar berbasis IoT yang menggunakan lampu UV-C, sensor gas (MQ3, MQ6, MQ8), sensor suhu & kelembapan (DHT11), dan kipas.
+
+Instruksi perilaku:
+- Bersikaplah ramah, sopan, dan hangat seperti asisten AI pada umumnya.
+- Jika user menyapa (halo, hi, hey, dll), sambut dengan ramah dan perkenalkan dirimu secara singkat. JANGAN langsung memberikan data sensor atau informasi teknis kecuali diminta.
+- Jika user bertanya hal umum atau ngobrol biasa, jawab secara natural dan friendly.
+- HANYA berikan data sensor atau riwayat sterilisasi jika user secara spesifik menanyakannya.
+- Jika ada data yang tidak normal (suhu > 40°C, kelembapan > 80%, gas tinggi), berikan peringatan hanya saat data ditampilkan.
+- Jawab dalam Bahasa Indonesia.
+- Format jawaban dengan rapi. Gunakan bullet points atau numbering jika diperlukan.
+- Jawab dengan ringkas tapi lengkap.${dataSection}`;
+
+  // Build conversation for Gemini (include history for multi-turn)
+  const contents = [];
+
+  // System instruction as first user turn
+  contents.push({ role: 'user', parts: [{ text: systemPrompt + '\n\nPertanyaan user: ' + (conversationHistory.length === 0 ? userMessage : conversationHistory[0].message) }] });
+
+  if (conversationHistory.length === 0) {
+    // First message - system prompt already includes user message
+  } else {
+    // Add first assistant response
+    if (conversationHistory.length > 1) {
+      contents.push({ role: 'model', parts: [{ text: conversationHistory[1].message }] });
+    }
+    // Add subsequent turns
+    for (let i = 2; i < conversationHistory.length; i++) {
+      const entry = conversationHistory[i];
+      contents.push({
+        role: entry.role === 'user' ? 'user' : 'model',
+        parts: [{ text: entry.message }]
+      });
+    }
+    // Add current user message
+    contents.push({ role: 'user', parts: [{ text: userMessage }] });
+  }
+
+  const requestBody = {
+    contents,
+    generationConfig: {
+      maxOutputTokens: 800,
+      temperature: 0.7
+    }
+  };
+
+  // Try all keys starting from currentKeyIndex, rotating on 429
+  const startKeyIndex = currentKeyIndex;
+  let triedKeys = 0;
+  let lastResponse = null;
+  let lastErrData = null;
+
+  while (triedKeys < GEMINI_KEYS.length) {
+    const url = getGeminiUrl(currentKeyIndex);
+    console.log(`[AI Chat] Trying key ${currentKeyIndex + 1}/${GEMINI_KEYS.length}`);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
+    });
+    lastResponse = response;
+
+    if (response.ok) {
+      const data = await response.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      return text;
+    }
+
+    lastErrData = await response.json().catch(() => ({}));
+
+    if (response.status === 429) {
+      console.warn(`[AI Chat] Key ${currentKeyIndex + 1} rate-limited, rotating...`);
+      currentKeyIndex = (currentKeyIndex + 1) % GEMINI_KEYS.length;
+      triedKeys++;
+      continue;
+    }
+
+    // Non-429 error — stop trying
+    break;
+  }
+
+  const errMsg = lastErrData?.error?.message || `HTTP ${lastResponse.status}`;
+  if (lastResponse.status === 429) throw new Error('Semua API key telah mencapai rate limit. Coba lagi dalam beberapa menit.');
+  if (lastResponse.status === 404) throw new Error('Model Gemini tidak ditemukan. Periksa konfigurasi GEMINI_MODEL.');
+  throw new Error(errMsg.length > 300 ? errMsg.slice(0, 300) + '...' : errMsg);
+}
+
+// ── UI Helpers ──
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function formatMessage(text) {
+  // Simple markdown-like formatting
+  let html = escapeHtml(text);
+  // Bold
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Inline code
+  html = html.replace(/`(.+?)`/g, '<code>$1</code>');
+  // Line breaks
+  html = html.replace(/\n/g, '<br>');
+  // Bullet points
+  html = html.replace(/(^|<br>)[-•]\s/g, '$1<span style="color:var(--accent);margin-right:4px;">&#8226;</span> ');
+  // Numbered lists
+  html = html.replace(/(^|<br>)(\d+)\.\s/g, '$1<span style="color:var(--accent);font-weight:600;margin-right:4px;">$2.</span> ');
+  return html;
+}
+
+function addMessage(role, text) {
+  chatWelcome.style.display = 'none';
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `chat-msg chat-msg-${role} fade-in`;
+
+  if (role === 'assistant') {
+    msgDiv.innerHTML = `
+      <div class="chat-msg-avatar">
+        <img src="assets/logoAi.png" alt="AI" />
+      </div>
+      <div class="chat-msg-bubble">${formatMessage(text)}</div>`;
+  } else {
+    msgDiv.innerHTML = `<div class="chat-msg-bubble">${formatMessage(text)}</div>`;
+  }
+
+  chatMessages.appendChild(msgDiv);
+  scrollToBottom();
+}
+
+function addLoadingIndicator() {
+  const loader = document.createElement('div');
+  loader.className = 'chat-msg chat-msg-assistant fade-in';
+  loader.id = 'chatLoading';
+  loader.innerHTML = `
+    <div class="chat-msg-avatar">
+      <img src="assets/logoAi.png" alt="AI" />
+    </div>
+    <div class="chat-msg-bubble">
+      <div class="chat-typing">
+        <span></span><span></span><span></span>
+      </div>
+    </div>`;
+  chatMessages.appendChild(loader);
+  scrollToBottom();
+}
+
+function removeLoadingIndicator() {
+  const el = document.getElementById('chatLoading');
+  if (el) el.remove();
+}
+
+function scrollToBottom() {
+  chatContent.scrollTop = chatContent.scrollHeight;
+}
+
+// ── Send message ──
+async function sendMessage(text) {
+  const msg = text.trim();
+  if (!msg || isLoading) return;
+
+  isLoading = true;
+  chatSendBtn.disabled = true;
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+
+  addMessage('user', msg);
+  conversationHistory.push({ role: 'user', message: msg });
+  addLoadingIndicator();
+
+  try {
+    const reply = await callGemini(msg);
+    removeLoadingIndicator();
+    addMessage('assistant', reply);
+    conversationHistory.push({ role: 'assistant', message: reply });
+  } catch(e) {
+    removeLoadingIndicator();
+    addMessage('assistant', 'Maaf, terjadi kesalahan: ' + e.message);
+  }
+
+  isLoading = false;
+  chatSendBtn.disabled = !chatInput.value.trim();
+}
+
+// ── Events ──
+chatSendBtn.addEventListener('click', () => sendMessage(chatInput.value));
+
+chatInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage(chatInput.value);
+  }
+});
+
+chatInput.addEventListener('input', () => {
+  chatSendBtn.disabled = !chatInput.value.trim() || isLoading;
+  // Auto-resize
+  chatInput.style.height = 'auto';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+});
+
+clearChatBtn.addEventListener('click', () => {
+  chatMessages.innerHTML = '';
+  conversationHistory = [];
+  chatWelcome.style.display = '';
+});
+
+suggestBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    sendMessage(btn.dataset.q);
+  });
+});
+
+</script>
+</body>
+</html>

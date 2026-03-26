@@ -345,14 +345,20 @@
 (function() {
   'use strict';
 
-  // Key is set in js/gemini-config.js (gitignored). Browser clients still see the key in DevTools; use a backend proxy for real secrecy.
-  const GEMINI_API_KEY = (typeof window.__GEMINI_API_KEY__ === 'string' ? window.__GEMINI_API_KEY__ : '').trim();
-  // gemini-1.5-flash often returns 404 on v1beta (retired for many keys). Use current 2.5 family IDs.
-  // flash-lite = multimodal + budget-friendly for free tier; switch to gemini-2.5-flash if you need more accuracy.
+  // Multi-key support: rotate to next key on 429 rate limit.
+  const GEMINI_KEYS = (Array.isArray(window.__GEMINI_API_KEYS__) ? window.__GEMINI_API_KEYS__ : [])
+    .map(function(k) { return typeof k === 'string' ? k.trim() : ''; }).filter(Boolean);
+  // Fallback: legacy single-key
+  if (!GEMINI_KEYS.length && typeof window.__GEMINI_API_KEY__ === 'string' && window.__GEMINI_API_KEY__.trim()) {
+    GEMINI_KEYS.push(window.__GEMINI_API_KEY__.trim());
+  }
   const GEMINI_MODEL = 'gemini-2.5-flash-lite';
-  const GEMINI_URL = GEMINI_API_KEY
-    ? `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`
-    : '';
+  let currentKeyIndex = 0;
+
+  function getGeminiUrl(keyIdx) {
+    var key = GEMINI_KEYS[keyIdx];
+    return key ? 'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent?key=' + encodeURIComponent(key) : '';
+  }
 
   // ── Free-tier friendly limits (fewer input tokens = less quota burn; still enough for surface inspection) ──
   const GEMINI_MAX_IMAGE_EDGE = 640; // px on longest side; ~4× fewer pixels than 1280×720
@@ -404,29 +410,35 @@
     return raw.length > 420 ? raw.slice(0, 420) + '…' : raw;
   }
 
-  // One automatic retry on 429 after the API "retry in Xs" delay (free-tier burst limits).
-  // Only 2 attempts total so we do not block the UI for minutes when daily quota is exhausted.
+  // Automatic key rotation on 429: tries all available keys before giving up.
   async function geminiGenerateContent(requestBody) {
-    if (!GEMINI_URL) {
+    if (!GEMINI_KEYS.length) {
       throw new Error('Gemini API key missing. Copy js/gemini-config.example.js to js/gemini-config.js and add your key.');
     }
     let lastResponse = null;
     let lastErrData = null;
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const response = await fetch(GEMINI_URL, {
+    let triedKeys = 0;
+
+    while (triedKeys < GEMINI_KEYS.length) {
+      var url = getGeminiUrl(currentKeyIndex);
+      console.log('[AI Detection] Trying key ' + (currentKeyIndex + 1) + '/' + GEMINI_KEYS.length);
+
+      var response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody)
       });
       lastResponse = response;
       if (response.ok) return response;
-      lastErrData = await response.json().catch(() => ({}));
-      if (response.status === 429 && attempt === 0) {
-        const secs = parseRetryDelaySeconds(lastErrData);
-        const waitMs = (secs != null ? secs * 1000 : 2500) + 400;
-        // Keeps UI honest during the API "retry in Xs" wait (free-tier burst limits).
-        cameraStatus.textContent = 'Status: Rate limit — retrying…';
-        await new Promise(function (resolve) { setTimeout(resolve, waitMs); });
+      lastErrData = await response.json().catch(function() { return {}; });
+
+      if (response.status === 429) {
+        console.warn('[AI Detection] Key ' + (currentKeyIndex + 1) + ' rate-limited, rotating...');
+        currentKeyIndex = (currentKeyIndex + 1) % GEMINI_KEYS.length;
+        triedKeys++;
+        if (triedKeys < GEMINI_KEYS.length) {
+          cameraStatus.textContent = 'Status: Key limit — switching key ' + (currentKeyIndex + 1) + '…';
+        }
         continue;
       }
       break;
@@ -501,7 +513,7 @@
 
       cameraActive = true;
       cameraBtnText.textContent = 'Close Camera';
-      if (GEMINI_API_KEY) {
+      if (GEMINI_KEYS.length) {
         scanBtn.disabled = false;
         scanBtn.style.opacity = '1';
         scanBtn.removeAttribute('title');
@@ -707,8 +719,8 @@
     analyzingText.style.display = 'none';
     scanLine.classList.remove('active');
     scanBtnText.textContent = 'Scan Again';
-    scanBtn.disabled = !GEMINI_API_KEY;
-    scanBtn.style.opacity = GEMINI_API_KEY ? '1' : '0.5';
+    scanBtn.disabled = !GEMINI_KEYS.length;
+    scanBtn.style.opacity = GEMINI_KEYS.length ? '1' : '0.5';
     cameraStatus.textContent = 'Status: Done';
     scanning = false;
   });
