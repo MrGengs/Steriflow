@@ -50,3 +50,20 @@
 [debug] [2026-03-27T15:21:20.102Z] Checked if tokens are valid: true, expires at: 1774628475673
 [debug] [2026-03-27T15:21:20.102Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/steriflow-id/versions [none]
 [debug] [2026-03-27T15:21:20.103Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/steriflow-id/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2026-03-27T15:21:25.032Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/steriflow-id/versions 200
+[debug] [2026-03-27T15:21:25.032Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/steriflow-id/versions {"name":"projects/402736002594/sites/steriflow-id/versions/e7f94d2dcfc04ecb","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2026-03-27T15:21:25.034Z] Checked if tokens are valid: true, expires at: 1774628475673
+[debug] [2026-03-27T15:21:25.034Z] Checked if tokens are valid: true, expires at: 1774628475673
+[debug] [2026-03-27T15:21:25.034Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/steriflow-id/releases pageSize=10&pageToken=
+[debug] [2026-03-27T15:21:25.543Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/steriflow-id/releases 200
+[debug] [2026-03-27T15:21:25.543Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/steriflow-id/releases {"releases":[{"name":"projects/steriflow-id/releases/cloud.firestore","rulesetName":"projects/steriflow-id/rulesets/4514c4f0-38cb-4703-94bd-a8f202b334c5","createTime":"2026-03-25T02:02:14.065134Z","updateTime":"2026-03-26T18:58:19.807281Z"}]}
+[debug] [2026-03-27T15:21:25.543Z] Checked if tokens are valid: true, expires at: 1774628475673
+[debug] [2026-03-27T15:21:25.543Z] Checked if tokens are valid: true, expires at: 1774628475673
+[debug] [2026-03-27T15:21:25.544Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/steriflow-id/rulesets/4514c4f0-38cb-4703-94bd-a8f202b334c5 [none]
+[debug] [2026-03-27T15:21:26.924Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/steriflow-id/rulesets/4514c4f0-38cb-4703-94bd-a8f202b334c5 200
+[debug] [2026-03-27T15:21:26.925Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/steriflow-id/rulesets/4514c4f0-38cb-4703-94bd-a8f202b334c5 [omitted]
+[info] i  firestore: latest version of firestore.rules already up to date, skipping upload... 
+[info] i  firestore: deploying indexes... 
+[debug] [2026-03-27T15:21:26.929Z] Checked if tokens are valid: true, expires at: 1774628475673
+[debug] [2026-03-27T15:21:26.929Z] Checked if tokens are valid: true, expires at: 1774628475673
+[debug] [2026-03-27T15:21:26.930Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/steriflow-id/databases/(default)/collectionGroups/-/indexes [none]
