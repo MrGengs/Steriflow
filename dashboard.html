@@ -146,31 +146,31 @@
 
     </div>
 
-    <!-- Cleanliness Level Card -->
+    <!-- Tingkat Kebersihan Pangan -->
     <div class="glass card-p mt-12 fade-in fade-in-delay-2">
-      <div class="section-title">Cleanliness Level</div>
+      <div class="section-title">Tingkat Kebersihan Pangan</div>
       <div class="flex items-center gap-16">
         <!-- Ring indicator -->
         <div class="ring-canvas-wrap">
           <canvas id="cleanlinessRing" width="110" height="110"></canvas>
           <div class="ring-inner-text">
             <div class="ring-percent" id="cleanlinessPercent" style="color:var(--accent2);">82%</div>
-            <div class="ring-label">Clean</div>
+            <div class="ring-label">Steril</div>
           </div>
         </div>
         <!-- Details -->
         <div style="flex:1;">
           <div style="margin-bottom:10px;">
-            <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:4px;">Current Level</div>
-            <span class="badge badge-clean" id="cleanlinessLevel">Clean</span>
+            <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:4px;">Status Bakteri</div>
+            <span class="badge badge-clean" id="cleanlinessLevel">Aman</span>
           </div>
           <div class="progress-wrap">
-            <div class="progress-header"><span>Surface Hygiene</span><span id="hygieneVal">82%</span></div>
+            <div class="progress-header"><span>Keamanan Pangan</span><span id="hygieneVal">82%</span></div>
             <div class="progress-track">
               <div class="progress-fill teal" id="hygieneBar" style="width:82%;"></div>
             </div>
           </div>
-          <div style="margin-top:8px;font-size:0.7rem;color:var(--text-dim);">Last scan: 5 min ago</div>
+          <div style="margin-top:8px;font-size:0.7rem;color:var(--text-dim);">Pemindaian terakhir: 5 menit lalu</div>
         </div>
       </div>
     </div>
@@ -196,43 +196,6 @@
       </div>
     </div>
 
-    <!-- Sensor Quick View -->
-    <div class="mt-16 fade-in fade-in-delay-3">
-      <div class="section-title">Live Sensors</div>
-      <div class="sensor-row">
-        <div class="glass stat-card">
-          <div class="stat-label">Gas (Avg)</div>
-          <div class="flex items-center gap-8">
-            <div class="stat-value" id="homeVoc" style="color:var(--accent);">—</div>
-            <div class="stat-unit">adc</div>
-          </div>
-          <div class="stat-trend" id="vocTrend" style="color:var(--text-dim);">
-            Waiting...
-          </div>
-        </div>
-        <div class="glass stat-card">
-          <div class="stat-label">Temperature</div>
-          <div class="flex items-center gap-8">
-            <div class="stat-value" id="homeTemp" style="color:var(--accent2);">—</div>
-            <div class="stat-unit">°C</div>
-          </div>
-          <div class="stat-trend" style="color:var(--text-dim);">
-            Waiting...
-          </div>
-        </div>
-        <div class="glass stat-card">
-          <div class="stat-label">Humidity</div>
-          <div class="flex items-center gap-8">
-            <div class="stat-value" id="homeHumidity" style="color:var(--accent3);">—</div>
-            <div class="stat-unit">%</div>
-          </div>
-          <div class="stat-trend" style="color:var(--text-dim);">
-            Waiting...
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Notifications Panel -->
     <div class="glass card-p mt-16 fade-in fade-in-delay-4">
       <div class="flex items-center justify-between mb-12">
@@ -245,9 +208,9 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 11.08 12 2 2 11.08"/><path d="M9 22V12h6v10"/></svg>
           </div>
           <div class="notif-text">
-            <div class="notif-title">Sterilization Complete</div>
-            <div class="notif-desc">Cycle #12 completed successfully. All surfaces clean.</div>
-            <div class="notif-time">2 min ago</div>
+            <div class="notif-title">Sterilisasi Selesai</div>
+            <div class="notif-desc">Siklus #12 berhasil. Bakteri pada permukaan makanan telah dibasmi.</div>
+            <div class="notif-time">2 menit lalu</div>
           </div>
         </div>
         <div class="notif-item fade-in">
@@ -255,9 +218,9 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
           </div>
           <div class="notif-text">
-            <div class="notif-title">VOC Level Normal</div>
-            <div class="notif-desc">VOC concentration within safe range (350 ppm).</div>
-            <div class="notif-time">14 min ago</div>
+            <div class="notif-title">Makanan Aman</div>
+            <div class="notif-desc">Tingkat bakteri dalam batas aman setelah paparan UV-C.</div>
+            <div class="notif-time">14 menit lalu</div>
           </div>
         </div>
         <div class="notif-item fade-in">
@@ -265,9 +228,9 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
           <div class="notif-text">
-            <div class="notif-title">Next Cycle Scheduled</div>
-            <div class="notif-desc">Automatic sterilization scheduled for 14:30.</div>
-            <div class="notif-time">30 min ago</div>
+            <div class="notif-title">Sterilisasi Terjadwal</div>
+            <div class="notif-desc">Sterilisasi otomatis untuk keamanan pangan dijadwalkan pukul 14:30.</div>
+            <div class="notif-time">30 menit lalu</div>
           </div>
         </div>
       </div>

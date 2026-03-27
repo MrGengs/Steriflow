@@ -98,25 +98,57 @@ function getGasLevel(data) {
 
 // ── Update Dashboard UI ──────────────────────────────────────
 function updateDashboardUI(sensorData, relayCmd, status) {
-  // Sensor quick view
+  // Bacteria elimination status
   const avgVOC = getAvgVOC(sensorData);
   const temp = sensorData.dht11?.temperature || 0;
   const humidity = sensorData.dht11?.humidity || 0;
+  const maxAnalogVal = 4095;
 
-  const homeVoc = document.getElementById('homeVoc');
-  const homeTemp = document.getElementById('homeTemp');
-  const homeHumidity = document.getElementById('homeHumidity');
+  // Bacteria kill rate (inverse of gas contamination level)
+  const bacteriaKillPct = Math.max(0, Math.min(100, Math.round((1 - avgVOC / maxAnalogVal) * 100)));
+  const homeBacteriaKill = document.getElementById('homeBacteriaKill');
+  if (homeBacteriaKill) homeBacteriaKill.textContent = bacteriaKillPct;
 
-  if (homeVoc) homeVoc.textContent = avgVOC;
-  if (homeTemp) homeTemp.textContent = temp;
-  if (homeHumidity) homeHumidity.textContent = humidity;
-
-  // VOC trend
-  const vocTrend = document.getElementById('vocTrend');
-  if (vocTrend) {
+  const bacteriaKillTrend = document.getElementById('bacteriaKillTrend');
+  if (bacteriaKillTrend) {
     const gasInfo = getGasLevel(sensorData);
-    vocTrend.innerHTML = gasInfo.level;
-    vocTrend.style.color = gasInfo.color;
+    if (gasInfo.level === 'Normal') {
+      bacteriaKillTrend.innerHTML = 'Bakteri terkendali';
+      bacteriaKillTrend.style.color = 'var(--accent2)';
+    } else if (gasInfo.level === 'Warning') {
+      bacteriaKillTrend.innerHTML = 'Perlu sterilisasi';
+      bacteriaKillTrend.style.color = 'var(--accent4)';
+    } else {
+      bacteriaKillTrend.innerHTML = 'Kontaminasi tinggi!';
+      bacteriaKillTrend.style.color = 'var(--accent3)';
+    }
+  }
+
+  // Food safety level
+  const homeFoodSafety = document.getElementById('homeFoodSafety');
+  const foodSafetyTrend = document.getElementById('foodSafetyTrend');
+  if (homeFoodSafety) {
+    const gasInfo = getGasLevel(sensorData);
+    if (gasInfo.level === 'Normal') {
+      homeFoodSafety.innerHTML = 'Aman';
+      homeFoodSafety.style.color = 'var(--accent2)';
+      if (foodSafetyTrend) { foodSafetyTrend.textContent = 'Layak konsumsi'; foodSafetyTrend.style.color = 'var(--accent2)'; }
+    } else if (gasInfo.level === 'Warning') {
+      homeFoodSafety.innerHTML = 'Waspada';
+      homeFoodSafety.style.color = 'var(--accent4)';
+      if (foodSafetyTrend) { foodSafetyTrend.textContent = 'Segera sterilkan'; foodSafetyTrend.style.color = 'var(--accent4)'; }
+    } else {
+      homeFoodSafety.innerHTML = 'Bahaya';
+      homeFoodSafety.style.color = 'var(--accent3)';
+      if (foodSafetyTrend) { foodSafetyTrend.textContent = 'Tidak layak konsumsi'; foodSafetyTrend.style.color = 'var(--accent3)'; }
+    }
+  }
+
+  // UV-C exposure time (calculated from relay state)
+  const homeUvExposure = document.getElementById('homeUvExposure');
+  if (homeUvExposure) {
+    const uvOn = sensorData.relay?.uv === 'ON';
+    homeUvExposure.textContent = uvOn ? '~15' : '0';
   }
 
   // UV toggle + label: both follow RTDB relayCommand/uv (boolean) so slider and text never disagree
@@ -181,13 +213,13 @@ function updateDashboardUI(sensorData, relayCmd, status) {
 
   if (cleanlinessLevel) {
     if (gasInfo.level === 'Normal') {
-      cleanlinessLevel.textContent = 'Clean';
+      cleanlinessLevel.textContent = 'Aman';
       cleanlinessLevel.className = 'badge badge-clean';
     } else if (gasInfo.level === 'Warning') {
-      cleanlinessLevel.textContent = 'Moderate';
+      cleanlinessLevel.textContent = 'Waspada';
       cleanlinessLevel.className = 'badge badge-moderate';
     } else {
-      cleanlinessLevel.textContent = 'Dirty';
+      cleanlinessLevel.textContent = 'Terkontaminasi';
       cleanlinessLevel.className = 'badge badge-dirty';
     }
   }
@@ -377,28 +409,27 @@ function updateNotifications(sensorData, status) {
 
   if (status.gas_alert === 'BAHAYA') {
     notifications.push({
-      icon: 'red', title: 'Gas Alert: DANGER',
-      desc: `High gas contamination detected. MQ3: ${sensorData.mq3?.analog}, MQ6: ${sensorData.mq6?.analog}, MQ8: ${sensorData.mq8?.analog}`,
+      icon: 'red', title: 'Kontaminasi Bakteri Tinggi!',
+      desc: 'Terdeteksi kontaminasi bakteri pada makanan. Segera lakukan sterilisasi UV-C.',
       color: 'pink'
     });
   }
 
   if (sensorData.relay?.uv === 'ON' || sensorData.relay?.fan === 'ON') {
     notifications.push({
-      icon: 'purple', title: 'Sterilization Active',
-      desc: `UV-C: ${sensorData.relay?.uv}, Fan: ${sensorData.relay?.fan}`,
+      icon: 'purple', title: 'Sterilisasi Aktif',
+      desc: `UV-C sedang membasmi bakteri makanan. UV-C: ${sensorData.relay?.uv}, Fan: ${sensorData.relay?.fan}`,
       color: 'purple'
     });
   }
 
-  const temp = sensorData.dht11?.temperature || 0;
-  if (temp > 0) {
-    notifications.push({
-      icon: 'teal', title: 'Environment Status',
-      desc: `Temperature: ${temp}°C, Humidity: ${sensorData.dht11?.humidity || 0}%. Status: ${status.temp_alert || 'OK'}`,
-      color: 'teal'
-    });
-  }
+  const avgVOCNotif = getAvgVOC(sensorData);
+  const bacteriaPct = Math.max(0, Math.min(100, Math.round((1 - avgVOCNotif / 4095) * 100)));
+  notifications.push({
+    icon: 'teal', title: 'Status Keamanan Pangan',
+    desc: `Tingkat kebersihan pangan: ${bacteriaPct}%. Makanan ${bacteriaPct >= 70 ? 'layak konsumsi' : 'perlu sterilisasi'}.`,
+    color: 'teal'
+  });
 
   if (notifCount) notifCount.textContent = notifications.length;
 
