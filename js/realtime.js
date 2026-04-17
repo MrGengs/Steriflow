@@ -54,6 +54,9 @@ let currentRelayCommand = {
 // Chart history (20 data points)
 const HISTORY_LEN = 20;
 const vocHistory = new Array(HISTORY_LEN).fill(null);
+const bacteriHistory = new Array(HISTORY_LEN).fill(null);
+const gasHistory = new Array(HISTORY_LEN).fill(null);
+const kipasHistory = new Array(HISTORY_LEN).fill(null);
 const tempHistory = new Array(HISTORY_LEN).fill(null);
 const humHistory = new Array(HISTORY_LEN).fill(null);
 let historyInitialized = false;
@@ -238,18 +241,30 @@ function updateDashboardUI(sensorData, relayCmd, status) {
 // ── Update Monitoring UI ─────────────────────────────────────
 function updateMonitoringUI(sensorData, relayCmd, status) {
   const avgVOC = getAvgVOC(sensorData);
+  const mq3 = sensorData.mq3?.analog || 0;
+  const mq6 = sensorData.mq6?.analog || 0;
+  const mq8 = sensorData.mq8?.analog || 0;
   const temp = sensorData.dht11?.temperature || 0;
   const humidity = sensorData.dht11?.humidity || 0;
 
   // On first data, fill entire history with current value (flat line)
   if (!historyInitialized) {
     vocHistory.fill(avgVOC);
+    bacteriHistory.fill(mq3);
+    gasHistory.fill(mq8);
+    kipasHistory.fill(mq6);
     tempHistory.fill(temp);
     humHistory.fill(humidity);
     historyInitialized = true;
   } else {
     vocHistory.push(avgVOC);
     vocHistory.shift();
+    bacteriHistory.push(mq3);
+    bacteriHistory.shift();
+    gasHistory.push(mq8);
+    gasHistory.shift();
+    kipasHistory.push(mq6);
+    kipasHistory.shift();
     tempHistory.push(temp);
     tempHistory.shift();
     humHistory.push(humidity);
@@ -266,10 +281,6 @@ function updateMonitoringUI(sensorData, relayCmd, status) {
   const mq3Status = document.getElementById('mq3Status');
   const mq6Status = document.getElementById('mq6Status');
   const mq8Status = document.getElementById('mq8Status');
-
-  const mq3 = sensorData.mq3?.analog || 0;
-  const mq6 = sensorData.mq6?.analog || 0;
-  const mq8 = sensorData.mq8?.analog || 0;
 
   if (mq3Val) mq3Val.textContent = mq3;
   if (mq6Val) mq6Val.textContent = mq6;
@@ -394,7 +405,9 @@ function updateMonitoringUI(sensorData, relayCmd, status) {
 
   // Render charts using app.js functions (exposed on window)
   if (typeof window.drawLineChart === 'function') {
-    window.drawLineChart('vocChart', vocHistory, '#7c5cfc', { unit: '' });
+    window.drawLineChart('bacteriChart', bacteriHistory, '#7c5cfc', { unit: '' });
+    window.drawLineChart('gasChart', gasHistory, '#ff6b9d', { unit: '' });
+    window.drawLineChart('kipasChart', kipasHistory, '#ffc247', { unit: '' });
     window.drawDualLineChart('envChart', tempHistory, humHistory, '#36d6c3', '#ff6b9d');
   }
 }

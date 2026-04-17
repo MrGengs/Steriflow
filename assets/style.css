@@ -601,6 +601,12 @@ h1, h2, h3, h4 {
   box-shadow: 0 0 12px var(--accent2-glow);
 }
 
+.toggle.yellow input:checked + .toggle-slider {
+  background: var(--accent4, #ffc247);
+  border-color: var(--accent4, #ffc247);
+  box-shadow: 0 0 12px rgba(255, 194, 71, 0.4);
+}
+
 /* ── Status Badges ─────────────────────────────────────────── */
 .badge {
   display: inline-flex;
@@ -1264,6 +1270,16 @@ h1, h2, h3, h4 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+.col-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 480px) {
+  .col-3 {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 /* ── Confidence Score ──────────────────────────────────────── */

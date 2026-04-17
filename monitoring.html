@@ -69,7 +69,7 @@
 
       <!-- MQ3 (Alcohol) -->
       <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent);">
-        <div class="stat-label">MQ3 · Alcohol</div>
+        <div class="stat-label">Bacteri</div>
         <div class="flex items-center gap-4">
           <div class="stat-value" id="mq3Value" style="color:var(--accent);">—</div>
           <div class="stat-unit" style="padding-top:6px;">adc</div>
@@ -86,7 +86,7 @@
 
       <!-- MQ6 (LPG) -->
       <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent4,#ffc247);">
-        <div class="stat-label">MQ6 · LPG</div>
+        <div class="stat-label">Kipas</div>
         <div class="flex items-center gap-4">
           <div class="stat-value" id="mq6Value" style="color:var(--accent4,#ffc247);">—</div>
           <div class="stat-unit" style="padding-top:6px;">adc</div>
@@ -103,7 +103,7 @@
 
       <!-- MQ8 (Hydrogen) -->
       <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent3);">
-        <div class="stat-label">MQ8 · Hydrogen</div>
+        <div class="stat-label">Gas</div>
         <div class="flex items-center gap-4">
           <div class="stat-value" id="mq8Value" style="color:var(--accent3);">—</div>
           <div class="stat-unit" style="padding-top:6px;">adc</div>
@@ -125,7 +125,7 @@
 
       <!-- Temperature -->
       <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent2);">
-        <div class="stat-label">Temperature</div>
+        <div class="stat-label">Suhu</div>
         <div class="flex items-center gap-4">
           <div class="stat-value" id="tempValue" style="color:var(--accent2);">—</div>
           <div class="stat-unit" style="padding-top:6px;">°C</div>
@@ -142,7 +142,7 @@
 
       <!-- Humidity -->
       <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent3);">
-        <div class="stat-label">Humidity</div>
+        <div class="stat-label">Kelembapan</div>
         <div class="flex items-center gap-4">
           <div class="stat-value" id="humidityValue" style="color:var(--accent3);">—</div>
           <div class="stat-unit" style="padding-top:6px;">%</div>
@@ -159,12 +159,12 @@
 
     </div>
 
-    <!-- VOC Chart -->
+    <!-- Bacteri Chart -->
     <div class="glass card-p mt-16 fade-in fade-in-delay-2">
       <div class="flex items-center justify-between mb-8">
         <div>
-          <div class="section-title" style="margin-bottom:2px;">Gas Level (Avg)</div>
-          <div style="font-size:0.68rem;color:var(--text-dim);">Last 20 readings · MQ3+MQ6+MQ8 average</div>
+          <div class="section-title" style="margin-bottom:2px;">Bacteri</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);">Last 20 readings · MQ3 sensor</div>
         </div>
         <div class="flex items-center gap-8" style="font-size:0.7rem;color:var(--text-dim);">
           <span style="display:inline-block;width:10px;height:3px;border-radius:2px;background:var(--accent);"></span>
@@ -172,29 +172,68 @@
         </div>
       </div>
       <div class="chart-container" style="height:160px;">
-        <canvas id="vocChart" data-h="160"></canvas>
+        <canvas id="bacteriChart" data-h="160"></canvas>
       </div>
-      <!-- X-axis labels -->
       <div class="flex justify-between mt-4" style="font-size:0.6rem;color:var(--text-muted);padding:0 4px;">
         <span>-40s</span><span>-30s</span><span>-20s</span><span>-10s</span><span>now</span>
       </div>
     </div>
 
-    <!-- Temperature & Humidity Chart -->
+    <!-- Gas Chart -->
     <div class="glass card-p mt-12 fade-in fade-in-delay-2">
       <div class="flex items-center justify-between mb-8">
         <div>
-          <div class="section-title" style="margin-bottom:2px;">Temp & Humidity</div>
-          <div style="font-size:0.68rem;color:var(--text-dim);">Environmental conditions</div>
+          <div class="section-title" style="margin-bottom:2px;">Gas</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);">Last 20 readings · MQ8 sensor</div>
+        </div>
+        <div class="flex items-center gap-8" style="font-size:0.7rem;color:var(--text-dim);">
+          <span style="display:inline-block;width:10px;height:3px;border-radius:2px;background:var(--accent3);"></span>
+          adc
+        </div>
+      </div>
+      <div class="chart-container" style="height:160px;">
+        <canvas id="gasChart" data-h="160"></canvas>
+      </div>
+      <div class="flex justify-between mt-4" style="font-size:0.6rem;color:var(--text-muted);padding:0 4px;">
+        <span>-40s</span><span>-30s</span><span>-20s</span><span>-10s</span><span>now</span>
+      </div>
+    </div>
+
+    <!-- Kipas Chart (Opsional) -->
+    <div class="glass card-p mt-12 fade-in fade-in-delay-2">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <div class="section-title" style="margin-bottom:2px;">Kipas</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);">Last 20 readings · MQ6 sensor</div>
+        </div>
+        <div class="flex items-center gap-8" style="font-size:0.7rem;color:var(--text-dim);">
+          <span style="display:inline-block;width:10px;height:3px;border-radius:2px;background:var(--accent4,#ffc247);"></span>
+          adc
+        </div>
+      </div>
+      <div class="chart-container" style="height:160px;">
+        <canvas id="kipasChart" data-h="160"></canvas>
+      </div>
+      <div class="flex justify-between mt-4" style="font-size:0.6rem;color:var(--text-muted);padding:0 4px;">
+        <span>-40s</span><span>-30s</span><span>-20s</span><span>-10s</span><span>now</span>
+      </div>
+    </div>
+
+    <!-- Suhu & Kelembapan Chart -->
+    <div class="glass card-p mt-12 fade-in fade-in-delay-2">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <div class="section-title" style="margin-bottom:2px;">Suhu & Kelembapan</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);">Kondisi lingkungan</div>
         </div>
         <div class="flex gap-10" style="font-size:0.68rem;">
           <div class="flex items-center gap-4">
             <span style="width:8px;height:3px;border-radius:2px;background:var(--accent2);display:inline-block;"></span>
-            <span style="color:var(--text-dim);">Temp</span>
+            <span style="color:var(--text-dim);">Suhu</span>
           </div>
           <div class="flex items-center gap-4">
             <span style="width:8px;height:3px;border-radius:2px;background:var(--accent3);display:inline-block;"></span>
-            <span style="color:var(--text-dim);">Humidity</span>
+            <span style="color:var(--text-dim);">Kelembapan</span>
           </div>
         </div>
       </div>
@@ -228,8 +267,13 @@
           <div style="font-size:0.6rem;color:var(--text-muted);margin-top:3px;">Mode: <span id="monitorUvMode">—</span></div>
         </div>
         <div>
-          <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;">Fan</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;">Ethanol Spray</div>
           <span class="status-pill inactive" id="monitorEthanol">INACTIVE</span>
+          <div style="font-size:0.6rem;color:var(--text-muted);margin-top:3px;">Mode: <span id="monitorEthanolMode">—</span></div>
+        </div>
+        <div>
+          <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;">Fan</div>
+          <span class="status-pill inactive" id="monitorFan">INACTIVE</span>
           <div style="font-size:0.6rem;color:var(--text-muted);margin-top:3px;">Mode: <span id="monitorFanMode">—</span></div>
         </div>
       </div>
@@ -263,12 +307,12 @@
 
     <!-- Sensor Thresholds Reference -->
     <div class="glass card-p mt-12 fade-in fade-in-delay-4">
-      <div class="section-title">Sensor Thresholds</div>
+      <div class="section-title"></div>
       <div style="display:flex;flex-direction:column;gap:10px;">
         <div class="flex items-center justify-between" style="font-size:0.8rem;">
           <div class="flex items-center gap-8">
             <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div>
-            <span>MQ3 · Alcohol</span>
+            <span>Bacteri</span>
           </div>
           <div style="text-align:right;">
             <span style="color:var(--text-dim);font-size:0.7rem;">Digital: </span>
@@ -278,7 +322,7 @@
         <div class="flex items-center justify-between" style="font-size:0.8rem;">
           <div class="flex items-center gap-8">
             <div style="width:10px;height:10px;border-radius:50%;background:var(--accent4,#ffc247);flex-shrink:0;"></div>
-            <span>MQ6 · LPG</span>
+            <span>Kipas</span>
           </div>
           <div style="text-align:right;">
             <span style="color:var(--text-dim);font-size:0.7rem;">Digital: </span>
@@ -288,7 +332,7 @@
         <div class="flex items-center justify-between" style="font-size:0.8rem;">
           <div class="flex items-center gap-8">
             <div style="width:10px;height:10px;border-radius:50%;background:var(--accent3);flex-shrink:0;"></div>
-            <span>MQ8 · Hydrogen</span>
+            <span>Gas</span>
           </div>
           <div style="text-align:right;">
             <span style="color:var(--text-dim);font-size:0.7rem;">Digital: </span>
@@ -298,7 +342,7 @@
         <div class="flex items-center justify-between" style="font-size:0.8rem;">
           <div class="flex items-center gap-8">
             <div style="width:10px;height:10px;border-radius:50%;background:var(--accent2);flex-shrink:0;"></div>
-            <span>Temperature</span>
+            <span>Suhu</span>
           </div>
           <div style="text-align:right;">
             <span style="color:var(--text-dim);font-size:0.7rem;">Safe: </span>
@@ -308,7 +352,7 @@
         <div class="flex items-center justify-between" style="font-size:0.8rem;">
           <div class="flex items-center gap-8">
             <div style="width:10px;height:10px;border-radius:50%;background:var(--accent3);flex-shrink:0;"></div>
-            <span>Humidity</span>
+            <span>Kelembapan</span>
           </div>
           <div style="text-align:right;">
             <span style="color:var(--text-dim);font-size:0.7rem;">Safe: </span>
