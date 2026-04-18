@@ -27,6 +27,7 @@ const DEVICE_ID = 'steriflow-001';
 
 // ── References ───────────────────────────────────────────────
 const sensorDataRef = ref(db, `${DEVICE_ID}/sensorData`);
+const sterilStatusRef = ref(db, `${DEVICE_ID}/sterilizationStatus`);
 
 // ── State ────────────────────────────────────────────────────
 let currentData = {
@@ -127,23 +128,23 @@ function updateDashboardUI(sensorData, relayCmd, status) {
     }
   }
 
-  // Food safety level
-  const homeFoodSafety = document.getElementById('homeFoodSafety');
-  const foodSafetyTrend = document.getElementById('foodSafetyTrend');
-  if (homeFoodSafety) {
+  // Ompreng cleanliness level
+  const trayStatus = document.getElementById('trayStatus');
+  const trayStatusTrend = document.getElementById('trayStatusTrend');
+  if (trayStatus) {
     const gasInfo = getGasLevel(sensorData);
     if (gasInfo.level === 'Normal') {
-      homeFoodSafety.innerHTML = 'Aman';
-      homeFoodSafety.style.color = 'var(--accent2)';
-      if (foodSafetyTrend) { foodSafetyTrend.textContent = 'Layak konsumsi'; foodSafetyTrend.style.color = 'var(--accent2)'; }
+      trayStatus.innerHTML = 'Bersih';
+      trayStatus.style.color = 'var(--accent2)';
+      if (trayStatusTrend) { trayStatusTrend.textContent = 'Ompreng siap dipakai'; trayStatusTrend.style.color = 'var(--accent2)'; }
     } else if (gasInfo.level === 'Warning') {
-      homeFoodSafety.innerHTML = 'Waspada';
-      homeFoodSafety.style.color = 'var(--accent4)';
-      if (foodSafetyTrend) { foodSafetyTrend.textContent = 'Segera sterilkan'; foodSafetyTrend.style.color = 'var(--accent4)'; }
+      trayStatus.innerHTML = 'Waspada';
+      trayStatus.style.color = 'var(--accent4)';
+      if (trayStatusTrend) { trayStatusTrend.textContent = 'Segera sterilkan ompreng'; trayStatusTrend.style.color = 'var(--accent4)'; }
     } else {
-      homeFoodSafety.innerHTML = 'Bahaya';
-      homeFoodSafety.style.color = 'var(--accent3)';
-      if (foodSafetyTrend) { foodSafetyTrend.textContent = 'Tidak layak konsumsi'; foodSafetyTrend.style.color = 'var(--accent3)'; }
+      trayStatus.innerHTML = 'Terkontaminasi';
+      trayStatus.style.color = 'var(--accent3)';
+      if (trayStatusTrend) { trayStatusTrend.textContent = 'Ompreng belum layak dipakai'; trayStatusTrend.style.color = 'var(--accent3)'; }
     }
   }
 
@@ -233,6 +234,11 @@ function updateDashboardUI(sensorData, relayCmd, status) {
   if (cleanlinessPercent) cleanlinessPercent.textContent = cleanPct + '%';
   if (hygieneVal) hygieneVal.textContent = cleanPct + '%';
   if (hygieneBar) hygieneBar.style.width = cleanPct + '%';
+
+  // Update the canonical source of truth. The perpetual rAF animator in app.js
+  // reads this value every frame and redraws the ring automatically — no direct
+  // drawCleanlinessRing call here, which avoids racing with the animator.
+  if (window.systemState) window.systemState.cleanliness = cleanPct;
 
   // Notifications
   updateNotifications(sensorData, status);
@@ -422,8 +428,8 @@ function updateNotifications(sensorData, status) {
 
   if (status.gas_alert === 'BAHAYA') {
     notifications.push({
-      icon: 'red', title: 'Kontaminasi Bakteri Tinggi!',
-      desc: 'Terdeteksi kontaminasi bakteri pada makanan. Segera lakukan sterilisasi UV-C.',
+      icon: 'red', title: 'Kontaminasi Ompreng Tinggi!',
+      desc: 'Terdeteksi kontaminasi pada permukaan ompreng. Segera lakukan sterilisasi UV-C.',
       color: 'pink'
     });
   }
@@ -431,7 +437,7 @@ function updateNotifications(sensorData, status) {
   if (sensorData.relay?.uv === 'ON' || sensorData.relay?.fan === 'ON') {
     notifications.push({
       icon: 'purple', title: 'Sterilisasi Aktif',
-      desc: `UV-C sedang membasmi bakteri makanan. UV-C: ${sensorData.relay?.uv}, Fan: ${sensorData.relay?.fan}`,
+      desc: `UV-C sedang membasmi bakteri pada ompreng. UV-C: ${sensorData.relay?.uv}, Fan: ${sensorData.relay?.fan}`,
       color: 'purple'
     });
   }
@@ -439,8 +445,8 @@ function updateNotifications(sensorData, status) {
   const avgVOCNotif = getAvgVOC(sensorData);
   const bacteriaPct = Math.max(0, Math.min(100, Math.round((1 - avgVOCNotif / 4095) * 100)));
   notifications.push({
-    icon: 'teal', title: 'Status Keamanan Pangan',
-    desc: `Tingkat kebersihan pangan: ${bacteriaPct}%. Makanan ${bacteriaPct >= 70 ? 'layak konsumsi' : 'perlu sterilisasi'}.`,
+    icon: 'teal', title: 'Status Kebersihan Ompreng',
+    desc: `Tingkat kebersihan ompreng: ${bacteriaPct}%. Ompreng ${bacteriaPct >= 70 ? 'siap dipakai' : 'perlu disterilkan'}.`,
     color: 'teal'
   });
 
@@ -509,6 +515,12 @@ if (page === 'dashboard.html' || page === 'monitoring.html') {
       } else {
         updateMonitoringUI(currentData, currentRelayCommand, currentStatus);
       }
+    });
+
+    // Listen to sterilization status (powers the dashboard "Next Sterilization" card)
+    onValue(sterilStatusRef, (snap) => {
+      window.__sterilStatus = snap.val() || null;
+      if (typeof window.__renderSterilCard === 'function') window.__renderSterilCard();
     });
   });
 

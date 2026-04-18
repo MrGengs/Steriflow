@@ -167,7 +167,7 @@
 
     </div>
 
-    <!-- Tingkat Kebersihan Pangan -->
+    <!-- Tingkat Kebersihan Ompreng -->
     <div class="glass card-p mt-12 fade-in fade-in-delay-2">
       <div class="section-title">Tingkat Kebersihan Ompreng</div>
       <div class="flex items-center gap-16">
@@ -200,20 +200,20 @@
     <div class="glass card-p mt-12 fade-in fade-in-delay-3">
       <div class="flex items-center justify-between mb-8">
         <div class="section-title" style="margin-bottom:0;">Next Sterilization</div>
-        <div class="badge badge-standby" style="font-size:0.62rem;">Scheduled</div>
+        <div class="badge badge-standby" id="nextCycleBadge" style="font-size:0.62rem;">Scheduled</div>
       </div>
       <div style="text-align:center;padding:10px 0;">
-        <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:6px;">Ready in</div>
-        <div class="countdown-display" id="countdown">00:14:32</div>
-        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:6px;">Next cycle at 14:30</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:6px;" id="countdownLabel">Status Alat</div>
+        <div class="countdown-display" id="countdown">SIAP</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:6px;" id="nextCycleAt">Alat siap digunakan</div>
       </div>
       <div class="divider"></div>
       <div class="flex justify-between" style="font-size:0.74rem;">
         <div>
           <span style="color:var(--text-dim);">Last sterilized: </span>
-          <span style="font-weight:600;" id="lastSterilized">13:45 today</span>
+          <span style="font-weight:600;" id="lastSterilized">—</span>
         </div>
-        <div style="color:var(--accent2);font-weight:600;">✓ Complete</div>
+        <div id="nextCycleStatus" style="color:var(--accent2);font-weight:600;">✓ Complete</div>
       </div>
     </div>
 
@@ -230,7 +230,7 @@
           </div>
           <div class="notif-text">
             <div class="notif-title">Sterilisasi Selesai</div>
-            <div class="notif-desc">Siklus #12 berhasil. Bakteri pada permukaan makanan telah dibasmi.</div>
+            <div class="notif-desc">Siklus #12 berhasil. Bakteri pada permukaan ompreng telah dibasmi.</div>
             <div class="notif-time">2 menit lalu</div>
           </div>
         </div>
@@ -239,8 +239,8 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
           </div>
           <div class="notif-text">
-            <div class="notif-title">Makanan Aman</div>
-            <div class="notif-desc">Tingkat bakteri dalam batas aman setelah paparan UV-C.</div>
+            <div class="notif-title">Ompreng Bersih</div>
+            <div class="notif-desc">Tingkat bakteri pada ompreng dalam batas aman setelah paparan UV-C.</div>
             <div class="notif-time">14 menit lalu</div>
           </div>
         </div>
@@ -250,7 +250,7 @@
           </div>
           <div class="notif-text">
             <div class="notif-title">Sterilisasi Terjadwal</div>
-            <div class="notif-desc">Sterilisasi otomatis untuk keamanan pangan dijadwalkan pukul 14:30.</div>
+            <div class="notif-desc">Sterilisasi ompreng otomatis dijadwalkan pukul 14:30.</div>
             <div class="notif-time">30 menit lalu</div>
           </div>
         </div>
@@ -324,56 +324,30 @@ onAuthStateChanged(auth, async (user) => {
       firestoreLimit(50)
     );
     const snap = await getDocs(q);
+
+    let latestDate = null;
     let todayCount = 0;
-    let lastCycleText = '—';
 
-    snap.forEach((doc, i) => {
-      const data = doc.data();
-      const date = data.createdAt?.toDate?.();
-      if (!date) return;
-
-      if (todayCount === 0 && i === undefined) { /* first doc */ }
-
-      // Count today
-      if (date >= today) todayCount++;
-
-      // Last cycle
-      if (lastCycleText === '—') {
-        lastCycleText = date.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }) +
-          (date.toDateString() === new Date().toDateString() ? ' today' : '');
-      }
-    });
-
-    // First doc is the latest
-    let first = true;
-    snap.forEach(doc => {
-      if (!first) return;
-      first = false;
-      const data = doc.data();
-      const date = data.createdAt?.toDate?.();
-      if (date) {
-        const el = document.getElementById('lastCycleInfo');
-        if (el) el.textContent = date.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }) +
-          (date.toDateString() === new Date().toDateString() ? ' today' : '');
-        const el2 = document.getElementById('lastSterilized');
-        if (el2) el2.textContent = el.textContent;
-      }
-    });
-
-    // Today count
     snap.forEach(doc => {
       const d = doc.data().createdAt?.toDate?.();
-      if (d && d >= today) todayCount++;
-    });
-    // Fix double count
-    todayCount = 0;
-    snap.forEach(doc => {
-      const d = doc.data().createdAt?.toDate?.();
-      if (d && d >= today) todayCount++;
+      if (!d) return;
+      if (!latestDate) latestDate = d;
+      if (d >= today) todayCount++;
     });
 
-    const el = document.getElementById('cyclesToday');
-    if (el) el.textContent = todayCount;
+    const timeLabel = (d) =>
+      d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }) +
+      (d.toDateString() === new Date().toDateString() ? ' today' : '');
+
+    if (latestDate) {
+      const lastCycleInfo = document.getElementById('lastCycleInfo');
+      const lastSterilized = document.getElementById('lastSterilized');
+      if (lastCycleInfo)  lastCycleInfo.textContent  = timeLabel(latestDate);
+      if (lastSterilized) lastSterilized.textContent = timeLabel(latestDate);
+    }
+
+    const cyclesTodayEl = document.getElementById('cyclesToday');
+    if (cyclesTodayEl) cyclesTodayEl.textContent = todayCount;
 
   } catch(e) {
     console.error('Dashboard stats error:', e);

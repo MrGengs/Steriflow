@@ -35,7 +35,6 @@ const systemState = {
   notifCount:     3,
   cleanliness:    82,
   cleanlinessLevel: 'Clean',
-  countdownSecs:  14 * 60 + 32,
 };
 
 /* ── Utility ──────────────────────────────────────────────── */
@@ -63,52 +62,114 @@ function formatDate(date) {
 }
 
 /* ── Cleanliness Ring Canvas ──────────────────────────────── */
+// Ensure the canvas drawing buffer matches device pixel ratio for crisp rendering.
+// Memoised per canvas so we don't thrash on every frame.
+function ensureCanvasDPR(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = canvas.clientWidth  || parseInt(canvas.getAttribute('width'))  || 110;
+  const cssH = canvas.clientHeight || parseInt(canvas.getAttribute('height')) || 110;
+  const wantW = Math.round(cssW * dpr);
+  const wantH = Math.round(cssH * dpr);
+  if (canvas.width !== wantW || canvas.height !== wantH) {
+    canvas.width  = wantW;
+    canvas.height = wantH;
+    canvas.style.width  = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+    canvas.__dpr = dpr;
+    canvas.__cssW = cssW;
+    canvas.__cssH = cssH;
+  }
+  return canvas;
+}
+
 function drawCleanlinessRing(canvasId, percent, color) {
   const canvas = el(canvasId);
   if (!canvas) return;
+  ensureCanvasDPR(canvas);
+
   const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
+  const dpr = canvas.__dpr || (window.devicePixelRatio || 1);
+  const w = canvas.__cssW || 110;
+  const h = canvas.__cssH || 110;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
   const cx = w / 2, cy = h / 2;
   const r = Math.min(w, h) / 2 - 10;
+  const pct = Math.max(0, Math.min(100, Number(percent) || 0));
+  const isFull = pct >= 99.999;
   const startAngle = -Math.PI / 2;
-  const endAngle = startAngle + (2 * Math.PI * percent / 100);
+  const endAngle = startAngle + (2 * Math.PI * pct / 100);
 
   ctx.clearRect(0, 0, w, h);
 
+  // Reset shadow defensively so the track isn't affected by leftover state.
+  ctx.shadowBlur = 0;
+  ctx.shadowColor = 'transparent';
+
   // Track
   ctx.beginPath();
+  ctx.lineCap = 'butt';
   ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+  ctx.closePath();
   ctx.strokeStyle = 'rgba(255,255,255,0.07)';
   ctx.lineWidth = 8;
   ctx.stroke();
 
-  // Gradient fill arc
+  if (pct <= 0) return;
+
   const grad = ctx.createLinearGradient(cx - r, cy, cx + r, cy);
   grad.addColorStop(0, color || CSS.accent2);
   grad.addColorStop(1, CSS.accent);
 
   ctx.beginPath();
-  ctx.arc(cx, cy, r, startAngle, endAngle);
+  if (isFull) {
+    // Full circle — flat caps + closePath so the start/end join has no seam
+    // regardless of subpixel alignment across different screens/DPRs.
+    ctx.lineCap = 'butt';
+    ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+    ctx.closePath();
+  } else {
+    ctx.lineCap = 'round';
+    ctx.arc(cx, cy, r, startAngle, endAngle);
+  }
   ctx.strokeStyle = grad;
   ctx.lineWidth = 8;
-  ctx.lineCap = 'round';
   ctx.shadowColor = color || CSS.accent2;
   ctx.shadowBlur = 10;
   ctx.stroke();
   ctx.shadowBlur = 0;
 }
 
-/* ── Animated Ring (animates from 0 to target) ────────────── */
-function animateRing(canvasId, targetPct, color) {
+/* ── Animated Ring (perpetual — follows a live target, not a snapshot) ────
+ * Pass a number for a one-shot target, or a function that returns the current
+ * target. Using a function prevents the race where the caller reads the
+ * target too early (before realtime data arrives) and ends up animating
+ * toward a stale value. The rAF loop redraws only when `current` changes.
+ */
+function animateRing(canvasId, target, color) {
+  // Cancel any previous loop on the same canvas to prevent double-animation
+  // (e.g. if animateRing is invoked twice by a resize re-trigger).
+  const canvas = el(canvasId);
+  if (!canvas) return;
+  if (canvas.__ringRAF) cancelAnimationFrame(canvas.__ringRAF);
+
+  const getTarget = typeof target === 'function' ? target : () => target;
   let current = 0;
+  let lastDrawn = -1;
+
   const step = () => {
-    if (current < targetPct) {
-      current = Math.min(current + 2, targetPct);
+    const raw = Number(getTarget());
+    const t = Math.max(0, Math.min(100, Number.isFinite(raw) ? raw : 0));
+    if (current < t)      current = Math.min(current + 2, t);
+    else if (current > t) current = Math.max(current - 2, t);
+
+    if (current !== lastDrawn) {
       drawCleanlinessRing(canvasId, current, color);
-      requestAnimationFrame(step);
+      lastDrawn = current;
     }
+    canvas.__ringRAF = requestAnimationFrame(step);
   };
-  requestAnimationFrame(step);
+  canvas.__ringRAF = requestAnimationFrame(step);
 }
 
 /* ── Line Chart Drawing ───────────────────────────────────── */
@@ -119,6 +180,8 @@ function animateRing(canvasId, targetPct, color) {
 // Expose for realtime.js
 window.drawLineChart = drawLineChart;
 window.drawDualLineChart = drawDualLineChart;
+window.drawCleanlinessRing = drawCleanlinessRing;
+window.systemState = systemState;
 
 function drawLineChart(canvasId, data, color, options = {}) {
   const canvas = el(canvasId);
@@ -448,12 +511,11 @@ function renderCharts() {
   if (page === 'history') {
     const barData = [3,5,4,6,4,5,3,7,5,4,6,5,4,7,5,6,4,5,3,5,4,6,5,3,4,5,6,4,5,3];
     drawBarChart('historyBarChart', barData, CSS.accent);
-    animateRing('successRateRing', 96, CSS.green);
   }
 
-  if (page === 'home') {
-    animateRing('cleanlinessRing', systemState.cleanliness, CSS.accent2);
-  }
+  // Note: the cleanliness ring animator is started once in initPage (not here),
+  // because renderCharts is also invoked on window resize — restarting the
+  // animator would reset it to 0% and re-animate, which is jarring.
 }
 
 /* ── Detect current page ─────────────────────────────────── */
@@ -558,7 +620,8 @@ function completeSterilization() {
   const lastInfo = el('lastCycleInfo');
   if (lastInfo) lastInfo.textContent = 'Just now';
 
-  drawCleanlinessRing('cleanlinessRing', 95, CSS.accent2);
+  // The perpetual ring animator (started in renderCharts) will pick up the
+  // new systemState.cleanliness value on the next frame — no direct draw needed.
   const cpEl = el('cleanlinessPercent');
   if (cpEl) cpEl.textContent = '95%';
   const clEl = el('cleanlinessLevel');
@@ -668,27 +731,77 @@ function updateEthanolUI(on) {
   }
 }
 
-/* ── Countdown Timer ─────────────────────────────────────── */
+/* ── Next Sterilization Card (live status from RTDB) ─────── */
+// Data shape stored at window.__sterilStatus (pushed by dashboard.html's RTDB listener):
+// { active, startedAt (ms), totalSeconds, remainingSeconds, updatedAt (ms), deviceId }
+
+function fmtMMSS(totalSec) {
+  const n = Number(totalSec);
+  const t = Math.max(0, Math.round(Number.isFinite(n) ? n : 0));
+  const m = Math.floor(t / 60);
+  const s = t % 60;
+  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
 function initCountdown() {
   const countdownEl = el('countdown');
   if (!countdownEl) return;
 
-  function tick() {
-    if (systemState.countdownSecs > 0) {
-      systemState.countdownSecs--;
+  const labelEl    = el('countdownLabel');
+  const subtitleEl = el('nextCycleAt');
+  const badgeEl    = el('nextCycleBadge');
+  const statusEl   = el('nextCycleStatus');
+
+  function render() {
+    const s = window.__sterilStatus;
+    const now = Date.now();
+    // Consider a status "fresh" only if it was updated in the last 8 seconds.
+    // This guards against a stuck active flag if the sterilization tab crashes.
+    const isFresh = s && s.updatedAt && (now - s.updatedAt) < 8000;
+
+    if (s && s.active && isFresh) {
+      // Prefer locally-interpolated remaining from startedAt + totalSeconds
+      // (smooth per-frame countdown between RTDB pushes).
+      let remaining = s.remainingSeconds;
+      if (s.startedAt && s.totalSeconds) {
+        remaining = s.totalSeconds - (now - s.startedAt) / 1000;
+      }
+      countdownEl.textContent = fmtMMSS(remaining);
+      countdownEl.style.background = '';
+      countdownEl.style.webkitBackgroundClip = '';
+      countdownEl.style.webkitTextFillColor = '';
+      if (labelEl)    labelEl.textContent    = 'Sisa waktu sterilisasi';
+      if (subtitleEl) subtitleEl.textContent = 'Proses sedang berjalan' + (s.deviceId ? ' · ' + s.deviceId : '');
+      if (badgeEl) {
+        badgeEl.textContent = 'In Progress';
+        badgeEl.className   = 'badge badge-sterilizing';
+        badgeEl.style.fontSize = '0.62rem';
+      }
+      if (statusEl) {
+        statusEl.textContent = '⟳ Sterilizing';
+        statusEl.style.color = 'var(--accent)';
+      }
     } else {
-      systemState.countdownSecs = 15 * 60; // reset to 15 min
+      // Idle — alat siap digunakan
+      countdownEl.textContent = 'SIAP';
+      if (labelEl)    labelEl.textContent    = 'Status Alat';
+      if (subtitleEl) subtitleEl.textContent = 'Alat siap digunakan';
+      if (badgeEl) {
+        badgeEl.textContent = 'Ready';
+        badgeEl.className   = 'badge badge-clean';
+        badgeEl.style.fontSize = '0.62rem';
+      }
+      if (statusEl) {
+        statusEl.textContent = '✓ Siap';
+        statusEl.style.color = 'var(--accent2)';
+      }
     }
-    const h = Math.floor(systemState.countdownSecs / 3600);
-    const m = Math.floor((systemState.countdownSecs % 3600) / 60);
-    const s = systemState.countdownSecs % 60;
-    countdownEl.textContent =
-      String(h).padStart(2,'0') + ':' +
-      String(m).padStart(2,'0') + ':' +
-      String(s).padStart(2,'0');
   }
 
-  setInterval(tick, 1000);
+  // Re-render once per second for smooth countdown + freshness check.
+  window.__renderSterilCard = render;
+  render();
+  setInterval(render, 1000);
 }
 
 /* ── Header Date ─────────────────────────────────────────── */
@@ -864,18 +977,18 @@ function finishScan(cameraView, btnText, idleIcon, resultOverlay) {
   if (residueList) {
     const residues = outcome.level === 'clean'
       ? [
-          { name: 'Food Particles', pct: 3, color: CSS.accent2 },
+          { name: 'Food Residue', pct: 3, color: CSS.accent2 },
           { name: 'Oil Stains', pct: 2, color: CSS.accent2 },
           { name: 'Biological Residue', pct: 1, color: CSS.accent2 },
         ]
       : outcome.level === 'moderate'
       ? [
-          { name: 'Food Particles', pct: 22, color: CSS.accent4 },
+          { name: 'Food Residue', pct: 22, color: CSS.accent4 },
           { name: 'Oil Stains', pct: 18, color: CSS.accent4 },
           { name: 'Biological Residue', pct: 12, color: CSS.accent4 },
         ]
       : [
-          { name: 'Food Particles', pct: 45, color: CSS.red },
+          { name: 'Food Residue', pct: 45, color: CSS.red },
           { name: 'Oil Stains', pct: 38, color: CSS.red },
           { name: 'Biological Residue', pct: 29, color: CSS.red },
         ];
@@ -940,6 +1053,10 @@ function initPage() {
     initSystemStatus();
     initToggles();
     initCountdown();
+    // Start the perpetual cleanliness-ring animator once per page load. Its
+    // target is read each frame, so late realtime updates are picked up
+    // without restarting (no race, no "stuck at stale target" bug).
+    animateRing('cleanlinessRing', () => systemState.cleanliness, CSS.accent2);
     setTimeout(() => renderCharts(), 100);
   }
 
@@ -955,6 +1072,9 @@ function initPage() {
   if (page === 'history') {
     initFilterChips();
     initExportBtn();
+    // Start the success-rate ring once, same reason as cleanlinessRing above:
+    // avoid restarting the animator whenever renderCharts runs on resize.
+    animateRing('successRateRing', 96, CSS.green);
     setTimeout(() => renderCharts(), 100);
   }
 

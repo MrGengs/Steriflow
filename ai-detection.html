@@ -240,7 +240,7 @@
         <div class="legend-dot" style="background:var(--accent2);box-shadow:0 0 6px var(--accent2-glow);"></div>
         <div>
           <div class="legend-title" style="color:var(--accent2);">Clean</div>
-          <div class="legend-desc">Surface is sterile. No contamination detected. Ready for use.</div>
+          <div class="legend-desc">Tray surface is sterile. No contamination detected. Ready for use.</div>
         </div>
       </div>
       <div class="legend-item">
@@ -729,11 +729,11 @@
   async function analyzeWithGemini(imageBase64) {
     // Short prompt = fewer text tokens on free tier; same JSON contract as before.
     const prompt =
-      'SteriFlow food-surface inspector (stainless steel). Reply ONLY with valid JSON, no markdown.\n' +
+      'SteriFlow stainless ompreng (food-serving tray) surface inspector. Assess cleanliness of the TRAY surface only — not the food. Reply ONLY with valid JSON, no markdown.\n' +
       '{"classification":"Clean"|"Moderate"|"Dirty","confidence":0-100,"contamination_level":0-100,' +
-      '"analysis":"1-2 sentences","residues":[{"name":"string","percentage":0-100}],' +
+      '"analysis":"1-2 sentences about the tray surface condition","residues":[{"name":"string","percentage":0-100}],' +
       '"sterilization":{"uv_needed":true|false,"fan_needed":true|false,"duration_minutes":0-10,"reason":"short reason"}}\n' +
-      'Clean=ready(uv/fan off,0min); Moderate=light stains(fan on,uv optional,2-3min); Dirty=heavy residue(uv+fan on,4-7min). Be honest.';
+      'Clean=tray ready to use(uv/fan off,0min); Moderate=light stains/residue on tray(fan on,uv optional,2-3min); Dirty=heavy food residue on tray(uv+fan on,4-7min). Be honest.';
 
     const response = await geminiGenerateContent({
       contents: [{
@@ -911,9 +911,9 @@
 
   // Fallback if Gemini doesn't return sterilization data
   function getFallbackSterilization(cls, contLevel) {
-    if (cls === 'Clean') return { uv_needed: false, fan_needed: false, duration_minutes: 0, reason: 'Surface is clean' };
-    if (cls === 'Moderate') return { uv_needed: contLevel > 40, fan_needed: true, duration_minutes: contLevel > 40 ? 3 : 2, reason: 'Light contamination detected' };
-    return { uv_needed: true, fan_needed: true, duration_minutes: contLevel > 80 ? 7 : (contLevel > 60 ? 5 : 4), reason: 'Heavy contamination detected' };
+    if (cls === 'Clean') return { uv_needed: false, fan_needed: false, duration_minutes: 0, reason: 'Tray surface is clean' };
+    if (cls === 'Moderate') return { uv_needed: contLevel > 40, fan_needed: true, duration_minutes: contLevel > 40 ? 3 : 2, reason: 'Light contamination on tray' };
+    return { uv_needed: true, fan_needed: true, duration_minutes: contLevel > 80 ? 7 : (contLevel > 60 ? 5 : 4), reason: 'Heavy residue on tray' };
   }
 
   function showSterilizationPanel(result) {
@@ -936,12 +936,12 @@
 
     if (cls === 'Clean' || (!currentUvNeeded && !currentFanNeeded)) {
       // No sterilization needed — auto-save
-      sterilRecommendation.innerHTML = '<span style="color:var(--accent2);font-weight:600;">Surface is clean!</span> No sterilization needed.';
+      sterilRecommendation.innerHTML = '<span style="color:var(--accent2);font-weight:600;">Ompreng is clean!</span> No sterilization needed.';
       sterilDuration.textContent = '0 min';
       sterilStatus.textContent = 'Clean';
       sterilStatus.className = 'badge badge-clean';
       sterilComplete.style.display = '';
-      sterilComplete.querySelector('div:first-of-type').textContent = 'Surface is Clean!';
+      sterilComplete.querySelector('div:first-of-type').textContent = 'Ompreng is Clean!';
       sterilComplete.querySelector('div:last-of-type').textContent = 'No sterilization required. Log saved.';
       sterilBar.style.width = '100%';
       sterilPercent.textContent = '100%';
@@ -960,7 +960,7 @@
     const reasonText = sterilRec.reason ? ` <span style="font-size:0.75rem;color:var(--text-dim);">(${escapeHtml(sterilRec.reason)})</span>` : '';
 
     sterilRecommendation.innerHTML =
-      `Surface is <span style="color:${cls === 'Dirty' ? 'var(--accent3)' : 'var(--accent4)'};font-weight:600;">${levelText}</span>. ` +
+      `Tray surface is <span style="color:${cls === 'Dirty' ? 'var(--accent3)' : 'var(--accent4)'};font-weight:600;">${levelText}</span>. ` +
       `Gemini recommends <strong>${activeText}</strong> for <strong>${currentDurationMin} min</strong>.${reasonText}` +
       `<div style="font-size:0.7rem;color:var(--text-muted);margin-top:6px;">Device: <strong>${escapeHtml(sterilDeviceId)}</strong></div>`;
 
@@ -985,14 +985,14 @@
   // Helper: get RTDB instance
   async function getRTDB() {
     const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
-    const { getDatabase, ref, set } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js");
+    const { getDatabase, ref, set, update, onDisconnect } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js");
     const { firebaseConfig } = await import("./js/firebase-config.js");
     let rtApp;
     try { rtApp = initializeApp(firebaseConfig); } catch(e) {
       const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
       rtApp = getApp();
     }
-    return { rtdb: getDatabase(rtApp), ref, set };
+    return { rtdb: getDatabase(rtApp), ref, set, update, onDisconnect };
   }
 
   // Auto-start sterilization function
@@ -1005,7 +1005,7 @@
     const devicePath = sterilDeviceId || 'steriflow-001';
 
     try {
-      const { rtdb, ref, set } = await getRTDB();
+      const { rtdb, ref, set, update, onDisconnect } = await getRTDB();
 
       // Only turn on what Gemini recommends
       if (currentUvNeeded) {
@@ -1016,18 +1016,42 @@
       }
 
       const totalSec = Math.round(currentDurationMin * 60);
+      const startedAt = Date.now();
+
+      // Publish initial sterilization status to RTDB (dashboard reads this)
+      const statusRef = ref(rtdb, `${devicePath}/sterilizationStatus`);
+      await set(statusRef, {
+        active: true,
+        deviceId: devicePath,
+        durationMinutes: currentDurationMin,
+        totalSeconds: totalSec,
+        remainingSeconds: totalSec,
+        startedAt: startedAt,
+        updatedAt: startedAt,
+        uvUsed: currentUvNeeded,
+        fanUsed: currentFanNeeded
+      });
+      // If this tab disconnects mid-cycle, RTDB will auto-clear the active flag
+      // so the dashboard doesn't get stuck showing "In Progress" forever.
+      try { await onDisconnect(statusRef).update({ active: false, updatedAt: Date.now() }); } catch(_) {}
+
       let elapsed = 0;
 
       sterilTimer = setInterval(async () => {
         elapsed++;
         const pct = Math.min(100, Math.round((elapsed / totalSec) * 100));
-        const remaining = totalSec - elapsed;
+        const remaining = Math.max(0, totalSec - elapsed);
         const m = Math.floor(remaining / 60);
         const s = remaining % 60;
 
         sterilPercent.textContent = pct + '%';
         sterilBar.style.width = pct + '%';
         sterilCountdown.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+
+        // Heartbeat to RTDB so dashboard can render live remaining time
+        try {
+          await update(statusRef, { remainingSeconds: remaining, updatedAt: Date.now() });
+        } catch (_) { /* best-effort, don't break the local tick */ }
 
         if (elapsed >= totalSec) {
           clearInterval(sterilTimer);
@@ -1040,6 +1064,17 @@
           if (currentFanNeeded) {
             await set(ref(rtdb, `${devicePath}/relayCommand/fan`), false);
           }
+
+          // Mark sterilization as done in RTDB
+          try {
+            await update(statusRef, {
+              active: false,
+              remainingSeconds: 0,
+              endedAt: Date.now(),
+              updatedAt: Date.now()
+            });
+            await onDisconnect(statusRef).cancel();
+          } catch (_) {}
 
           // Show complete
           sterilStatus.textContent = 'Complete';
@@ -1073,15 +1108,23 @@
 
       const devicePath = sterilDeviceId || 'steriflow-001';
 
-      // Turn off relays
+      // Turn off relays + mark sterilization stopped in RTDB
       try {
-        const { rtdb, ref, set } = await getRTDB();
+        const { rtdb, ref, set, update, onDisconnect } = await getRTDB();
         if (currentUvNeeded) {
           await set(ref(rtdb, `${devicePath}/relayCommand/uv`), false);
         }
         if (currentFanNeeded) {
           await set(ref(rtdb, `${devicePath}/relayCommand/fan`), false);
         }
+        const statusRef = ref(rtdb, `${devicePath}/sterilizationStatus`);
+        await update(statusRef, {
+          active: false,
+          remainingSeconds: 0,
+          endedAt: Date.now(),
+          updatedAt: Date.now()
+        });
+        try { await onDisconnect(statusRef).cancel(); } catch(_) {}
       } catch(e) { console.error(e); }
 
       sterilStatus.textContent = 'Stopped';
@@ -1089,7 +1132,7 @@
       sterilSkipBtn.style.display = 'none';
       sterilComplete.style.display = '';
       sterilComplete.querySelector('div:first-of-type').textContent = 'Sterilization Stopped';
-      sterilComplete.querySelector('div:last-of-type').textContent = 'Log saved. Surface may still be contaminated.';
+      sterilComplete.querySelector('div:last-of-type').textContent = 'Log saved. Tray surface may still be contaminated.';
       sterilComplete.querySelector('svg').setAttribute('stroke', 'var(--accent4)');
       saveLog(currentSterilResult, 0, 'Stopped');
     });
