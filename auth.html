@@ -7,6 +7,7 @@
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <link rel="apple-touch-icon" href="assets/logo.png" />
   <link rel="stylesheet" href="assets/auth.css" />
+  <script src="js/i18n.js"></script>
 </head>
 <body>
 
@@ -25,12 +26,12 @@
         <img src="assets/logo.png" alt="SteriFlow" style="width:38px;height:38px;border-radius:6px" />
         <span>SteriFlow</span>
       </a>
-      <p class="auth-subtitle">Sign in to access the monitoring dashboard</p>
+      <p class="auth-subtitle" data-i18n="auth.subtitle">Sign in to access the monitoring dashboard</p>
 
       <!-- Tabs -->
       <div class="auth-tabs">
-        <button class="auth-tab active" data-tab="login">Login</button>
-        <button class="auth-tab" data-tab="register">Register</button>
+        <button class="auth-tab active" data-tab="login" data-i18n="auth.login">Login</button>
+        <button class="auth-tab" data-tab="register" data-i18n="auth.register">Register</button>
       </div>
 
       <!-- Message (error/success) -->
@@ -43,17 +44,17 @@
       <div class="auth-panel active" id="panel-login">
         <form id="loginForm" novalidate>
           <div class="auth-field">
-            <label class="auth-label" for="loginEmail">Email</label>
+            <label class="auth-label" for="loginEmail" data-i18n="auth.email">Email</label>
             <div class="auth-input-wrap">
-              <input class="auth-input" type="email" id="loginEmail" placeholder="name@email.com" autocomplete="email" required />
+              <input class="auth-input" type="email" id="loginEmail" data-i18n-placeholder="auth.email_ph" placeholder="name@email.com" autocomplete="email" required />
               <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 8l10 6 10-6"/></svg>
             </div>
           </div>
 
           <div class="auth-field">
-            <label class="auth-label" for="loginPassword">Password</label>
+            <label class="auth-label" for="loginPassword" data-i18n="auth.password">Password</label>
             <div class="auth-input-wrap">
-              <input class="auth-input" type="password" id="loginPassword" placeholder="Enter password" autocomplete="current-password" required />
+              <input class="auth-input" type="password" id="loginPassword" data-i18n-placeholder="auth.password_ph" placeholder="Enter password" autocomplete="current-password" required />
               <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               <button type="button" class="auth-toggle-pw" aria-label="Toggle password visibility">
                 <svg class="eye-open" viewBox="0 0 24 24" style="display:block"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -63,14 +64,14 @@
           </div>
 
           <button type="submit" class="auth-submit">
-            <span class="auth-btn-text">Sign In</span>
+            <span class="auth-btn-text" data-i18n="auth.sign_in">Sign In</span>
             <div class="auth-spinner"></div>
             <svg viewBox="0 0 24 24" class="auth-btn-text"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
           </button>
         </form>
 
         <div class="auth-divider">
-          <span>or continue with</span>
+          <span data-i18n="auth.continue_with">or continue with</span>
         </div>
 
         <button class="auth-google" type="button">
@@ -80,7 +81,7 @@
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84Z" fill="#FBBC05"/>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53Z" fill="#EA4335"/>
           </svg>
-          Sign in with Google
+          <span data-i18n="auth.google_in">Sign in with Google</span>
         </button>
       </div>
 
@@ -88,25 +89,25 @@
       <div class="auth-panel auth-panel-register" id="panel-register">
         <form id="registerForm" novalidate>
           <div class="auth-field auth-field-name">
-            <label class="auth-label" for="registerName">Full Name</label>
+            <label class="auth-label" for="registerName" data-i18n="auth.full_name">Full Name</label>
             <div class="auth-input-wrap">
-              <input class="auth-input" type="text" id="registerName" placeholder="Full name" autocomplete="name" required />
+              <input class="auth-input" type="text" id="registerName" data-i18n-placeholder="auth.full_name_ph" placeholder="Full name" autocomplete="name" required />
               <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
             </div>
           </div>
 
           <div class="auth-field">
-            <label class="auth-label" for="registerEmail">Email</label>
+            <label class="auth-label" for="registerEmail" data-i18n="auth.email">Email</label>
             <div class="auth-input-wrap">
-              <input class="auth-input" type="email" id="registerEmail" placeholder="name@email.com" autocomplete="email" required />
+              <input class="auth-input" type="email" id="registerEmail" data-i18n-placeholder="auth.email_ph" placeholder="name@email.com" autocomplete="email" required />
               <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 8l10 6 10-6"/></svg>
             </div>
           </div>
 
           <div class="auth-field">
-            <label class="auth-label" for="registerPassword">Password</label>
+            <label class="auth-label" for="registerPassword" data-i18n="auth.password">Password</label>
             <div class="auth-input-wrap">
-              <input class="auth-input" type="password" id="registerPassword" placeholder="Minimum 6 characters" autocomplete="new-password" required />
+              <input class="auth-input" type="password" id="registerPassword" data-i18n-placeholder="auth.password_min" placeholder="Minimum 6 characters" autocomplete="new-password" required />
               <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               <button type="button" class="auth-toggle-pw" aria-label="Toggle password visibility">
                 <svg class="eye-open" viewBox="0 0 24 24" style="display:block"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -116,14 +117,14 @@
           </div>
 
           <button type="submit" class="auth-submit">
-            <span class="auth-btn-text">Sign Up</span>
+            <span class="auth-btn-text" data-i18n="auth.sign_up">Sign Up</span>
             <div class="auth-spinner"></div>
             <svg viewBox="0 0 24 24" class="auth-btn-text"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
           </button>
         </form>
 
         <div class="auth-divider">
-          <span>or continue with</span>
+          <span data-i18n="auth.continue_with">or continue with</span>
         </div>
 
         <button class="auth-google" type="button">
@@ -133,13 +134,13 @@
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84Z" fill="#FBBC05"/>
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53Z" fill="#EA4335"/>
           </svg>
-          Sign up with Google
+          <span data-i18n="auth.google_up">Sign up with Google</span>
         </button>
       </div>
 
       <!-- Footer -->
       <div class="auth-footer">
-        <a href="index.html">Back to Home</a>
+        <a href="index.html" data-i18n="auth.back_home">Back to Home</a>
       </div>
 
     </div>

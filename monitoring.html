@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="js/theme.js"></script>
+<script src="js/i18n.js"></script>
 </head>
 <body>
 
@@ -34,8 +35,8 @@
         <img src="assets/logo.png" alt="SteriFlow" width="36" height="36" style="border-radius:6px" />
       </div>
       <div>
-        <div class="header-page-title">Realtime Monitoring</div>
-        <div class="header-subtitle">Live sensor data</div>
+        <div class="header-page-title" data-i18n="mon.page.title">Realtime Monitoring</div>
+        <div class="header-subtitle" data-i18n="mon.page.subtitle">Live sensor data</div>
       </div>
     </div>
     <div class="header-actions">
@@ -57,7 +58,7 @@
 
     <!-- Last Updated -->
     <div class="flex items-center justify-between mb-12 fade-in" style="font-size:0.72rem;color:var(--text-dim);">
-      <span>Last updated: <span id="lastUpdated">just now</span></span>
+      <span><span data-i18n="common.last_updated">Last updated:</span> <span id="lastUpdated" data-i18n="common.just_now">just now</span></span>
       <div class="flex items-center gap-8" style="color:var(--accent2);">
         <span style="width:7px;height:7px;border-radius:50%;background:var(--accent2);display:inline-block;animation:pulseLive 1s infinite;"></span>
         Live
@@ -69,7 +70,7 @@
 
       <!-- VOC (air quality / bakteri proxy) -->
       <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent);">
-        <div class="stat-label">VOC</div>
+        <div class="stat-label" data-i18n="mon.label.voc">VOC</div>
         <div class="flex items-center gap-4">
           <div class="stat-value" id="vocValue" style="color:var(--accent);">—</div>
           <div class="stat-unit" style="padding-top:6px;">ppm</div>
@@ -80,13 +81,13 @@
           </div>
         </div>
         <div class="stat-trend" id="vocStatus" style="margin-top:4px;color:var(--text-dim);">
-          Waiting...
+          <span data-i18n="mon.waiting">Waiting...</span>
         </div>
       </div>
 
       <!-- Temperature -->
       <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent2);">
-        <div class="stat-label">Suhu</div>
+        <div class="stat-label" data-i18n="mon.label.temp">Suhu</div>
         <div class="flex items-center gap-4">
           <div class="stat-value" id="tempValue" style="color:var(--accent2);">—</div>
           <div class="stat-unit" style="padding-top:6px;">°C</div>
@@ -97,13 +98,13 @@
           </div>
         </div>
         <div class="stat-trend" id="tempTrend" style="margin-top:4px;color:var(--text-dim);">
-          Waiting...
+          <span data-i18n="mon.waiting">Waiting...</span>
         </div>
       </div>
 
       <!-- Humidity -->
       <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent3);">
-        <div class="stat-label">Kelembapan</div>
+        <div class="stat-label" data-i18n="mon.label.hum">Kelembapan</div>
         <div class="flex items-center gap-4">
           <div class="stat-value" id="humidityValue" style="color:var(--accent3);">—</div>
           <div class="stat-unit" style="padding-top:6px;">%</div>
@@ -114,7 +115,7 @@
           </div>
         </div>
         <div class="stat-trend" id="humTrend" style="margin-top:4px;color:var(--text-dim);">
-          Waiting...
+          <span data-i18n="mon.waiting">Waiting...</span>
         </div>
       </div>
 
@@ -124,8 +125,8 @@
     <div class="glass card-p mt-16 fade-in fade-in-delay-2">
       <div class="flex items-center justify-between mb-8">
         <div>
-          <div class="section-title" style="margin-bottom:2px;">VOC (Air Quality)</div>
-          <div style="font-size:0.68rem;color:var(--text-dim);">Last 20 readings · MQ135 sensor</div>
+          <div class="section-title" style="margin-bottom:2px;" data-i18n="mon.voc.card.title">VOC (Air Quality)</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);" data-i18n="mon.voc.card.desc">Last 20 readings · MQ135 sensor</div>
         </div>
         <div class="flex items-center gap-8" style="font-size:0.7rem;color:var(--text-dim);">
           <span style="display:inline-block;width:10px;height:3px;border-radius:2px;background:var(--accent);"></span>
@@ -144,8 +145,8 @@
     <div class="glass card-p mt-12 fade-in fade-in-delay-2">
       <div class="flex items-center justify-between mb-8">
         <div>
-          <div class="section-title" style="margin-bottom:2px;">Suhu & Kelembapan</div>
-          <div style="font-size:0.68rem;color:var(--text-dim);">Kondisi lingkungan</div>
+          <div class="section-title" style="margin-bottom:2px;" data-i18n="mon.env.card.title">Suhu & Kelembapan</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);" data-i18n="mon.env.card.desc">Kondisi lingkungan</div>
         </div>
         <div class="flex gap-10" style="font-size:0.68rem;">
           <div class="flex items-center gap-4">
@@ -168,40 +169,40 @@
 
     <!-- Sterilization Status Card -->
     <div class="glass card-p mt-12 fade-in fade-in-delay-3">
-      <div class="section-title">Sterilization Status</div>
+      <div class="section-title" data-i18n="mon.steril.status">Sterilization Status</div>
 
       <div class="flex items-center justify-between mb-12">
         <div>
-          <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:5px;">Current State</div>
+          <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:5px;" data-i18n="mon.current_state">Current State</div>
           <span class="badge badge-standby" id="monitorStatus">Standby</span>
         </div>
         <div style="text-align:right;font-size:0.72rem;">
-          <div style="color:var(--text-dim);">VOC Alert</div>
+          <div style="color:var(--text-dim);" data-i18n="mon.voc_alert">VOC Alert</div>
           <span class="badge badge-standby" id="monitorVocAlert" style="font-size:0.7rem;">—</span>
         </div>
       </div>
 
       <div class="flex gap-8 mb-12">
         <div>
-          <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;">UV-C Lamp</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;" data-i18n="dash.uvc_lamp">UV-C Lamp</div>
           <span class="status-pill inactive" id="monitorUvc">INACTIVE</span>
-          <div style="font-size:0.6rem;color:var(--text-muted);margin-top:3px;">Mode: <span id="monitorUvMode">—</span></div>
+          <div style="font-size:0.6rem;color:var(--text-muted);margin-top:3px;"><span data-i18n="dash.mode">Mode:</span> <span id="monitorUvMode">—</span></div>
         </div>
         <div>
-          <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;">Ethanol Spray</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;" data-i18n="dash.ethanol_spray">Ethanol Spray</div>
           <span class="status-pill inactive" id="monitorEthanol">INACTIVE</span>
-          <div style="font-size:0.6rem;color:var(--text-muted);margin-top:3px;">Mode: <span id="monitorEthanolMode">—</span></div>
+          <div style="font-size:0.6rem;color:var(--text-muted);margin-top:3px;"><span data-i18n="dash.mode">Mode:</span> <span id="monitorEthanolMode">—</span></div>
         </div>
         <div>
-          <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;">Fan</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);margin-bottom:4px;" data-i18n="dash.fan">Fan</div>
           <span class="status-pill inactive" id="monitorFan">INACTIVE</span>
-          <div style="font-size:0.6rem;color:var(--text-muted);margin-top:3px;">Mode: <span id="monitorFanMode">—</span></div>
+          <div style="font-size:0.6rem;color:var(--text-muted);margin-top:3px;"><span data-i18n="dash.mode">Mode:</span> <span id="monitorFanMode">—</span></div>
         </div>
       </div>
 
       <div class="progress-wrap">
         <div class="progress-header">
-          <span>Current Cycle Progress</span>
+          <span data-i18n="mon.cycle_progress">Current Cycle Progress</span>
           <span id="monitorCyclePercent">0%</span>
         </div>
         <div class="progress-track">
@@ -213,15 +214,15 @@
       <div class="flex gap-12 mt-12" style="font-size:0.75rem;">
         <div style="flex:1;background:rgba(124,92,252,0.08);border-radius:10px;padding:10px;text-align:center;">
           <div style="color:var(--accent);font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:700;">15<span style="font-size:0.7rem;font-family:'Outfit',sans-serif;"> min</span></div>
-          <div style="color:var(--text-dim);font-size:0.65rem;margin-top:2px;">Avg Duration</div>
+          <div style="color:var(--text-dim);font-size:0.65rem;margin-top:2px;" data-i18n="mon.avg_duration">Avg Duration</div>
         </div>
         <div style="flex:1;background:rgba(54,214,195,0.08);border-radius:10px;padding:10px;text-align:center;">
           <div style="color:var(--accent2);font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:700;">12</div>
-          <div style="color:var(--text-dim);font-size:0.65rem;margin-top:2px;">Cycles Today</div>
+          <div style="color:var(--text-dim);font-size:0.65rem;margin-top:2px;" data-i18n="mon.cycles_today">Cycles Today</div>
         </div>
         <div style="flex:1;background:rgba(39,199,106,0.08);border-radius:10px;padding:10px;text-align:center;">
           <div style="color:#27c76a;font-family:'Sora',sans-serif;font-size:1.1rem;font-weight:700;">98<span style="font-size:0.7rem;font-family:'Outfit',sans-serif;">%</span></div>
-          <div style="color:var(--text-dim);font-size:0.65rem;margin-top:2px;">Success Rate</div>
+          <div style="color:var(--text-dim);font-size:0.65rem;margin-top:2px;" data-i18n="mon.success_rate">Success Rate</div>
         </div>
       </div>
     </div>
@@ -233,30 +234,30 @@
         <div class="flex items-center justify-between" style="font-size:0.8rem;">
           <div class="flex items-center gap-8">
             <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div>
-            <span>VOC (Air Quality)</span>
+            <span data-i18n="mon.voc.card.title">VOC (Air Quality)</span>
           </div>
           <div style="text-align:right;">
-            <span style="color:var(--text-dim);font-size:0.7rem;">Safe: </span>
+            <span style="color:var(--text-dim);font-size:0.7rem;" data-i18n="mon.threshold.safe">Safe: </span>
             <span style="font-weight:600;">&lt; 2 ppm</span>
           </div>
         </div>
         <div class="flex items-center justify-between" style="font-size:0.8rem;">
           <div class="flex items-center gap-8">
             <div style="width:10px;height:10px;border-radius:50%;background:var(--accent2);flex-shrink:0;"></div>
-            <span>Suhu</span>
+            <span data-i18n="mon.label.temp">Suhu</span>
           </div>
           <div style="text-align:right;">
-            <span style="color:var(--text-dim);font-size:0.7rem;">Safe: </span>
+            <span style="color:var(--text-dim);font-size:0.7rem;" data-i18n="mon.threshold.safe">Safe: </span>
             <span style="font-weight:600;">20 – 32 °C</span>
           </div>
         </div>
         <div class="flex items-center justify-between" style="font-size:0.8rem;">
           <div class="flex items-center gap-8">
             <div style="width:10px;height:10px;border-radius:50%;background:var(--accent3);flex-shrink:0;"></div>
-            <span>Kelembapan</span>
+            <span data-i18n="mon.label.hum">Kelembapan</span>
           </div>
           <div style="text-align:right;">
-            <span style="color:var(--text-dim);font-size:0.7rem;">Safe: </span>
+            <span style="color:var(--text-dim);font-size:0.7rem;" data-i18n="mon.threshold.safe">Safe: </span>
             <span style="font-weight:600;">40 – 80 %</span>
           </div>
         </div>
@@ -272,22 +273,22 @@
     <div class="nav-inner">
       <a href="dashboard.html" class="nav-item">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
-        Home
+        <span data-i18n="nav.home">Home</span>
       </a>
       <a href="monitoring.html" class="nav-item active">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Monitor
+        <span data-i18n="nav.monitor">Monitor</span>
       </a>
-      <a href="ai-detection.html" class="nav-fab" title="AI Detection">
+      <a href="ai-detection.html" class="nav-fab" data-i18n-title="nav.ai" title="AI Detection">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       </a>
       <a href="history.html" class="nav-item">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        History
+        <span data-i18n="nav.history">History</span>
       </a>
       <a href="account.html" class="nav-item">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
-        Account
+        <span data-i18n="nav.account">Account</span>
       </a>
     </div>
   </nav>

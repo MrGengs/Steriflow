@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="js/theme.js"></script>
+<script src="js/i18n.js"></script>
 </head>
 <body>
 
@@ -34,8 +35,8 @@
         <img src="assets/logo.png" alt="SteriFlow" width="36" height="36" style="border-radius:6px" />
       </div>
       <div>
-        <div class="header-page-title">Sterilization Log</div>
-        <div class="header-subtitle">Activity history</div>
+        <div class="header-page-title" data-i18n="hist.page.title">Sterilization Log</div>
+        <div class="header-subtitle" data-i18n="hist.page.subtitle">Activity history</div>
       </div>
     </div>
     <div class="header-actions">
@@ -57,47 +58,47 @@
 
     <!-- Filter Chips -->
     <div class="filter-row fade-in">
-      <div class="chip active" data-filter="all">All</div>
-      <div class="chip" data-filter="today">Today</div>
-      <div class="chip" data-filter="week">This Week</div>
-      <div class="chip" data-filter="month">This Month</div>
+      <div class="chip active" data-filter="all" data-i18n="hist.filter.all">All</div>
+      <div class="chip" data-filter="today" data-i18n="hist.filter.today">Today</div>
+      <div class="chip" data-filter="week" data-i18n="hist.filter.week">This Week</div>
+      <div class="chip" data-filter="month" data-i18n="hist.filter.month">This Month</div>
     </div>
 
     <!-- Summary Stats -->
     <div class="stats-row mt-12 fade-in fade-in-delay-1">
       <div class="glass summary-card">
         <div class="summary-value" style="color:var(--accent);" id="totalCycles">—</div>
-        <div class="summary-label">Total Cycles</div>
+        <div class="summary-label" data-i18n="hist.total_cycles">Total Cycles</div>
       </div>
       <div class="glass summary-card">
         <div class="summary-value" style="color:var(--accent2);" id="avgDuration">—</div>
-        <div class="summary-label">Avg Duration</div>
+        <div class="summary-label" data-i18n="hist.avg_duration">Avg Duration</div>
       </div>
       <div class="glass summary-card">
         <div class="summary-value" style="color:#27c76a;" id="cleanRate">—</div>
-        <div class="summary-label">Clean Rate</div>
+        <div class="summary-label" data-i18n="hist.clean_rate">Clean Rate</div>
       </div>
     </div>
 
     <!-- History Table -->
     <div class="glass card-p mt-12 fade-in fade-in-delay-2">
       <div class="flex items-center justify-between mb-12">
-        <div class="section-title" style="margin-bottom:0;">Cycle Records</div>
-        <div style="font-size:0.68rem;color:var(--text-dim);" id="recordCount">Loading...</div>
+        <div class="section-title" style="margin-bottom:0;" data-i18n="hist.cycle_records">Cycle Records</div>
+        <div style="font-size:0.68rem;color:var(--text-dim);" id="recordCount" data-i18n="common.loading">Loading...</div>
       </div>
 
       <div style="overflow-x:auto;">
         <table class="history-table" id="historyTable">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Duration</th>
-              <th>Result</th>
+              <th data-i18n="hist.th.date">Date</th>
+              <th data-i18n="hist.th.time">Time</th>
+              <th data-i18n="hist.th.duration">Duration</th>
+              <th data-i18n="hist.th.result">Result</th>
             </tr>
           </thead>
           <tbody id="historyBody">
-            <tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:24px 0;">Loading history...</td></tr>
+            <tr><td colspan="4" style="text-align:center;color:var(--text-dim);padding:24px 0;" data-i18n="hist.loading">Loading history...</td></tr>
           </tbody>
         </table>
       </div>
@@ -107,15 +108,15 @@
 
     <!-- Contamination Breakdown -->
     <div class="glass card-p mt-12 fade-in fade-in-delay-3">
-      <div class="section-title">Detection Breakdown</div>
+      <div class="section-title" data-i18n="hist.breakdown">Detection Breakdown</div>
       <div style="display:flex;flex-direction:column;gap:8px;" id="breakdownList">
-        <div style="text-align:center;color:var(--text-dim);font-size:0.78rem;padding:12px 0;">Loading...</div>
+        <div style="text-align:center;color:var(--text-dim);font-size:0.78rem;padding:12px 0;" data-i18n="common.loading">Loading...</div>
       </div>
     </div>
 
     <!-- Success Rate Card -->
     <div class="glass card-p mt-12 fade-in fade-in-delay-4">
-      <div class="section-title">Cycle Success Rate</div>
+      <div class="section-title" data-i18n="hist.success_rate">Cycle Success Rate</div>
       <div class="flex items-center gap-16">
         <div style="width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid var(--glass-border);position:relative;" id="rateRing">
           <span style="font-family:'Sora',sans-serif;font-size:1.3rem;font-weight:700;color:#27c76a;" id="ratePercent">—</span>
@@ -125,19 +126,19 @@
             <div class="flex justify-between">
               <div class="flex items-center gap-6">
                 <span style="width:8px;height:8px;border-radius:50%;background:#27c76a;display:inline-block;"></span>
-                Sterilized
+                <span data-i18n="hist.sterilized">Sterilized</span>
               </div>
               <span style="font-weight:600;" id="sterilizedCount">—</span>
             </div>
             <div class="flex justify-between">
               <div class="flex items-center gap-6">
                 <span style="width:8px;height:8px;border-radius:50%;background:#e53e3e;display:inline-block;"></span>
-                Skipped
+                <span data-i18n="hist.skipped">Skipped</span>
               </div>
               <span style="font-weight:600;" id="skippedCount">—</span>
             </div>
             <div class="flex justify-between" style="padding-top:4px;border-top:1px solid var(--glass-border);">
-              <span style="color:var(--text-dim);">Total</span>
+              <span style="color:var(--text-dim);" data-i18n="hist.total">Total</span>
               <span style="font-weight:700;" id="totalCount">—</span>
             </div>
           </div>
@@ -154,22 +155,22 @@
     <div class="nav-inner">
       <a href="dashboard.html" class="nav-item">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
-        Home
+        <span data-i18n="nav.home">Home</span>
       </a>
       <a href="monitoring.html" class="nav-item">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Monitor
+        <span data-i18n="nav.monitor">Monitor</span>
       </a>
-      <a href="ai-detection.html" class="nav-fab" title="AI Detection">
+      <a href="ai-detection.html" class="nav-fab" data-i18n-title="nav.ai" title="AI Detection">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       </a>
       <a href="history.html" class="nav-item active">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        History
+        <span data-i18n="nav.history">History</span>
       </a>
       <a href="account.html" class="nav-item">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
-        Account
+        <span data-i18n="nav.account">Account</span>
       </a>
     </div>
   </nav>

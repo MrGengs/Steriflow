@@ -12,6 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="js/theme.js"></script>
+<script src="js/i18n.js"></script>
 </head>
 <body>
 
@@ -36,7 +37,7 @@
       </div>
       <div>
         <div class="header-title">SteriFlow</div>
-        <div class="header-subtitle" id="headerDate">Loading date…</div>
+        <div class="header-subtitle" id="headerDate" data-i18n="dash.page.subtitle">Loading date…</div>
       </div>
     </div>
     <div class="header-actions">
@@ -56,14 +57,14 @@
     <div class="glass status-main-card fade-in fade-in-delay-1" id="systemStatusCard">
       <div class="flex items-center justify-between">
         <div>
-          <div class="section-title" style="margin-bottom:6px;">System Status</div>
+          <div class="section-title" style="margin-bottom:6px;" data-i18n="dash.system_status">System Status</div>
           <span class="badge badge-standby badge-lg" id="systemStatus">Standby</span>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:8px;">Sterilization</div>
+          <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:8px;" data-i18n="dash.sterilization">Sterilization</div>
           <button class="btn btn-primary btn-sm" id="toggleSterilize">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21 5,3"/></svg>
-            Start
+            <span data-i18n="dash.start">Start</span>
           </button>
         </div>
       </div>
@@ -71,7 +72,7 @@
       <!-- Duration Progress -->
       <div>
         <div class="flex justify-between mb-8" style="font-size:0.72rem;color:var(--text-dim);">
-          <span>Cycle Progress</span>
+          <span data-i18n="dash.cycle_progress">Cycle Progress</span>
           <span id="cyclePercent">0%</span>
         </div>
         <div class="progress-track">
@@ -82,15 +83,15 @@
       <!-- Info row -->
       <div class="flex gap-16" style="font-size:0.75rem;">
         <div>
-          <div style="color:var(--text-dim);">Last Cycle</div>
+          <div style="color:var(--text-dim);" data-i18n="dash.last_cycle">Last Cycle</div>
           <div style="font-weight:600;margin-top:2px;" id="lastCycleInfo">—</div>
         </div>
         <div>
-          <div style="color:var(--text-dim);">Duration</div>
+          <div style="color:var(--text-dim);" data-i18n="dash.duration">Duration</div>
           <div style="font-weight:600;margin-top:2px;">15 min</div>
         </div>
         <div>
-          <div style="color:var(--text-dim);">Cycles Today</div>
+          <div style="color:var(--text-dim);" data-i18n="dash.cycles_today">Cycles Today</div>
           <div style="font-weight:600;margin-top:2px;" id="cyclesToday">3</div>
         </div>
       </div>
@@ -101,7 +102,7 @@
 
       <!-- UV-C Lamp Card -->
       <div class="glass card-p" id="uvcCard">
-        <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:12px;">UV-C Lamp</div>
+        <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:12px;" data-i18n="dash.uvc_lamp">UV-C Lamp</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
           <!-- UV-C icon -->
           <div style="width:36px;height:36px;border-radius:8px;background:rgba(124,92,252,0.15);display:flex;align-items:center;justify-content:center;" id="uvcIcon">
@@ -120,12 +121,12 @@
         <div style="margin-top:10px;font-size:0.72rem;font-weight:600;" id="uvcStatus">
           <span style="color:var(--text-muted);">OFF</span>
         </div>
-        <div style="font-size:0.6rem;color:var(--text-muted);margin-top:2px;">Mode: <span id="dashUvMode">—</span></div>
+        <div style="font-size:0.6rem;color:var(--text-muted);margin-top:2px;"><span data-i18n="dash.mode">Mode:</span> <span id="dashUvMode">—</span></div>
       </div>
 
       <!-- Ethanol Spray Card -->
       <div class="glass card-p" id="ethanolCard">
-        <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:12px;">Ethanol Spray</div>
+        <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:12px;" data-i18n="dash.ethanol_spray">Ethanol Spray</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
           <!-- Ethanol spray icon -->
           <div style="width:36px;height:36px;border-radius:8px;background:rgba(255,194,71,0.15);display:flex;align-items:center;justify-content:center;" id="ethanolIcon">
@@ -141,12 +142,12 @@
         <div style="margin-top:10px;font-size:0.72rem;font-weight:600;" id="ethanolStatus">
           <span style="color:var(--text-muted);">OFF</span>
         </div>
-        <div style="font-size:0.6rem;color:var(--text-muted);margin-top:2px;">Mode: <span id="dashEthanolMode">—</span></div>
+        <div style="font-size:0.6rem;color:var(--text-muted);margin-top:2px;"><span data-i18n="dash.mode">Mode:</span> <span id="dashEthanolMode">—</span></div>
       </div>
 
       <!-- Fan Card -->
       <div class="glass card-p" id="fanCard">
-        <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:12px;">Fan</div>
+        <div style="font-size:0.68rem;color:var(--text-dim);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:12px;" data-i18n="dash.fan">Fan</div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
           <!-- Fan icon -->
           <div style="width:36px;height:36px;border-radius:8px;background:rgba(54,214,195,0.15);display:flex;align-items:center;justify-content:center;" id="fanIcon">
@@ -162,36 +163,36 @@
         <div style="margin-top:10px;font-size:0.72rem;font-weight:600;" id="fanStatus">
           <span style="color:var(--text-muted);">OFF</span>
         </div>
-        <div style="font-size:0.6rem;color:var(--text-muted);margin-top:2px;">Mode: <span id="dashFanMode">—</span></div>
+        <div style="font-size:0.6rem;color:var(--text-muted);margin-top:2px;"><span data-i18n="dash.mode">Mode:</span> <span id="dashFanMode">—</span></div>
       </div>
 
     </div>
 
     <!-- Tingkat Kebersihan Ompreng -->
     <div class="glass card-p mt-12 fade-in fade-in-delay-2">
-      <div class="section-title">Tingkat Kebersihan Ompreng</div>
+      <div class="section-title" data-i18n="dash.tray_clean_level">Tingkat Kebersihan Ompreng</div>
       <div class="flex items-center gap-16">
         <!-- Ring indicator -->
         <div class="ring-canvas-wrap">
           <canvas id="cleanlinessRing" width="110" height="110"></canvas>
           <div class="ring-inner-text">
             <div class="ring-percent" id="cleanlinessPercent" style="color:var(--accent2);">82%</div>
-            <div class="ring-label">Steril</div>
+            <div class="ring-label" data-i18n="dash.sterile">Steril</div>
           </div>
         </div>
         <!-- Details -->
         <div style="flex:1;">
           <div style="margin-bottom:10px;">
-            <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:4px;">Status Bakteri</div>
-            <span class="badge badge-clean" id="cleanlinessLevel">Aman</span>
+            <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:4px;" data-i18n="dash.bacteria_status">Status Bakteri</div>
+            <span class="badge badge-clean" id="cleanlinessLevel" data-i18n="dash.safe">Aman</span>
           </div>
           <div class="progress-wrap">
-            <div class="progress-header"><span>Keamanan Ompreng</span><span id="hygieneVal">82%</span></div>
+            <div class="progress-header"><span data-i18n="dash.ompreng_safety">Keamanan Ompreng</span><span id="hygieneVal">82%</span></div>
             <div class="progress-track">
               <div class="progress-fill teal" id="hygieneBar" style="width:82%;"></div>
             </div>
           </div>
-          <div style="margin-top:8px;font-size:0.7rem;color:var(--text-dim);">Pemindaian terakhir: 5 menit lalu</div>
+          <div style="margin-top:8px;font-size:0.7rem;color:var(--text-dim);" data-i18n="dash.last_scan">Pemindaian terakhir: 5 menit lalu</div>
         </div>
       </div>
     </div>
@@ -199,28 +200,28 @@
     <!-- Countdown Card -->
     <div class="glass card-p mt-12 fade-in fade-in-delay-3">
       <div class="flex items-center justify-between mb-8">
-        <div class="section-title" style="margin-bottom:0;">Next Sterilization</div>
-        <div class="badge badge-standby" id="nextCycleBadge" style="font-size:0.62rem;">Scheduled</div>
+        <div class="section-title" style="margin-bottom:0;" data-i18n="dash.next_steril">Next Sterilization</div>
+        <div class="badge badge-standby" id="nextCycleBadge" style="font-size:0.62rem;" data-i18n="dash.scheduled">Scheduled</div>
       </div>
       <div style="text-align:center;padding:10px 0;">
-        <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:6px;" id="countdownLabel">Status Alat</div>
-        <div class="countdown-display" id="countdown">SIAP</div>
-        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:6px;" id="nextCycleAt">Alat siap digunakan</div>
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:6px;" id="countdownLabel" data-i18n="dash.device_status">Status Alat</div>
+        <div class="countdown-display" id="countdown" data-i18n="dash.ready">SIAP</div>
+        <div style="font-size:0.7rem;color:var(--text-dim);margin-top:6px;" id="nextCycleAt" data-i18n="dash.ready_desc">Alat siap digunakan</div>
       </div>
       <div class="divider"></div>
       <div class="flex justify-between" style="font-size:0.74rem;">
         <div>
-          <span style="color:var(--text-dim);">Last sterilized: </span>
+          <span style="color:var(--text-dim);" data-i18n="dash.last_sterilized">Last sterilized: </span>
           <span style="font-weight:600;" id="lastSterilized">—</span>
         </div>
-        <div id="nextCycleStatus" style="color:var(--accent2);font-weight:600;">✓ Complete</div>
+        <div id="nextCycleStatus" style="color:var(--accent2);font-weight:600;" data-i18n="dash.complete">✓ Complete</div>
       </div>
     </div>
 
     <!-- Notifications Panel -->
     <div class="glass card-p mt-16 fade-in fade-in-delay-4">
       <div class="flex items-center justify-between mb-12">
-        <div class="section-title" style="margin-bottom:0;">Notifications</div>
+        <div class="section-title" style="margin-bottom:0;" data-i18n="common.notifications">Notifications</div>
         <span style="background:var(--accent);color:#fff;font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:100px;" id="notifCount">3</span>
       </div>
       <div id="notifList">
@@ -271,22 +272,22 @@
     <div class="nav-inner">
       <a href="dashboard.html" class="nav-item active">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
-        Home
+        <span data-i18n="nav.home">Home</span>
       </a>
       <a href="monitoring.html" class="nav-item">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Monitor
+        <span data-i18n="nav.monitor">Monitor</span>
       </a>
-      <a href="ai-detection.html" class="nav-fab" title="AI Detection">
+      <a href="ai-detection.html" class="nav-fab" data-i18n-title="nav.ai" title="AI Detection">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       </a>
       <a href="history.html" class="nav-item">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        History
+        <span data-i18n="nav.history">History</span>
       </a>
       <a href="account.html" class="nav-item">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>
-        Account
+        <span data-i18n="nav.account">Account</span>
       </a>
     </div>
   </nav>
