@@ -64,64 +64,25 @@
       </div>
     </div>
 
-    <!-- Gas Sensor Cards -->
+    <!-- Sensor Cards: VOC · Suhu · Kelembapan -->
     <div class="sensor-row fade-in fade-in-delay-1">
 
-      <!-- MQ3 (Alcohol) -->
+      <!-- VOC (air quality / bakteri proxy) -->
       <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent);">
-        <div class="stat-label">Bacteri</div>
+        <div class="stat-label">VOC</div>
         <div class="flex items-center gap-4">
-          <div class="stat-value" id="mq3Value" style="color:var(--accent);">—</div>
-          <div class="stat-unit" style="padding-top:6px;">adc</div>
+          <div class="stat-value" id="vocValue" style="color:var(--accent);">—</div>
+          <div class="stat-unit" style="padding-top:6px;">ppm</div>
         </div>
         <div style="margin-top:4px;">
           <div class="progress-track" style="height:4px;">
-            <div class="progress-fill purple" id="mq3Bar" style="width:0%;animation:none;"></div>
+            <div class="progress-fill purple" id="vocBar" style="width:0%;animation:none;"></div>
           </div>
         </div>
-        <div class="stat-trend" id="mq3Status" style="margin-top:4px;color:var(--text-dim);">
+        <div class="stat-trend" id="vocStatus" style="margin-top:4px;color:var(--text-dim);">
           Waiting...
         </div>
       </div>
-
-      <!-- MQ6 (LPG) -->
-      <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent4,#ffc247);">
-        <div class="stat-label">Kipas</div>
-        <div class="flex items-center gap-4">
-          <div class="stat-value" id="mq6Value" style="color:var(--accent4,#ffc247);">—</div>
-          <div class="stat-unit" style="padding-top:6px;">adc</div>
-        </div>
-        <div style="margin-top:4px;">
-          <div class="progress-track" style="height:4px;">
-            <div class="progress-fill yellow" id="mq6Bar" style="width:0%;animation:none;"></div>
-          </div>
-        </div>
-        <div class="stat-trend" id="mq6Status" style="margin-top:4px;color:var(--text-dim);">
-          Waiting...
-        </div>
-      </div>
-
-      <!-- MQ8 (Hydrogen) -->
-      <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent3);">
-        <div class="stat-label">Gas</div>
-        <div class="flex items-center gap-4">
-          <div class="stat-value" id="mq8Value" style="color:var(--accent3);">—</div>
-          <div class="stat-unit" style="padding-top:6px;">adc</div>
-        </div>
-        <div style="margin-top:4px;">
-          <div class="progress-track" style="height:4px;">
-            <div class="progress-fill pink" id="mq8Bar" style="width:0%;animation:none;"></div>
-          </div>
-        </div>
-        <div class="stat-trend" id="mq8Status" style="margin-top:4px;color:var(--text-dim);">
-          Waiting...
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Environment Sensor Cards -->
-    <div class="sensor-row fade-in fade-in-delay-1" style="margin-top:10px;">
 
       <!-- Temperature -->
       <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent2);">
@@ -159,60 +120,20 @@
 
     </div>
 
-    <!-- Bacteri Chart -->
+    <!-- VOC Chart -->
     <div class="glass card-p mt-16 fade-in fade-in-delay-2">
       <div class="flex items-center justify-between mb-8">
         <div>
-          <div class="section-title" style="margin-bottom:2px;">Bacteri</div>
-          <div style="font-size:0.68rem;color:var(--text-dim);">Last 20 readings · MQ3 sensor</div>
+          <div class="section-title" style="margin-bottom:2px;">VOC (Air Quality)</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);">Last 20 readings · MQ135 sensor</div>
         </div>
         <div class="flex items-center gap-8" style="font-size:0.7rem;color:var(--text-dim);">
           <span style="display:inline-block;width:10px;height:3px;border-radius:2px;background:var(--accent);"></span>
-          adc
+          ppm
         </div>
       </div>
       <div class="chart-container" style="height:160px;">
-        <canvas id="bacteriChart" data-h="160"></canvas>
-      </div>
-      <div class="flex justify-between mt-4" style="font-size:0.6rem;color:var(--text-muted);padding:0 4px;">
-        <span>-40s</span><span>-30s</span><span>-20s</span><span>-10s</span><span>now</span>
-      </div>
-    </div>
-
-    <!-- Gas Chart -->
-    <div class="glass card-p mt-12 fade-in fade-in-delay-2">
-      <div class="flex items-center justify-between mb-8">
-        <div>
-          <div class="section-title" style="margin-bottom:2px;">Gas</div>
-          <div style="font-size:0.68rem;color:var(--text-dim);">Last 20 readings · MQ8 sensor</div>
-        </div>
-        <div class="flex items-center gap-8" style="font-size:0.7rem;color:var(--text-dim);">
-          <span style="display:inline-block;width:10px;height:3px;border-radius:2px;background:var(--accent3);"></span>
-          adc
-        </div>
-      </div>
-      <div class="chart-container" style="height:160px;">
-        <canvas id="gasChart" data-h="160"></canvas>
-      </div>
-      <div class="flex justify-between mt-4" style="font-size:0.6rem;color:var(--text-muted);padding:0 4px;">
-        <span>-40s</span><span>-30s</span><span>-20s</span><span>-10s</span><span>now</span>
-      </div>
-    </div>
-
-    <!-- Kipas Chart (Opsional) -->
-    <div class="glass card-p mt-12 fade-in fade-in-delay-2">
-      <div class="flex items-center justify-between mb-8">
-        <div>
-          <div class="section-title" style="margin-bottom:2px;">Kipas</div>
-          <div style="font-size:0.68rem;color:var(--text-dim);">Last 20 readings · MQ6 sensor</div>
-        </div>
-        <div class="flex items-center gap-8" style="font-size:0.7rem;color:var(--text-dim);">
-          <span style="display:inline-block;width:10px;height:3px;border-radius:2px;background:var(--accent4,#ffc247);"></span>
-          adc
-        </div>
-      </div>
-      <div class="chart-container" style="height:160px;">
-        <canvas id="kipasChart" data-h="160"></canvas>
+        <canvas id="vocChart" data-h="160"></canvas>
       </div>
       <div class="flex justify-between mt-4" style="font-size:0.6rem;color:var(--text-muted);padding:0 4px;">
         <span>-40s</span><span>-30s</span><span>-20s</span><span>-10s</span><span>now</span>
@@ -255,8 +176,8 @@
           <span class="badge badge-standby" id="monitorStatus">Standby</span>
         </div>
         <div style="text-align:right;font-size:0.72rem;">
-          <div style="color:var(--text-dim);">Gas Alert</div>
-          <span class="badge badge-standby" id="monitorGasAlert" style="font-size:0.7rem;">—</span>
+          <div style="color:var(--text-dim);">VOC Alert</div>
+          <span class="badge badge-standby" id="monitorVocAlert" style="font-size:0.7rem;">—</span>
         </div>
       </div>
 
@@ -312,31 +233,11 @@
         <div class="flex items-center justify-between" style="font-size:0.8rem;">
           <div class="flex items-center gap-8">
             <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div>
-            <span>Bacteri</span>
+            <span>VOC (Air Quality)</span>
           </div>
           <div style="text-align:right;">
-            <span style="color:var(--text-dim);font-size:0.7rem;">Digital: </span>
-            <span style="font-weight:600;">LOW = AMAN</span>
-          </div>
-        </div>
-        <div class="flex items-center justify-between" style="font-size:0.8rem;">
-          <div class="flex items-center gap-8">
-            <div style="width:10px;height:10px;border-radius:50%;background:var(--accent4,#ffc247);flex-shrink:0;"></div>
-            <span>Kipas</span>
-          </div>
-          <div style="text-align:right;">
-            <span style="color:var(--text-dim);font-size:0.7rem;">Digital: </span>
-            <span style="font-weight:600;">LOW = AMAN</span>
-          </div>
-        </div>
-        <div class="flex items-center justify-between" style="font-size:0.8rem;">
-          <div class="flex items-center gap-8">
-            <div style="width:10px;height:10px;border-radius:50%;background:var(--accent3);flex-shrink:0;"></div>
-            <span>Gas</span>
-          </div>
-          <div style="text-align:right;">
-            <span style="color:var(--text-dim);font-size:0.7rem;">Digital: </span>
-            <span style="font-weight:600;">LOW = AMAN</span>
+            <span style="color:var(--text-dim);font-size:0.7rem;">Safe: </span>
+            <span style="font-weight:600;">&lt; 2 ppm</span>
           </div>
         </div>
         <div class="flex items-center justify-between" style="font-size:0.8rem;">

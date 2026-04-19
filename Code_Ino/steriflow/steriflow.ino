@@ -3,8 +3,8 @@
 #include <DHT.h>
 
 // ==================== KONFIGURASI ====================
-#define WIFI_SSID "enumatechz"
-#define WIFI_PASSWORD "3numaTechn0l0gy"
+#define WIFI_SSID "Steriflow Station"
+#define WIFI_PASSWORD "steriflow331"
 
 #define FIREBASE_HOST "steriflow-id-default-rtdb.asia-southeast1.firebasedatabase.app"
 #define FIREBASE_AUTH "Aj1KCC0TwMdyxOj21FS0DX5V2wCqXl3xp3jt0JMH"

@@ -58,8 +58,8 @@
       </div>
 
       <div class="camera-view" id="cameraView">
-        <!-- Live video feed -->
-        <video id="cameraVideo" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:none;"></video>
+        <!-- Live ESP32-CAM MJPEG stream -->
+        <img id="cameraStream" alt="ESP32-CAM live" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:none;" />
         <!-- Captured image preview -->
         <canvas id="captureCanvas" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:none;"></canvas>
         <!-- Grid overlay -->
@@ -307,7 +307,7 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
-    <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:14px;">Choose a SteriFlow device to scan and sterilize</div>
+    <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:14px;">Choose a SteriFlow device to open its ESP32-CAM stream</div>
     <div id="deviceList" style="display:flex;flex-direction:column;gap:8px;">
       <div style="text-align:center;padding:20px 0;font-size:0.8rem;color:var(--text-dim);">
         <div class="spinner" style="margin:0 auto 10px;"></div>
@@ -315,8 +315,8 @@
       </div>
     </div>
     <button class="btn btn-primary" id="deviceStartBtn" disabled style="width:100%;margin-top:16px;padding:14px;border-radius:var(--radius);justify-content:center;font-size:0.9rem;opacity:0.5;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21 5,3"/></svg>
-      <span>Start Scan</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <span>Open Camera</span>
     </button>
   </div>
 </div>
@@ -447,7 +447,7 @@
   }
 
   // Elements
-  const video = document.getElementById('cameraVideo');
+  const cameraImg = document.getElementById('cameraStream');
   const canvas = document.getElementById('captureCanvas');
   const ctx = canvas.getContext('2d');
   const cameraBtn = document.getElementById('cameraBtn');
@@ -483,94 +483,145 @@
   const deviceStartBtn = document.getElementById('deviceStartBtn');
   const deviceModalClose = document.getElementById('deviceModalClose');
 
-  let stream = null;
   let cameraActive = false;
   let scanning = false;
-  let facingMode = 'environment'; // rear camera
   let scanCount = 0;
   let scans = [];
   let selectedDeviceId = null; // e.g. 'steriflow-001'
+  let streamUrl = null;  // http://<esp32-cam-ip>/stream
+  let captureUrl = null; // http://<esp32-cam-ip>/capture
 
-  // ── Camera Controls ────────────────────────────────────────
-  async function startCamera() {
+  // ── ESP32-CAM Controls (stream via MJPEG, capture via /capture) ──
+  // streamUrl & captureUrl diresolusi dari /{deviceId}/camera di RTDB
+  // (ESP32-CAM daftar IP-nya ke sana waktu boot).
+  async function startCamera(deviceId) {
     try {
-      if (stream) stopCamera();
-
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false
-      });
-
-      video.srcObject = stream;
-      video.style.display = 'block';
-      canvas.style.display = 'none';
+      selectedDeviceId = deviceId;
       idleIcon.style.display = 'none';
       cameraError.style.display = 'none';
+      cameraStatus.textContent = 'Status: Connecting…';
 
-      video.onloadedmetadata = () => {
-        cameraResolution.textContent = `Resolution: ${video.videoWidth}×${video.videoHeight}`;
-      };
+      const info = await fetchCameraInfo(deviceId);
+      if (!info || !info.streamUrl || !info.captureUrl) {
+        throw new Error('ESP32-CAM belum register untuk ' + deviceId + '. Nyalakan ESP32-CAM & pastikan 1 jaringan WiFi.');
+      }
+      streamUrl  = info.streamUrl;
+      captureUrl = info.captureUrl;
 
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('Timeout akses ESP32-CAM di ' + info.ip + '. Cek WiFi / firewall.')), 10000);
+        cameraImg.onload  = () => { clearTimeout(timer); resolve(); };
+        cameraImg.onerror = () => { clearTimeout(timer); reject(new Error('Gagal akses ESP32-CAM di ' + info.ip + '. Pastikan HP & ESP32-CAM 1 jaringan.')); };
+        cameraImg.src = streamUrl + '?t=' + Date.now(); // bust cache
+      });
+
+      cameraImg.style.display = 'block';
+      canvas.style.display = 'none';
+      cameraResolution.textContent = 'Source: ' + info.ip;
       cameraActive = true;
       cameraBtnText.textContent = 'Close Camera';
+
       if (GEMINI_KEYS.length) {
         scanBtn.disabled = false;
         scanBtn.style.opacity = '1';
         scanBtn.removeAttribute('title');
-        cameraStatus.textContent = 'Status: Active';
+        cameraStatus.textContent = 'Status: Live — ' + deviceId;
       } else {
         scanBtn.disabled = true;
         scanBtn.style.opacity = '0.5';
         scanBtn.title = 'Copy js/gemini-config.example.js to js/gemini-config.js and add your Gemini API key.';
-        cameraStatus.textContent = 'Status: Active — add Gemini key to enable scan';
+        cameraStatus.textContent = 'Status: Live — add Gemini key to scan';
       }
       liveDot.style.display = '';
-
     } catch (err) {
       console.error('Camera error:', err);
+      stopCamera();
       cameraError.style.display = 'flex';
-      if (err.name === 'NotAllowedError') {
-        cameraErrorText.textContent = 'Camera access denied. Please allow camera permission.';
-      } else if (err.name === 'NotFoundError') {
-        cameraErrorText.textContent = 'No camera found on this device.';
-      } else {
-        cameraErrorText.textContent = 'Failed to access camera: ' + err.message;
-      }
-      idleIcon.style.display = 'none';
+      cameraErrorText.textContent = err.message || 'Gagal buka ESP32-CAM.';
     }
   }
 
   function stopCamera() {
-    if (stream) {
-      stream.getTracks().forEach(t => t.stop());
-      stream = null;
-    }
-    video.srcObject = null;
-    video.style.display = 'none';
+    cameraImg.removeAttribute('src'); // stop MJPEG pull
+    cameraImg.onload = null;
+    cameraImg.onerror = null;
+    cameraImg.style.display = 'none';
     cameraActive = false;
     cameraBtnText.textContent = 'Open Camera';
     scanBtn.disabled = true;
     scanBtn.style.opacity = '0.5';
     cameraStatus.textContent = 'Status: Idle';
+    cameraResolution.textContent = 'Resolution: —';
     liveDot.style.display = 'none';
     idleIcon.style.display = '';
     canvas.style.display = 'none';
   }
 
-  // Full-res preview on canvas; return a downscaled JPEG for Gemini (free tier: fewer input tokens).
-  function captureFrame() {
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
-    video.style.display = 'none';
-    canvas.style.display = 'block';
-    return encodeCanvasForGemini(canvas);
+  // Ambil JPEG frame dari /capture ESP32-CAM → gambar ke canvas → base64 untuk Gemini.
+  async function captureFrame() {
+    if (!captureUrl) throw new Error('ESP32-CAM belum terhubung.');
+    const res = await fetch(captureUrl + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('ESP32-CAM /capture HTTP ' + res.status);
+    const blob = await res.blob();
+    const objUrl = URL.createObjectURL(blob);
+    try {
+      const img = await new Promise((resolve, reject) => {
+        const i = new Image();
+        i.onload  = () => resolve(i);
+        i.onerror = () => reject(new Error('Gagal decode gambar dari ESP32-CAM.'));
+        i.src = objUrl;
+      });
+      canvas.width  = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.drawImage(img, 0, 0);
+      cameraImg.style.display = 'none';
+      canvas.style.display = 'block';
+      return encodeCanvasForGemini(canvas);
+    } finally {
+      URL.revokeObjectURL(objUrl);
+    }
   }
 
-  // ── Switch Camera ──────────────────────────────────────────
+  // Baca /{deviceId}/camera dari RTDB (ip, streamUrl, captureUrl, online, lastSeen).
+  async function fetchCameraInfo(deviceId) {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+    const { getDatabase, ref, get } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js");
+    const { firebaseConfig } = await import("./js/firebase-config.js");
+    let rtApp;
+    try { rtApp = initializeApp(firebaseConfig); } catch (e) {
+      const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+      rtApp = getApp();
+    }
+    const rtdb = getDatabase(rtApp);
+    const snap = await get(ref(rtdb, `${deviceId}/camera`));
+    return snap.val();
+  }
+
+  // Snapshot sensor saat ini dari /{deviceId}/sensorData + /{deviceId}/status.
+  // Dikirim ke Gemini bareng gambar supaya rekomendasi sterilisasi mempertimbangkan
+  // kondisi lingkungan aktual (VOC tinggi → perlu UV + spray lebih banyak, dll).
+  async function fetchSensorSnapshot(deviceId) {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+    const { getDatabase, ref, get } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js");
+    const { firebaseConfig } = await import("./js/firebase-config.js");
+    let rtApp;
+    try { rtApp = initializeApp(firebaseConfig); } catch (e) {
+      const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+      rtApp = getApp();
+    }
+    const rtdb = getDatabase(rtApp);
+    const snap = await get(ref(rtdb, `${deviceId}`));
+    const v = snap.val() || {};
+    return {
+      sensorData: v.sensorData || {},
+      status:     v.status     || {},
+      relay:      v.relay      || {}
+    };
+  }
+
+  // "Switch Camera" = buka device picker untuk ganti ESP32-CAM.
   switchCamBtn.addEventListener('click', () => {
-    facingMode = facingMode === 'environment' ? 'user' : 'environment';
-    if (cameraActive) startCamera();
+    showDeviceModal();
   });
 
   // ── Camera Button ──────────────────────────────────────────
@@ -578,7 +629,7 @@
     if (cameraActive) {
       stopCamera();
     } else {
-      startCamera();
+      showDeviceModal(); // pilih device dulu → startCamera(deviceId)
     }
   });
 
@@ -599,19 +650,21 @@
       if (!data) return [];
 
       // Find all steriflow-XXX keys that have sensorData
+      // Catatan: relay & status sekarang top-level di /steriflow-XXX, bukan di dalam sensorData.
       const devices = [];
       for (const key of Object.keys(data)) {
-        if (key.startsWith('steriflow-') && data[key]?.sensorData) {
-          const sd = data[key].sensorData;
+        const d = data[key];
+        if (key.startsWith('steriflow-') && d?.sensorData) {
           devices.push({
             id: key,
-            temp: sd.dht11?.temperature || 0,
-            humidity: sd.dht11?.humidity || 0,
-            gasAlert: sd.status?.gas_alert || 'NORMAL',
-            fanOn: sd.relay?.fan === 'ON',
-            uvOn: sd.relay?.uv === 'ON',
-            fanMode: sd.relay?.fan_mode || 'MANUAL',
-            uvMode: sd.relay?.uv_mode || 'MANUAL'
+            temp: d.sensorData.dht11?.temperature || 0,
+            humidity: d.sensorData.dht11?.humidity || 0,
+            vocAlert: d.status?.voc_alert || d.sensorData.voc?.status || 'GOOD',
+            fanOn:  d.relay?.fan === 'ON',
+            uvOn:   d.relay?.uv  === 'ON',
+            fanMode: d.relay?.fan_mode || 'MANUAL',
+            uvMode:  d.relay?.uv_mode  || 'MANUAL',
+            cameraOnline: d.camera?.online === true
           });
         }
       }
@@ -630,8 +683,13 @@
 
     deviceList.innerHTML = devices.map(d => {
       const isActive = d.fanOn || d.uvOn;
-      const statusColor = d.gasAlert === 'BAHAYA' ? '#ff4757' : (isActive ? 'var(--accent)' : 'var(--accent2)');
-      const statusText = d.gasAlert === 'BAHAYA' ? 'Gas Alert' : (isActive ? 'Sterilizing' : 'Online');
+      const vocBad = ['BAHAYA', 'DANGER', 'BAD', 'HIGH'].includes(String(d.vocAlert).toUpperCase());
+      const noCam = !d.cameraOnline;
+      let statusColor, statusText;
+      if (noCam) { statusColor = 'var(--text-muted)'; statusText = 'No camera'; }
+      else if (vocBad) { statusColor = '#ff4757'; statusText = 'VOC Alert'; }
+      else if (isActive) { statusColor = 'var(--accent)'; statusText = 'Sterilizing'; }
+      else { statusColor = 'var(--accent2)'; statusText = 'Online'; }
       return `
         <div class="device-item" data-device-id="${d.id}">
           <div class="device-icon">
@@ -681,41 +739,52 @@
     if (e.target === deviceModal) hideDeviceModal();
   });
 
-  // ── Scan Button — show device modal ───────────────────────
+  // ── Scan Button — capture ESP32-CAM & analyze ────────────
   scanBtn.addEventListener('click', () => {
-    if (scanning || !cameraActive) return;
-    showDeviceModal();
+    if (scanning || !cameraActive || !selectedDeviceId) return;
+    runScan();
   });
 
-  // ── Device modal Start button — do scan ───────────────────
+  // ── Device modal "Open Camera" ───────────────────────────
   deviceStartBtn.addEventListener('click', async () => {
-    if (!selectedDeviceId || scanning) return;
+    if (!selectedDeviceId) return;
     hideDeviceModal();
+    await startCamera(selectedDeviceId);
+  });
+
+  async function runScan() {
     scanning = true;
-
-    // Capture frame
-    const imageBase64 = captureFrame();
-
-    // Show analyzing state
     analyzingText.style.display = 'flex';
     scanLine.classList.add('active');
     scanBtnText.textContent = 'Analyzing...';
     scanBtn.disabled = true;
-    cameraStatus.textContent = 'Status: Analyzing';
+    cameraStatus.textContent = 'Status: Capturing';
 
     try {
-      const result = await analyzeWithGemini(imageBase64);
-      result.__deviceId = selectedDeviceId; // attach device ID
+      // Ambil frame + snapshot sensor secara paralel → 1x latensi.
+      const [imageBase64, snapshot] = await Promise.all([
+        captureFrame(),
+        fetchSensorSnapshot(selectedDeviceId).catch(() => ({ sensorData: {}, status: {}, relay: {} }))
+      ]);
+      cameraStatus.textContent = 'Status: Analyzing';
+      const result = await analyzeWithGemini(imageBase64, snapshot);
+      result.__deviceId = selectedDeviceId;
+      result.__sensorSnapshot = snapshot;
       window.__lastScanResult = result;
       displayResults(result);
       addToHistory(result);
-      showSterilizationPanel(result);
+
+      // Kalau AI bilang tidak ada ompreng → jangan mulai sterilisasi.
+      if (result.object_detected === false) {
+        hideSterilizationPanel();
+      } else {
+        showSterilizationPanel(result);
+      }
     } catch (err) {
-      console.error('Gemini error:', err);
+      console.error('Scan error:', err);
       displayError(err.message);
     }
 
-    // Reset UI
     analyzingText.style.display = 'none';
     scanLine.classList.remove('active');
     scanBtnText.textContent = 'Scan Again';
@@ -723,17 +792,43 @@
     scanBtn.style.opacity = GEMINI_KEYS.length ? '1' : '0.5';
     cameraStatus.textContent = 'Status: Done';
     scanning = false;
-  });
+  }
+
+  function hideSterilizationPanel() {
+    const panel = document.getElementById('sterilPanel');
+    if (panel) panel.style.display = 'none';
+  }
 
   // ── Gemini AI Analysis ─────────────────────────────────────
-  async function analyzeWithGemini(imageBase64) {
-    // Short prompt = fewer text tokens on free tier; same JSON contract as before.
+  // Kirim gambar + snapshot sensor ke Gemini. Kontrak JSON diperluas:
+  //  - object_detected: pastikan ada ompreng di frame
+  //  - sterilization.spray_count + spray_interval_seconds: resep pompa sanitizer
+  async function analyzeWithGemini(imageBase64, snapshot) {
+    const sd = snapshot?.sensorData || {};
+    const st = snapshot?.status     || {};
+    const temp = sd.dht11?.temperature;
+    const hum  = sd.dht11?.humidity;
+    const ppm  = sd.voc?.ppm;
+    const vocS = sd.voc?.status || st.voc_alert;
+    const sensorLine =
+      `Sensor (now): temp=${temp ?? '-'}C, hum=${hum ?? '-'}%, VOC=${ppm ?? '-'}ppm (${vocS ?? '-'}); ` +
+      `alerts: temp=${st.temp_alert ?? '-'}, hum=${st.hum_alert ?? '-'}, voc=${st.voc_alert ?? '-'}.`;
+
     const prompt =
-      'SteriFlow stainless ompreng (food-serving tray) surface inspector. Assess cleanliness of the TRAY surface only — not the food. Reply ONLY with valid JSON, no markdown.\n' +
-      '{"classification":"Clean"|"Moderate"|"Dirty","confidence":0-100,"contamination_level":0-100,' +
-      '"analysis":"1-2 sentences about the tray surface condition","residues":[{"name":"string","percentage":0-100}],' +
-      '"sterilization":{"uv_needed":true|false,"fan_needed":true|false,"duration_minutes":0-10,"reason":"short reason"}}\n' +
-      'Clean=tray ready to use(uv/fan off,0min); Moderate=light stains/residue on tray(fan on,uv optional,2-3min); Dirty=heavy food residue on tray(uv+fan on,4-7min). Be honest.';
+      'SteriFlow stainless ompreng (food-serving tray) inspector. Camera view from ESP32-CAM.\n' +
+      sensorLine + '\n' +
+      'Tasks: (1) FIRST decide if a stainless food tray / ompreng is actually visible in frame. ' +
+      'If none → object_detected=false and fill the rest with safe defaults (classification="Clean", zeros, empty residues, sterilization all off/0). ' +
+      '(2) If a tray IS visible, judge ONLY its surface cleanliness — ignore food content. ' +
+      '(3) Recommend a sterilization recipe: UV-C lamp on/off, fan on/off, duration in minutes, ' +
+      'plus sanitizer spray plan (spray_count 0-5 pumps, spray_interval_seconds between pumps — use 0 if only 1 spray). ' +
+      'Guidance: Clean → no action (0min, 0 sprays). Moderate → fan on + 1-2 sprays, 2-3min, interval 60-90s. ' +
+      'Dirty → UV + fan on + 2-4 sprays, 4-7min, interval 45-90s. Use sensor ppm/humidity to nudge harsher if VOC high.\n' +
+      'Reply ONLY valid JSON, no markdown:\n' +
+      '{"object_detected":true|false,"classification":"Clean"|"Moderate"|"Dirty","confidence":0-100,"contamination_level":0-100,' +
+      '"analysis":"1-2 sentences in Bahasa Indonesia about tray surface + why recipe",' +
+      '"residues":[{"name":"string","percentage":0-100}],' +
+      '"sterilization":{"uv_needed":true|false,"fan_needed":true|false,"spray_count":0-5,"spray_interval_seconds":0-180,"duration_minutes":0-10,"reason":"short reason"}}';
 
     const response = await geminiGenerateContent({
       contents: [{
@@ -764,6 +859,26 @@
   // ── Display Results ────────────────────────────────────────
   function displayResults(result) {
     detectionResults.style.display = '';
+
+    // No-object case → tampilkan pesan ramah + matikan sisi sterilisasi.
+    if (result.object_detected === false) {
+      detectionBadge.textContent = 'NO TRAY';
+      detectionBadge.className = 'badge badge-standby badge-lg';
+      scanTime.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      confidenceNum.textContent = '—';
+      confidenceBar.style.width = '0%';
+      contPct.textContent = '—';
+      contaminationBar.style.width = '0%';
+      contLevelBadge.textContent = '—';
+      contLevelBadge.className = 'badge badge-standby';
+      aiAnalysis.innerHTML =
+        '<span style="color:var(--accent4);font-weight:600;">Ompreng tidak terdeteksi.</span> ' +
+        'Letakkan ompreng stainless di depan ESP32-CAM lalu tekan Scan Again.' +
+        renderSensorSnapshotLine(result.__sensorSnapshot);
+      residueList.innerHTML = '';
+      detectionResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
 
     // Classification badge
     const cls = result.classification || 'Clean';
@@ -814,8 +929,10 @@
       contPct.style.color = 'var(--accent2)';
     }
 
-    // AI Analysis
-    aiAnalysis.textContent = result.analysis || 'No analysis available.';
+    // AI Analysis + sensor snapshot inline
+    aiAnalysis.innerHTML =
+      escapeHtml(result.analysis || 'No analysis available.') +
+      renderSensorSnapshotLine(result.__sensorSnapshot);
 
     // Residues
     const residues = result.residues || [];
@@ -907,13 +1024,49 @@
   let currentDurationMin = 0;
   let currentUvNeeded = false;
   let currentFanNeeded = false;
+  let currentSprayCount = 0;          // total semprotan terjadwal
+  let currentSprayIntervalSec = 0;    // detik antar semprotan
+  let currentSprayTimes = [];         // timestamp (detik elapsed) tiap semprotan
   let sterilDeviceId = null;
 
-  // Fallback if Gemini doesn't return sterilization data
+  const SPRAY_PULSE_MS = 800; // durasi satu semprotan (pompa ON)
+
+  // Fallback kalau Gemini tidak mengembalikan data sterilisasi.
   function getFallbackSterilization(cls, contLevel) {
-    if (cls === 'Clean') return { uv_needed: false, fan_needed: false, duration_minutes: 0, reason: 'Tray surface is clean' };
-    if (cls === 'Moderate') return { uv_needed: contLevel > 40, fan_needed: true, duration_minutes: contLevel > 40 ? 3 : 2, reason: 'Light contamination on tray' };
-    return { uv_needed: true, fan_needed: true, duration_minutes: contLevel > 80 ? 7 : (contLevel > 60 ? 5 : 4), reason: 'Heavy residue on tray' };
+    if (cls === 'Clean') {
+      return { uv_needed: false, fan_needed: false, spray_count: 0, spray_interval_seconds: 0, duration_minutes: 0, reason: 'Tray surface is clean' };
+    }
+    if (cls === 'Moderate') {
+      const heavy = contLevel > 40;
+      return {
+        uv_needed: heavy, fan_needed: true,
+        spray_count: heavy ? 2 : 1, spray_interval_seconds: heavy ? 60 : 0,
+        duration_minutes: heavy ? 3 : 2,
+        reason: 'Light contamination on tray'
+      };
+    }
+    const dur = contLevel > 80 ? 7 : (contLevel > 60 ? 5 : 4);
+    return {
+      uv_needed: true, fan_needed: true,
+      spray_count: contLevel > 80 ? 4 : 3,
+      spray_interval_seconds: 60,
+      duration_minutes: dur,
+      reason: 'Heavy residue on tray'
+    };
+  }
+
+  // Jadwalkan semprotan pada t=0, interval, 2*interval, ... tapi stop sebelum 3 dtk terakhir.
+  function computeSprayTimes(totalSec, count, intervalSec) {
+    if (!count || count <= 0) return [];
+    const buffer = 3;
+    if (count === 1) return [0];
+    const times = [];
+    for (let i = 0; i < count; i++) {
+      const t = i * (intervalSec || 0);
+      if (t >= totalSec - buffer) break;
+      times.push(t);
+    }
+    return times;
   }
 
   function showSterilizationPanel(result) {
@@ -921,11 +1074,15 @@
     const contLevel = result.contamination_level || 0;
     sterilDeviceId = result.__deviceId || selectedDeviceId;
 
-    // Get Gemini sterilization recommendation or fallback
+    // Ambil resep sterilisasi dari Gemini (fallback kalau kosong).
     const sterilRec = result.sterilization || getFallbackSterilization(cls, contLevel);
-    currentDurationMin = sterilRec.duration_minutes || 0;
-    currentUvNeeded = sterilRec.uv_needed || false;
-    currentFanNeeded = sterilRec.fan_needed || false;
+    currentDurationMin = Math.max(0, Math.min(10, Number(sterilRec.duration_minutes) || 0));
+    currentUvNeeded    = !!sterilRec.uv_needed;
+    currentFanNeeded   = !!sterilRec.fan_needed;
+    currentSprayCount  = Math.max(0, Math.min(5, Number(sterilRec.spray_count) || 0));
+    currentSprayIntervalSec = Math.max(0, Math.min(300, Number(sterilRec.spray_interval_seconds) || 0));
+    const totalSec = Math.round(currentDurationMin * 60);
+    currentSprayTimes = computeSprayTimes(totalSec, currentSprayCount, currentSprayIntervalSec);
     currentSterilResult = result;
 
     // Show panel
@@ -934,7 +1091,8 @@
     sterilStartBtn.style.display = 'none';
     sterilSkipBtn.style.display = 'none';
 
-    if (cls === 'Clean' || (!currentUvNeeded && !currentFanNeeded)) {
+    const nothingToDo = !currentUvNeeded && !currentFanNeeded && currentSprayTimes.length === 0;
+    if (cls === 'Clean' || nothingToDo) {
       // No sterilization needed — auto-save
       sterilRecommendation.innerHTML = '<span style="color:var(--accent2);font-weight:600;">Ompreng is clean!</span> No sterilization needed.';
       sterilDuration.textContent = '0 min';
@@ -951,17 +1109,30 @@
       return;
     }
 
-    // Contaminated — show Gemini recommendation
+    // Resep yang dipakai
     const activeParts = [];
-    if (currentUvNeeded) activeParts.push('UV-C');
+    if (currentUvNeeded)  activeParts.push('UV-C');
     if (currentFanNeeded) activeParts.push('Fan');
-    const activeText = activeParts.join(' + ');
+    const activeText = activeParts.length ? activeParts.join(' + ') : 'Spray only';
     const levelText = cls === 'Dirty' ? 'heavily contaminated' : 'lightly contaminated';
     const reasonText = sterilRec.reason ? ` <span style="font-size:0.75rem;color:var(--text-dim);">(${escapeHtml(sterilRec.reason)})</span>` : '';
 
+    // Ringkasan spray
+    let sprayLine = '';
+    if (currentSprayTimes.length > 0) {
+      if (currentSprayTimes.length === 1) {
+        sprayLine = `Sanitizer <strong>1 semprot</strong> saat proses dimulai.`;
+      } else {
+        sprayLine = `Sanitizer <strong>${currentSprayTimes.length} semprot</strong> setiap <strong>${currentSprayIntervalSec}s</strong>.`;
+      }
+    } else {
+      sprayLine = 'Tanpa semprot sanitizer.';
+    }
+
     sterilRecommendation.innerHTML =
       `Tray surface is <span style="color:${cls === 'Dirty' ? 'var(--accent3)' : 'var(--accent4)'};font-weight:600;">${levelText}</span>. ` +
-      `Gemini recommends <strong>${activeText}</strong> for <strong>${currentDurationMin} min</strong>.${reasonText}` +
+      `Gemini merekomendasikan <strong>${activeText}</strong> selama <strong>${currentDurationMin} menit</strong>.${reasonText}` +
+      `<div style="font-size:0.78rem;color:var(--text);margin-top:6px;">${sprayLine}</div>` +
       `<div style="font-size:0.7rem;color:var(--text-muted);margin-top:6px;">Device: <strong>${escapeHtml(sterilDeviceId)}</strong></div>`;
 
     sterilDuration.textContent = currentDurationMin + ' min';
@@ -995,6 +1166,18 @@
     return { rtdb: getDatabase(rtApp), ref, set, update, onDisconnect };
   }
 
+  // Pulse pompa: ON → delay → OFF. Sekali semprot ≈ SPRAY_PULSE_MS.
+  async function pulsePump(devicePath, rtdb, ref, set) {
+    try {
+      await set(ref(rtdb, `${devicePath}/relayCommand/pump`), true);
+      await new Promise(r => setTimeout(r, SPRAY_PULSE_MS));
+      await set(ref(rtdb, `${devicePath}/relayCommand/pump`), false);
+    } catch (e) {
+      console.error('Spray error:', e);
+      try { await set(ref(rtdb, `${devicePath}/relayCommand/pump`), false); } catch (_) {}
+    }
+  }
+
   // Auto-start sterilization function
   async function beginSterilization() {
     if (sterilTimer) return;
@@ -1007,7 +1190,7 @@
     try {
       const { rtdb, ref, set, update, onDisconnect } = await getRTDB();
 
-      // Only turn on what Gemini recommends
+      // Nyalakan hanya yang diminta Gemini.
       if (currentUvNeeded) {
         await set(ref(rtdb, `${devicePath}/relayCommand/uv`), true);
       }
@@ -1017,8 +1200,10 @@
 
       const totalSec = Math.round(currentDurationMin * 60);
       const startedAt = Date.now();
+      const totalSprays = currentSprayTimes.length;
+      let spraysDone = 0;
 
-      // Publish initial sterilization status to RTDB (dashboard reads this)
+      // Publish initial sterilization status ke RTDB (dashboard + ESP32 bisa baca).
       const statusRef = ref(rtdb, `${devicePath}/sterilizationStatus`);
       await set(statusRef, {
         active: true,
@@ -1028,12 +1213,16 @@
         remainingSeconds: totalSec,
         startedAt: startedAt,
         updatedAt: startedAt,
-        uvUsed: currentUvNeeded,
-        fanUsed: currentFanNeeded
+        uvUsed:  currentUvNeeded,
+        fanUsed: currentFanNeeded,
+        pumpUsed: totalSprays > 0,
+        spraysTotal: totalSprays,
+        spraysDone: 0,
+        sprayIntervalSeconds: currentSprayIntervalSec,
+        nextSprayInSeconds: totalSprays > 0 ? 0 : null
       });
-      // If this tab disconnects mid-cycle, RTDB will auto-clear the active flag
-      // so the dashboard doesn't get stuck showing "In Progress" forever.
-      try { await onDisconnect(statusRef).update({ active: false, updatedAt: Date.now() }); } catch(_) {}
+      // Kalau tab disconnect, RTDB otomatis clear flag active.
+      try { await onDisconnect(statusRef).update({ active: false, updatedAt: Date.now() }); } catch (_) {}
 
       let elapsed = 0;
 
@@ -1048,44 +1237,64 @@
         sterilBar.style.width = pct + '%';
         sterilCountdown.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
 
-        // Heartbeat to RTDB so dashboard can render live remaining time
+        // Trigger semprot kalau sudah waktunya (boleh >1 kalau timer telat).
+        while (spraysDone < totalSprays && elapsed >= currentSprayTimes[spraysDone]) {
+          spraysDone++;
+          pulsePump(devicePath, rtdb, ref, set); // fire-and-forget, jangan blokir tick
+        }
+
+        const nextSprayIn = spraysDone < totalSprays
+          ? Math.max(0, currentSprayTimes[spraysDone] - elapsed)
+          : null;
+
+        // Heartbeat ke RTDB supaya dashboard & ESP bisa render live.
         try {
-          await update(statusRef, { remainingSeconds: remaining, updatedAt: Date.now() });
-        } catch (_) { /* best-effort, don't break the local tick */ }
+          await update(statusRef, {
+            remainingSeconds: remaining,
+            spraysDone,
+            nextSprayInSeconds: nextSprayIn,
+            updatedAt: Date.now()
+          });
+        } catch (_) { /* best-effort */ }
 
         if (elapsed >= totalSec) {
           clearInterval(sterilTimer);
           sterilTimer = null;
 
-          // Turn off only what was turned on
-          if (currentUvNeeded) {
-            await set(ref(rtdb, `${devicePath}/relayCommand/uv`), false);
-          }
-          if (currentFanNeeded) {
-            await set(ref(rtdb, `${devicePath}/relayCommand/fan`), false);
-          }
+          // Matikan semua yang sempat nyala.
+          if (currentUvNeeded)  await set(ref(rtdb, `${devicePath}/relayCommand/uv`),  false);
+          if (currentFanNeeded) await set(ref(rtdb, `${devicePath}/relayCommand/fan`), false);
+          if (totalSprays > 0)  await set(ref(rtdb, `${devicePath}/relayCommand/pump`), false);
 
-          // Mark sterilization as done in RTDB
+          // Tandai selesai di RTDB.
           try {
             await update(statusRef, {
               active: false,
               remainingSeconds: 0,
+              spraysDone: totalSprays,
+              nextSprayInSeconds: null,
               endedAt: Date.now(),
               updatedAt: Date.now()
             });
             await onDisconnect(statusRef).cancel();
           } catch (_) {}
 
-          // Show complete
+          // UI selesai
           sterilStatus.textContent = 'Complete';
           sterilStatus.className = 'badge badge-done';
           sterilCountdown.textContent = '00:00';
           sterilSkipBtn.style.display = 'none';
           sterilComplete.style.display = '';
           sterilComplete.querySelector('div:first-of-type').textContent = 'Sterilization Complete!';
-          sterilComplete.querySelector('div:last-of-type').textContent = 'UV & Fan auto-off. Log saved to history.';
+          const finishParts = [];
+          if (currentUvNeeded)  finishParts.push('UV');
+          if (currentFanNeeded) finishParts.push('Fan');
+          if (totalSprays > 0)  finishParts.push('Pump');
+          const finishText = finishParts.length
+            ? `${finishParts.join(' + ')} auto-off. Log saved.`
+            : 'Log saved to history.';
+          sterilComplete.querySelector('div:last-of-type').textContent = finishText;
 
-          // Save to Firestore
           saveLog(currentSterilResult, currentDurationMin, 'Sterilized');
         }
       }, 1000);
@@ -1111,16 +1320,15 @@
       // Turn off relays + mark sterilization stopped in RTDB
       try {
         const { rtdb, ref, set, update, onDisconnect } = await getRTDB();
-        if (currentUvNeeded) {
-          await set(ref(rtdb, `${devicePath}/relayCommand/uv`), false);
-        }
-        if (currentFanNeeded) {
-          await set(ref(rtdb, `${devicePath}/relayCommand/fan`), false);
-        }
+        if (currentUvNeeded)  await set(ref(rtdb, `${devicePath}/relayCommand/uv`),  false);
+        if (currentFanNeeded) await set(ref(rtdb, `${devicePath}/relayCommand/fan`), false);
+        // Selalu pastikan pompa mati biar aman, walau sebelumnya tidak diresepkan.
+        await set(ref(rtdb, `${devicePath}/relayCommand/pump`), false);
         const statusRef = ref(rtdb, `${devicePath}/sterilizationStatus`);
         await update(statusRef, {
           active: false,
           remainingSeconds: 0,
+          nextSprayInSeconds: null,
           endedAt: Date.now(),
           updatedAt: Date.now()
         });
@@ -1157,8 +1365,10 @@
       const user = auth.currentUser;
       if (!user) return;
 
+      const snap = result.__sensorSnapshot || {};
       await addDoc(collection(fsdb, 'users', user.uid, 'sterilization_logs'), {
         classification: result.classification || 'Unknown',
+        objectDetected: result.object_detected !== false,
         confidence: result.confidence || 0,
         contaminationLevel: result.contamination_level || 0,
         analysis: result.analysis || '',
@@ -1166,9 +1376,17 @@
         durationMinutes: durationMin,
         status: status,
         deviceId: result.__deviceId || selectedDeviceId || '',
-        uvUsed: currentUvNeeded,
+        uvUsed:  currentUvNeeded,
         fanUsed: currentFanNeeded,
+        spraysTotal: currentSprayTimes.length,
+        sprayIntervalSeconds: currentSprayIntervalSec,
         sterilizationReason: result.sterilization?.reason || '',
+        sensorAtScan: {
+          temperature: snap.sensorData?.dht11?.temperature ?? null,
+          humidity:    snap.sensorData?.dht11?.humidity    ?? null,
+          vocPpm:      snap.sensorData?.voc?.ppm           ?? null,
+          vocStatus:   snap.sensorData?.voc?.status        ?? snap.status?.voc_alert ?? null
+        },
         createdAt: serverTimestamp()
       });
       console.log('Sterilization log saved');
@@ -1182,6 +1400,23 @@
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  // Render chip kecil sensor di bawah analisis: "26.1°C · 79% · VOC 0.63 ppm (GOOD)"
+  function renderSensorSnapshotLine(snap) {
+    const sd = snap?.sensorData || {};
+    const st = snap?.status || {};
+    const t = sd.dht11?.temperature;
+    const h = sd.dht11?.humidity;
+    const p = sd.voc?.ppm;
+    const s = sd.voc?.status || st.voc_alert;
+    const haveAny = t != null || h != null || p != null;
+    if (!haveAny) return '';
+    const parts = [];
+    if (t != null) parts.push(`${Number(t).toFixed(1)}°C`);
+    if (h != null) parts.push(`${Number(h).toFixed(0)}%`);
+    if (p != null) parts.push(`VOC ${Number(p).toFixed(2)} ppm${s ? ` (${escapeHtml(s)})` : ''}`);
+    return `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--glass-border);font-size:0.7rem;color:var(--text-dim);">Sensor saat scan: ${parts.join(' · ')}</div>`;
   }
 
 })();

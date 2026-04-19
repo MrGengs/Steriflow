@@ -496,9 +496,7 @@ function renderCharts() {
   const page = detectPage();
 
   if (page === 'monitoring') {
-    drawLineChart('bacteriChart', sensorState.vocHistory, CSS.accent, {unit:' ppm'});
-    drawLineChart('gasChart', sensorState.vocHistory, CSS.accent3, {unit:' ppm'});
-    drawLineChart('kipasChart', sensorState.vocHistory, '#ffc247', {unit:' ppm'});
+    drawLineChart('vocChart', sensorState.vocHistory, CSS.accent, {unit:' ppm'});
     drawDualLineChart(
       'envChart',
       sensorState.tempHistory,
