@@ -12,6 +12,7 @@
 #include "esp_http_server.h"
 #include "esp_timer.h"
 #include "img_converters.h"
+#include <mbedtls/base64.h>
 
 // ==================== KONFIGURASI ====================
 #define WIFI_SSID       "Steriflow Station"
@@ -49,7 +50,12 @@ FirebaseAuth     fbAuth;
 FirebaseConfig   fbConfig;
 
 // ==================== HTTP SERVER ====================
+// Dua instance httpd: (1) port 80 = / + /capture (cepat & singkat),
+// (2) port 81 = /stream (long-running MJPEG di thread sendiri).
+// Tujuan: handler /stream yang berputar di while(true) tidak pernah
+// menggantung thread /capture.
 httpd_handle_t camera_httpd = NULL;
+httpd_handle_t stream_httpd = NULL;
 
 #define PART_BOUNDARY "steriflowframe"
 static const char* STREAM_CONTENT_TYPE = "multipart/x-mixed-replace;boundary=" PART_BOUNDARY;
@@ -74,13 +80,15 @@ static esp_err_t options_handler(httpd_req_t *req) {
 static esp_err_t index_handler(httpd_req_t *req) {
   httpd_resp_set_type(req, "text/html");
   set_cors(req);
-  const char* html =
-    "<html><head><title>SteriFlow ESP32-CAM</title></head><body>"
-    "<h2>SteriFlow ESP32-CAM</h2>"
-    "<p><a href=\"/stream\">/stream</a> &middot; <a href=\"/capture\">/capture</a></p>"
-    "<img src=\"/stream\" style=\"max-width:100%;border:1px solid #ccc\"/>"
-    "</body></html>";
-  return httpd_resp_send(req, html, strlen(html));
+  String ip = WiFi.localIP().toString();
+  String body =
+    String("<html><head><title>SteriFlow ESP32-CAM</title></head><body>"
+           "<h2>SteriFlow ESP32-CAM</h2>"
+           "<p><a href=\"http://") + ip + ":81/stream\">stream (:81)</a> &middot; "
+           "<a href=\"/capture\">/capture</a></p>"
+           "<img src=\"http://" + ip + ":81/stream\" style=\"max-width:100%;border:1px solid #ccc\"/>"
+           "</body></html>";
+  return httpd_resp_send(req, body.c_str(), body.length());
 }
 
 // ==================== HANDLER: /capture  (JPEG tunggal) ====================
@@ -156,29 +164,44 @@ static esp_err_t stream_handler(httpd_req_t *req) {
   return res;
 }
 
-// ==================== START HTTP SERVER ====================
+// ==================== START HTTP SERVERS ====================
 void startCameraServer() {
+  // --- Port 80: index + capture (handlers singkat, tidak blocking) ---
   httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
   cfg.server_port      = 80;
   cfg.ctrl_port        = 32768;
-  cfg.max_uri_handlers = 8;
+  cfg.max_uri_handlers = 4;
   cfg.stack_size       = 8192;
 
   httpd_uri_t u_index    = { .uri = "/",        .method = HTTP_GET,     .handler = index_handler,   .user_ctx = NULL };
   httpd_uri_t u_capture  = { .uri = "/capture", .method = HTTP_GET,     .handler = capture_handler, .user_ctx = NULL };
-  httpd_uri_t u_stream   = { .uri = "/stream",  .method = HTTP_GET,     .handler = stream_handler,  .user_ctx = NULL };
   httpd_uri_t u_opt_cap  = { .uri = "/capture", .method = HTTP_OPTIONS, .handler = options_handler, .user_ctx = NULL };
-  httpd_uri_t u_opt_strm = { .uri = "/stream",  .method = HTTP_OPTIONS, .handler = options_handler, .user_ctx = NULL };
 
   if (httpd_start(&camera_httpd, &cfg) == ESP_OK) {
     httpd_register_uri_handler(camera_httpd, &u_index);
     httpd_register_uri_handler(camera_httpd, &u_capture);
-    httpd_register_uri_handler(camera_httpd, &u_stream);
     httpd_register_uri_handler(camera_httpd, &u_opt_cap);
-    httpd_register_uri_handler(camera_httpd, &u_opt_strm);
-    Serial.println("[HTTP] server running on port 80");
+    Serial.println("[HTTP] main httpd OK :80 → / , /capture");
   } else {
-    Serial.println("[HTTP] server start failed");
+    Serial.println("[HTTP] main httpd start FAIL");
+  }
+
+  // --- Port 81: /stream (long-running MJPEG di thread terpisah) ---
+  httpd_config_t scfg = HTTPD_DEFAULT_CONFIG();
+  scfg.server_port      = 81;
+  scfg.ctrl_port        = 32769;
+  scfg.max_uri_handlers = 2;
+  scfg.stack_size       = 8192;
+
+  httpd_uri_t u_stream   = { .uri = "/stream", .method = HTTP_GET,     .handler = stream_handler,  .user_ctx = NULL };
+  httpd_uri_t u_opt_strm = { .uri = "/stream", .method = HTTP_OPTIONS, .handler = options_handler, .user_ctx = NULL };
+
+  if (httpd_start(&stream_httpd, &scfg) == ESP_OK) {
+    httpd_register_uri_handler(stream_httpd, &u_stream);
+    httpd_register_uri_handler(stream_httpd, &u_opt_strm);
+    Serial.println("[HTTP] stream httpd OK :81 → /stream");
+  } else {
+    Serial.println("[HTTP] stream httpd start FAIL");
   }
 }
 
@@ -271,7 +294,8 @@ void connectFirebase() {
 
 void publishCameraInfo() {
   String ip         = WiFi.localIP().toString();
-  String streamUrl  = "http://" + ip + "/stream";
+  // /stream pindah ke port 81 supaya tidak mengunci thread /capture di port 80.
+  String streamUrl  = "http://" + ip + ":81/stream";
   String captureUrl = "http://" + ip + "/capture";
   String base       = String("/") + DEVICE_ID + "/camera";
 
@@ -299,6 +323,176 @@ void heartbeat() {
   Firebase.setInt (fbdo, base + "/rssi",     WiFi.RSSI());
 }
 
+// ==================== HTTPS CAPTURE BRIDGE ====================
+// Web app di HTTPS tidak bisa fetch langsung ke /capture HTTP.
+// Jadi web menulis nilai ke /{DEVICE_ID}/camera/captureRequest (int detik),
+// dan ESP menulis JPEG hasil capture (base64) ke /{DEVICE_ID}/camera/lastCapture.
+
+int  lastCaptureRequestTs   = 0;
+unsigned long lastCapCheckMs = 0;
+#define CAPTURE_POLL_MS       700
+
+bool processCaptureRequest(int ts) {
+  Serial.printf("[CAP] request ts=%d — capturing JPEG...\n", ts);
+  camera_fb_t *fb = esp_camera_fb_get();
+  if (!fb) {
+    Serial.println("[CAP] esp_camera_fb_get() gagal");
+    return false;
+  }
+
+  uint8_t* jpg = nullptr;
+  size_t   jpgLen = 0;
+  bool allocatedJpg = false;
+  if (fb->format == PIXFORMAT_JPEG) {
+    jpg = fb->buf;
+    jpgLen = fb->len;
+  } else {
+    allocatedJpg = frame2jpg(fb, 80, &jpg, &jpgLen);
+    if (!allocatedJpg) {
+      Serial.println("[CAP] frame2jpg gagal");
+      esp_camera_fb_return(fb);
+      return false;
+    }
+  }
+
+  // Encode base64 (mbedtls)
+  size_t outLen = 0;
+  mbedtls_base64_encode(nullptr, 0, &outLen, jpg, jpgLen);
+  char* b64 = (char*)malloc(outLen + 1);
+  if (!b64) {
+    Serial.println("[CAP] malloc b64 gagal");
+    if (allocatedJpg) free(jpg);
+    esp_camera_fb_return(fb);
+    return false;
+  }
+  size_t actualLen = 0;
+  int rc = mbedtls_base64_encode((unsigned char*)b64, outLen, &actualLen, jpg, jpgLen);
+  if (rc != 0) {
+    Serial.printf("[CAP] base64 encode rc=%d\n", rc);
+    free(b64);
+    if (allocatedJpg) free(jpg);
+    esp_camera_fb_return(fb);
+    return false;
+  }
+  b64[actualLen] = 0;
+
+  String base = String("/") + DEVICE_ID + "/camera/lastCapture";
+  FirebaseJson json;
+  json.set("timestamp", ts);
+  json.set("width",     (int)fb->width);
+  json.set("height",    (int)fb->height);
+  json.set("size",      (int)jpgLen);
+  json.set("data",      b64);
+
+  unsigned long t0 = millis();
+  bool ok = Firebase.setJSON(fbdo, base, json);
+  unsigned long dt = millis() - t0;
+  Serial.printf("[CAP] upload %s dalam %lums (jpg=%u, b64=%u bytes)\n",
+                ok ? "OK" : "FAIL", dt, (unsigned)jpgLen, (unsigned)actualLen);
+  if (!ok) Serial.println("[CAP] Firebase: " + fbdo.errorReason());
+
+  free(b64);
+  if (allocatedJpg) free(jpg);
+  esp_camera_fb_return(fb);
+  return ok;
+}
+
+void pollCaptureRequest() {
+  if (millis() - lastCapCheckMs < CAPTURE_POLL_MS) return;
+  lastCapCheckMs = millis();
+
+  String path = String("/") + DEVICE_ID + "/camera/captureRequest";
+  if (!Firebase.getInt(fbdo, path)) return;   // path kosong / gagal → diam
+  int ts = fbdo.intData();
+  if (ts <= 0 || ts == lastCaptureRequestTs) return;
+  lastCaptureRequestTs = ts;
+  processCaptureRequest(ts);
+}
+
+// ==================== LIVE STREAM via RTDB PUSH ====================
+// Web HTTPS tidak bisa load MJPEG HTTP. Maka ESP "push" frame ke
+// /{DEVICE_ID}/camera/livePreview setiap STREAM_FRAME_MS selama
+// /{DEVICE_ID}/camera/streamRequest diperbarui (keep-alive timestamp).
+// Web subscribe onValue(livePreview) → cameraImg.src update otomatis.
+
+#define STREAM_CHECK_MS         400    // cek streamRequest tiap 400ms
+#define STREAM_FRAME_MS         700    // target ~1.4 fps
+#define STREAM_STALE_TIMEOUT_MS 8000   // streamRequest "basi" jika tidak update 8s → stop
+
+int          streamReqLastTs       = 0;
+unsigned long streamReqChangedAt   = 0;
+unsigned long lastStreamCheckMs    = 0;
+unsigned long lastStreamFrameMs    = 0;
+
+bool publishStreamFrame() {
+  camera_fb_t *fb = esp_camera_fb_get();
+  if (!fb) return false;
+
+  uint8_t *jpg = nullptr;
+  size_t   jpgLen = 0;
+  bool allocatedJpg = false;
+  if (fb->format == PIXFORMAT_JPEG) {
+    jpg = fb->buf;
+    jpgLen = fb->len;
+  } else {
+    allocatedJpg = frame2jpg(fb, 80, &jpg, &jpgLen);
+    if (!allocatedJpg) { esp_camera_fb_return(fb); return false; }
+  }
+
+  size_t outLen = 0;
+  mbedtls_base64_encode(nullptr, 0, &outLen, jpg, jpgLen);
+  char* b64 = (char*)malloc(outLen + 1);
+  if (!b64) { if (allocatedJpg) free(jpg); esp_camera_fb_return(fb); return false; }
+  size_t actualLen = 0;
+  if (mbedtls_base64_encode((unsigned char*)b64, outLen, &actualLen, jpg, jpgLen) != 0) {
+    free(b64); if (allocatedJpg) free(jpg); esp_camera_fb_return(fb); return false;
+  }
+  b64[actualLen] = 0;
+
+  String base = String("/") + DEVICE_ID + "/camera/livePreview";
+  FirebaseJson json;
+  json.set("timestamp", (int)(millis() / 1000));
+  json.set("width",     (int)fb->width);
+  json.set("height",    (int)fb->height);
+  json.set("size",      (int)jpgLen);
+  json.set("data",      b64);
+  bool ok = Firebase.setJSON(fbdo, base, json);
+
+  free(b64);
+  if (allocatedJpg) free(jpg);
+  esp_camera_fb_return(fb);
+  return ok;
+}
+
+void pollLiveStream() {
+  // Cek streamRequest berkala. Tiap perubahan dicatat waktu (web ping
+  // tiap beberapa detik) sehingga kita tahu web masih aktif.
+  if (millis() - lastStreamCheckMs >= STREAM_CHECK_MS) {
+    lastStreamCheckMs = millis();
+    String path = String("/") + DEVICE_ID + "/camera/streamRequest";
+    if (Firebase.getInt(fbdo, path)) {
+      int v = fbdo.intData();
+      if (v != streamReqLastTs) {
+        streamReqLastTs = v;
+        streamReqChangedAt = millis();
+        Serial.printf("[STREAM] request ts=%d\n", v);
+      }
+    }
+  }
+
+  bool streaming = (streamReqLastTs > 0)
+                   && (millis() - streamReqChangedAt < STREAM_STALE_TIMEOUT_MS);
+  if (!streaming) return;
+
+  if (millis() - lastStreamFrameMs >= STREAM_FRAME_MS) {
+    lastStreamFrameMs = millis();
+    unsigned long t0 = millis();
+    bool ok = publishStreamFrame();
+    unsigned long dt = millis() - t0;
+    Serial.printf("[STREAM] frame %s dalam %lums\n", ok ? "OK" : "FAIL", dt);
+  }
+}
+
 // ==================== SETUP / LOOP ====================
 void setup() {
   Serial.begin(115200);
@@ -317,9 +511,9 @@ void setup() {
   startCameraServer();
 
   Serial.println("\nSiap! Buka di browser:");
-  Serial.printf("  http://%s/\n",        WiFi.localIP().toString().c_str());
-  Serial.printf("  http://%s/stream\n",  WiFi.localIP().toString().c_str());
-  Serial.printf("  http://%s/capture\n", WiFi.localIP().toString().c_str());
+  Serial.printf("  http://%s/          (index)\n",     WiFi.localIP().toString().c_str());
+  Serial.printf("  http://%s/capture   (JPEG snapshot, port 80)\n", WiFi.localIP().toString().c_str());
+  Serial.printf("  http://%s:81/stream (MJPEG, port 81 terpisah)\n", WiFi.localIP().toString().c_str());
 }
 
 void loop() {
@@ -336,5 +530,11 @@ void loop() {
     lastBeat = now;
     heartbeat();
   }
+
+  // Poll permintaan capture dari web (scan single-shot, HTTPS bridge).
+  pollCaptureRequest();
+  // Push frame live ke RTDB selama ada keep-alive dari web.
+  pollLiveStream();
+
   delay(50);
 }

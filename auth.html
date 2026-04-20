@@ -7,9 +7,16 @@
   <link rel="icon" type="image/png" href="assets/logo.png" />
   <link rel="apple-touch-icon" href="assets/logo.png" />
   <link rel="stylesheet" href="assets/auth.css" />
+  <script src="js/theme.js"></script>
   <script src="js/i18n.js"></script>
 </head>
 <body>
+
+  <!-- Theme toggle (dark / light) -->
+  <button class="auth-theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme" title="Dark / Light" aria-pressed="false">
+    <svg class="auth-icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="auth-icon-sun"  viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+  </button>
 
   <!-- Animated Background -->
   <div class="auth-bg" aria-hidden="true">

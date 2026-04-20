@@ -34,7 +34,24 @@
     .lp-lang-toggle[aria-pressed="true"] .lp-lang-en,
     .lp-lang-toggle[aria-pressed="false"] .lp-lang-id{color:#a78bfa;}
     .lp-mobile-lang{margin:8px 18px 14px;}
+
+    /* Theme toggle (sun/moon) */
+    .lp-theme-toggle{position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:inherit;cursor:pointer;transition:all .2s ease;padding:0;overflow:hidden;}
+    .lp-theme-toggle:hover{background:rgba(124,92,252,0.18);border-color:rgba(124,92,252,0.55);}
+    .lp-theme-toggle svg{width:16px;height:16px;position:absolute;transition:opacity .25s ease, transform .35s ease;}
+    /* aria-pressed="true" = light mode aktif, tampilkan matahari; selain itu tampilkan bulan */
+    .lp-theme-toggle[aria-pressed="false"] .lp-icon-sun{opacity:0;transform:rotate(-90deg) scale(.6);}
+    .lp-theme-toggle[aria-pressed="true"]  .lp-icon-moon{opacity:0;transform:rotate(90deg) scale(.6);}
+    .lp-theme-toggle[aria-pressed="true"]  .lp-icon-sun,
+    .lp-theme-toggle[aria-pressed="false"] .lp-icon-moon{opacity:1;transform:rotate(0) scale(1);}
+    .lp-mobile-theme{margin:0 18px 6px;}
+    .lp-mobile-theme .lp-theme-toggle{width:100%;height:44px;border-radius:12px;gap:10px;font:600 0.85rem/1 'Outfit',sans-serif;letter-spacing:0.02em;padding:0 16px;}
+    .lp-mobile-theme .lp-theme-toggle svg{position:static;}
+    .lp-mobile-theme .lp-theme-toggle .lp-theme-label{flex:1;text-align:left;}
+    .lp-mobile-theme .lp-theme-toggle .lp-icon-sun,
+    .lp-mobile-theme .lp-theme-toggle .lp-icon-moon{position:static;}
   </style>
+  <script src="js/theme.js"></script>
   <script src="js/i18n.js"></script>
 </head>
 <body class="lp-body">
@@ -72,6 +89,11 @@
 
       <!-- CTA + Hamburger -->
       <div class="lp-nav-right">
+        <!-- Theme toggle (dark/light) -->
+        <button class="lp-theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme" title="Dark / Light" aria-pressed="false">
+          <svg class="lp-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="lp-icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        </button>
         <!-- Language toggle (ID / EN) -->
         <button class="lp-lang-toggle" type="button" data-lang-toggle aria-label="Toggle language" title="Indonesia / English">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
@@ -109,6 +131,13 @@
         <li><a href="#tim" class="lp-mobile-link" data-i18n="landing.nav.team">Our Team</a></li>
         <li><a href="#kontak" class="lp-mobile-link" data-i18n="landing.nav.contact">Contact</a></li>
       </ul>
+      <div class="lp-mobile-theme">
+        <button class="lp-theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme" aria-pressed="false">
+          <svg class="lp-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="lp-icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <span class="lp-theme-label">Dark / Light</span>
+        </button>
+      </div>
       <div class="lp-mobile-lang">
         <button class="lp-lang-toggle" type="button" data-lang-toggle aria-label="Toggle language" style="width:100%;justify-content:center;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>

@@ -2157,3 +2157,208 @@ h1, h2, h3, h4 {
   box-shadow: 0 5px 14px rgba(124,92,252,0.18);
 }
 
+/* ============================================================
+   === LIGHT MODE — DASHBOARD ENRICHMENT ===
+   Makes cards feel crafted: colored top strips, layered
+   multi-color shadows, gradient numbers, accented toggles,
+   elevated FAB, richer notifications.
+   ============================================================ */
+
+/* System Status card: double shadow + gradient sheen + top accent stripe */
+[data-theme="light"] .status-main-card {
+  position: relative;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.97) 0%, rgba(249,247,255,0.86) 55%, rgba(240,250,248,0.86) 100%);
+  border-color: rgba(255,255,255,0.95);
+  box-shadow:
+    0 20px 44px rgba(124,92,252,0.12),
+    0 6px 18px rgba(54,214,195,0.08),
+    inset 0 1px 0 rgba(255,255,255,1);
+  overflow: hidden;
+}
+[data-theme="light"] .status-main-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2) 55%, var(--accent4));
+  opacity: 0.85;
+}
+[data-theme="light"] .status-main-card::after {
+  content: '';
+  position: absolute;
+  top: -40%; right: -20%;
+  width: 220px; height: 220px;
+  background: radial-gradient(circle, rgba(124,92,252,0.18), transparent 65%);
+  pointer-events: none;
+  filter: blur(6px);
+}
+
+/* Countdown number gets a vivid gradient */
+[data-theme="light"] .countdown-display {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(124,92,252,0.2));
+}
+[data-theme="light"] #cyclePercent,
+[data-theme="light"] .progress-header span:last-child {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* UV / Ethanol / Fan cards get per-channel accent strip + tinted glow */
+[data-theme="light"] #uvcCard,
+[data-theme="light"] #ethanolCard,
+[data-theme="light"] #fanCard {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+[data-theme="light"] #uvcCard::before,
+[data-theme="light"] #ethanolCard::before,
+[data-theme="light"] #fanCard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+[data-theme="light"] #uvcCard::before     { background: linear-gradient(90deg, var(--accent), #a78bfa); }
+[data-theme="light"] #ethanolCard::before { background: linear-gradient(90deg, var(--accent4), #ffdb8e); }
+[data-theme="light"] #fanCard::before     { background: linear-gradient(90deg, var(--accent2), #7ff5ea); }
+
+[data-theme="light"] #uvcCard     { box-shadow: 0 10px 24px rgba(124,92,252,0.10), inset 0 1px 0 rgba(255,255,255,1); }
+[data-theme="light"] #ethanolCard { box-shadow: 0 10px 24px rgba(255,194,71,0.10),  inset 0 1px 0 rgba(255,255,255,1); }
+[data-theme="light"] #fanCard     { box-shadow: 0 10px 24px rgba(54,214,195,0.10),  inset 0 1px 0 rgba(255,255,255,1); }
+
+[data-theme="light"] #uvcCard:hover     { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(124,92,252,0.20); }
+[data-theme="light"] #ethanolCard:hover { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(255,194,71,0.20); }
+[data-theme="light"] #fanCard:hover     { transform: translateY(-2px); box-shadow: 0 16px 36px rgba(54,214,195,0.20); }
+
+/* Per-channel toggle slider when ON */
+[data-theme="light"] .toggle input:checked + .toggle-slider {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(124,92,252,0.35), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+[data-theme="light"] .toggle.yellow input:checked + .toggle-slider {
+  background: linear-gradient(135deg, var(--accent4) 0%, #ffdb8e 100%);
+  box-shadow: 0 4px 14px rgba(255,194,71,0.4), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+[data-theme="light"] .toggle.teal input:checked + .toggle-slider {
+  background: linear-gradient(135deg, var(--accent2) 0%, #7ff5ea 100%);
+  box-shadow: 0 4px 14px rgba(54,214,195,0.4), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+
+/* Card icons (the 36×36 square at top-left of each) with subtle glow */
+[data-theme="light"] #uvcIcon {
+  background: linear-gradient(135deg, rgba(124,92,252,0.22), rgba(124,92,252,0.08));
+  box-shadow: 0 4px 12px rgba(124,92,252,0.16), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+[data-theme="light"] #ethanolIcon {
+  background: linear-gradient(135deg, rgba(255,194,71,0.24), rgba(255,194,71,0.08));
+  box-shadow: 0 4px 12px rgba(255,194,71,0.18), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+[data-theme="light"] #fanIcon {
+  background: linear-gradient(135deg, rgba(54,214,195,0.24), rgba(54,214,195,0.08));
+  box-shadow: 0 4px 12px rgba(54,214,195,0.18), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+
+/* Cleanliness ring — halo behind the canvas */
+[data-theme="light"] .ring-canvas-wrap {
+  position: relative;
+}
+[data-theme="light"] .ring-canvas-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(54,214,195,0.25) 0%, transparent 65%);
+  filter: blur(10px);
+  z-index: 0;
+  pointer-events: none;
+}
+[data-theme="light"] .ring-canvas-wrap canvas { position: relative; z-index: 1; }
+[data-theme="light"] .ring-percent {
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Sterilize "Start/Stop" pill button in System Status header */
+[data-theme="light"] #toggleSterilize {
+  background: linear-gradient(135deg, var(--accent), #5e3de0);
+  border: none;
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(124,92,252,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+[data-theme="light"] #toggleSterilize:hover {
+  box-shadow: 0 10px 24px rgba(124,92,252,0.42), inset 0 1px 0 rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+
+/* Notification pill count (e.g. "3") — gradient filled */
+[data-theme="light"] #notifCount {
+  background: linear-gradient(135deg, var(--accent), var(--accent2)) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(124,92,252,0.3);
+}
+
+/* Notification list items */
+[data-theme="light"] .notif-item {
+  background: linear-gradient(145deg, rgba(255,255,255,0.92), rgba(249,247,255,0.72));
+  border-color: rgba(124,92,252,0.12);
+  box-shadow: 0 4px 12px rgba(124,92,252,0.06), inset 0 1px 0 rgba(255,255,255,0.9);
+  border-radius: 14px;
+}
+[data-theme="light"] .notif-item:hover {
+  background: linear-gradient(145deg, rgba(255,255,255,1), rgba(244,240,255,0.85));
+  border-color: rgba(124,92,252,0.28);
+  box-shadow: 0 8px 22px rgba(124,92,252,0.14);
+}
+
+/* Floating AI Chat FAB — richer glow */
+[data-theme="light"] .ai-chat-fab {
+  box-shadow:
+    0 12px 30px rgba(124,92,252,0.35),
+    0 6px 16px rgba(54,214,195,0.18),
+    0 0 0 4px rgba(255,255,255,0.94);
+}
+[data-theme="light"] .ai-chat-fab:hover {
+  box-shadow:
+    0 16px 40px rgba(124,92,252,0.48),
+    0 8px 20px rgba(54,214,195,0.25),
+    0 0 0 5px rgba(255,255,255,1);
+}
+
+/* Section titles get a subtle gradient accent */
+[data-theme="light"] .section-title {
+  color: #1a1a2e;
+  letter-spacing: -0.01em;
+}
+
+/* Next Sterilization card: tinted container + gradient countdown */
+[data-theme="light"] #countdown {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Header title gets the brand gradient */
+[data-theme="light"] .header-title {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+
+/* Page title (monitoring, history, etc.) */
+[data-theme="light"] .header-page-title {
+  color: #1a1a2e;
+  font-weight: 700;
+}
+

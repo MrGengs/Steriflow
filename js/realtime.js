@@ -20,7 +20,8 @@ import {
   getDatabase,
   ref,
   onValue,
-  set
+  set,
+  update
 } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js";
 import { firebaseConfig } from "./firebase-config.js";
 
@@ -52,7 +53,7 @@ let currentDevice = {
   timestamp: 0
 };
 
-let currentRelayCommand = { fan: false, uv: false };
+let currentRelayCommand = { fan: false, uv: false, pump: false };
 
 // Chart history
 const HISTORY_LEN = 20;
@@ -71,6 +72,23 @@ export async function toggleUV(value) {
 export async function toggleFan(value) {
   try { await set(ref(db, `${DEVICE_ID}/relayCommand/fan`), value); }
   catch (e) { console.error('Failed to toggle Fan:', e); }
+}
+// Pompa sanitizer (Ethanol Spray) — toggle on/off manual dari dashboard.
+// AI sterilization mem-pulse pompa sendiri; di sini user bisa nyalakan manual.
+export async function togglePump(value) {
+  try { await set(ref(db, `${DEVICE_ID}/relayCommand/pump`), value); }
+  catch (e) { console.error('Failed to toggle Pump:', e); }
+}
+// Pulse pendek (default 800ms) untuk "semprot sekali".
+export async function pulsePump(ms = 800) {
+  try {
+    await set(ref(db, `${DEVICE_ID}/relayCommand/pump`), true);
+    await new Promise(r => setTimeout(r, ms));
+    await set(ref(db, `${DEVICE_ID}/relayCommand/pump`), false);
+  } catch (e) {
+    console.error('Failed to pulse Pump:', e);
+    try { await set(ref(db, `${DEVICE_ID}/relayCommand/pump`), false); } catch (_) {}
+  }
 }
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -164,11 +182,26 @@ function updateDashboardUI(dev, relayCmd) {
     }
   }
 
+  // Ethanol Spray (pump) toggle + label — mengikuti relayCommand/pump.
+  const ethanolToggle = document.getElementById('ethanolToggle');
+  const ethanolStatus = document.getElementById('ethanolStatus');
+  const pumpCmdOn = relayCmd.pump === true;
+  if (ethanolToggle) {
+    ethanolToggle.checked = pumpCmdOn;
+    if (ethanolStatus) {
+      ethanolStatus.innerHTML = pumpCmdOn
+        ? '<span style="color:var(--accent4);">SPRAYING</span>'
+        : '<span style="color:var(--text-muted);">OFF</span>';
+    }
+  }
+
   // Relay modes (dari /relay langsung)
-  const dashUvMode  = document.getElementById('dashUvMode');
-  const dashFanMode = document.getElementById('dashFanMode');
-  if (dashUvMode)  dashUvMode.textContent  = relay.uv_mode  || 'MANUAL';
-  if (dashFanMode) dashFanMode.textContent = relay.fan_mode || 'MANUAL';
+  const dashUvMode      = document.getElementById('dashUvMode');
+  const dashFanMode     = document.getElementById('dashFanMode');
+  const dashEthanolMode = document.getElementById('dashEthanolMode');
+  if (dashUvMode)      dashUvMode.textContent      = relay.uv_mode   || 'MANUAL';
+  if (dashFanMode)     dashFanMode.textContent     = relay.fan_mode  || 'MANUAL';
+  if (dashEthanolMode) dashEthanolMode.textContent = relay.pump_mode || 'MANUAL';
 
   // System status badge
   const systemStatus = document.getElementById('systemStatus');
@@ -390,71 +423,329 @@ function updateNotifications(dev) {
   `).join('');
 }
 
-// ── Initialize listeners ─────────────────────────────────────
+// ── Initialize listeners (re-runnable untuk SPA) ─────────────
 function getCurrentPage() {
   const path = window.location.pathname;
   return path.substring(path.lastIndexOf('/') + 1) || 'index.html';
 }
 
-const page = getCurrentPage();
+// Daftar unsub RTDB supaya bisa di-tear-down saat SPA pindah page.
+let activeUnsubs = [];
+let authUnsub    = null;
+let currentPageKey = null;
 
-if (page === 'dashboard.html' || page === 'monitoring.html') {
-  let listenersStarted = false;
+// Sterilization cycle ticker (dideklarasi di sini supaya tearDownListeners
+// bisa mengaksesnya tanpa kena TDZ — block driver di bawah mengoperasikannya).
+let sterilTicker = null;
 
-  onAuthStateChanged(auth, (user) => {
-    if (!user || listenersStarted) return;
-    listenersStarted = true;
-    window.__realtimeActive = true;
-
-    // Full device snapshot (sensorData + relay + status + timestamp)
-    onValue(deviceRef, (snap) => {
-      const data = snap.val();
-      if (!data) return;
-      currentDevice = {
-        sensorData: data.sensorData || {},
-        relay:      data.relay      || {},
-        status:     data.status     || {},
-        timestamp:  data.timestamp  || 0
-      };
-      if (page === 'dashboard.html') updateDashboardUI(currentDevice, currentRelayCommand);
-      else                           updateMonitoringUI(currentDevice, currentRelayCommand);
-    });
-
-    // User-facing relay commands
-    onValue(relayCmdRef, (snap) => {
-      const data = snap.val() || {};
-      currentRelayCommand = { fan: !!data.fan, uv: !!data.uv };
-      if (page === 'dashboard.html') updateDashboardUI(currentDevice, currentRelayCommand);
-      else                           updateMonitoringUI(currentDevice, currentRelayCommand);
-    });
-
-    // Sterilization status (drives dashboard "Next Sterilization")
-    onValue(sterilStatusRef, (snap) => {
-      window.__sterilStatus = snap.val() || null;
-      if (typeof window.__renderSterilCard === 'function') window.__renderSterilCard();
-    });
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const uvcToggle = document.getElementById('uvcToggle');
-    const fanToggle = document.getElementById('fanToggle');
-    if (uvcToggle) uvcToggle.addEventListener('change', () => toggleUV(uvcToggle.checked));
-    if (fanToggle) fanToggle.addEventListener('change', () => toggleFan(fanToggle.checked));
-
-    const toggleSterilize = document.getElementById('toggleSterilize');
-    if (toggleSterilize) {
-      toggleSterilize.addEventListener('click', async () => {
-        const uvOn  = currentRelayCommand.uv  === true;
-        const fanOn = currentRelayCommand.fan === true;
-        const newState = !(uvOn && fanOn);
-        await toggleUV(newState);
-        await toggleFan(newState);
-        toggleSterilize.innerHTML = newState
-          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Stop'
-          : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21 5,3"/></svg> Start';
-      });
-    }
-  });
+function tearDownListeners() {
+  for (const u of activeUnsubs) {
+    try { u(); } catch (_) {}
+  }
+  activeUnsubs = [];
+  if (sterilTicker) { clearInterval(sterilTicker); sterilTicker = null; }
 }
+
+function attachListenersFor(page) {
+  currentPageKey = page;
+  if (page !== 'dashboard.html' && page !== 'monitoring.html') return;
+
+  // Full device snapshot (sensorData + relay + status + timestamp)
+  const u1 = onValue(deviceRef, (snap) => {
+    const data = snap.val();
+    if (!data) return;
+    currentDevice = {
+      sensorData: data.sensorData || {},
+      relay:      data.relay      || {},
+      status:     data.status     || {},
+      timestamp:  data.timestamp  || 0
+    };
+    if (currentPageKey === 'dashboard.html') updateDashboardUI(currentDevice, currentRelayCommand);
+    else                                     updateMonitoringUI(currentDevice, currentRelayCommand);
+  });
+  activeUnsubs.push(u1);
+
+  const u2 = onValue(relayCmdRef, (snap) => {
+    const data = snap.val() || {};
+    currentRelayCommand = { fan: !!data.fan, uv: !!data.uv, pump: !!data.pump };
+    if (currentPageKey === 'dashboard.html') updateDashboardUI(currentDevice, currentRelayCommand);
+    else                                     updateMonitoringUI(currentDevice, currentRelayCommand);
+  });
+  activeUnsubs.push(u2);
+
+  const u3 = onValue(sterilStatusRef, (snap) => {
+    const status = snap.val() || null;
+    window.__sterilStatus = status;
+    if (typeof window.__renderSterilCard === 'function') window.__renderSterilCard();
+    if (currentPageKey === 'monitoring.html') onSterilStatusUpdate(status);
+  });
+  activeUnsubs.push(u3);
+
+  console.log('[realtime] listeners aktif untuk', page);
+}
+
+function wireUIHandlers() {
+  const uvcToggle     = document.getElementById('uvcToggle');
+  const fanToggle     = document.getElementById('fanToggle');
+  const ethanolToggle = document.getElementById('ethanolToggle');
+  if (uvcToggle     && !uvcToggle.__wired)     { uvcToggle.__wired = true;     uvcToggle.addEventListener('change',     () => toggleUV(uvcToggle.checked)); }
+  if (fanToggle     && !fanToggle.__wired)     { fanToggle.__wired = true;     fanToggle.addEventListener('change',     () => toggleFan(fanToggle.checked)); }
+  if (ethanolToggle && !ethanolToggle.__wired) { ethanolToggle.__wired = true; ethanolToggle.addEventListener('change', () => togglePump(ethanolToggle.checked)); }
+
+  const toggleSterilize = document.getElementById('toggleSterilize');
+  if (toggleSterilize && !toggleSterilize.__wired) {
+    toggleSterilize.__wired = true;
+    toggleSterilize.addEventListener('click', async () => {
+      const uvOn  = currentRelayCommand.uv  === true;
+      const fanOn = currentRelayCommand.fan === true;
+      const newState = !(uvOn && fanOn);
+      await toggleUV(newState);
+      await toggleFan(newState);
+      toggleSterilize.innerHTML = newState
+        ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Stop'
+        : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5,3 19,12 5,21 5,3"/></svg> Start';
+    });
+  }
+}
+
+function refresh() {
+  // Reset history chart & UI pointers untuk halaman baru.
+  historyInitialized = false;
+  currentRelayCommand = { fan: false, uv: false, pump: false };
+  tearDownListeners();
+  const page = getCurrentPage();
+  wireUIHandlers();
+  // Monitoring sterilSection: wire Stop button + scroll ke #steril jika perlu.
+  if (page === 'monitoring.html') {
+    const stopBtn = document.getElementById('sterilStopBtn');
+    if (stopBtn && !stopBtn.__wired) {
+      stopBtn.__wired = true;
+      stopBtn.addEventListener('click', stopSterilizationNow);
+    }
+    if (window.location.hash === '#steril') {
+      setTimeout(() => {
+        const el = document.getElementById('sterilSection');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 350);
+    }
+  }
+  // Auth listener hanya dipasang sekali; listener attach ke DB
+  // ditunda sampai user siap.
+  if (!authUnsub) {
+    authUnsub = onAuthStateChanged(auth, (user) => {
+      if (!user) return;
+      window.__realtimeActive = true;
+      // Re-attach untuk page aktif.
+      tearDownListeners();
+      attachListenersFor(getCurrentPage());
+    });
+  } else {
+    // Auth sudah login sebelumnya → langsung attach page saat ini.
+    attachListenersFor(page);
+  }
+}
+
+// First run (muat langsung tanpa SPA).
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', refresh, { once: true });
+  } else {
+    refresh();
+  }
+}
+
+// Saat SPA pindah halaman, panggil refresh agar listener bind ulang ke
+// DOM baru dan listener halaman lama dilepas.
+window.addEventListener('spa:navigate', () => {
+  console.log('[realtime] SPA navigate → refresh listeners');
+  refresh();
+});
+
+// Expose untuk di-trigger manual (debug / SPA).
+window.SteriflowRealtime = { refresh, tearDown: tearDownListeners };
+
+// ============================================================
+//  Sterilization cycle driver (monitoring.html only)
+//  Sumber kebenaran = /{device}/sterilizationStatus.
+//  Driver menghitung sisa dari (startedAt + totalSeconds), memicu pompa pada
+//  jadwal sprayTimes, dan mematikan relay saat selesai.
+// ============================================================
+
+let latestSterilStatus = null;
+// sterilTicker sudah dideklarasi di atas (blok SPA teardown).
+const sprayFiredLocal = new Set();   // semprotan yang sudah diminta dari tab ini
+const SPRAY_PULSE_MS = 800;
+
+function fmtMMSS(sec) {
+  sec = Math.max(0, Math.round(sec));
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function pulsePumpOnce(devicePath) {
+  set(ref(db, `${devicePath}/relayCommand/pump`), true)
+    .then(() => new Promise(r => setTimeout(r, SPRAY_PULSE_MS)))
+    .then(() => set(ref(db, `${devicePath}/relayCommand/pump`), false))
+    .catch(err => {
+      console.error('pump pulse error:', err);
+      set(ref(db, `${devicePath}/relayCommand/pump`), false).catch(() => {});
+    });
+}
+
+function buildRecipeChipsHTML(s) {
+  const chip = (active, label, color) => {
+    const dim = 'color:var(--text-muted);background:rgba(255,255,255,0.04);border-color:var(--glass-border);';
+    const on  = `color:${color};background:color-mix(in srgb, ${color} 14%, transparent);border-color:color-mix(in srgb, ${color} 55%, transparent);`;
+    return `<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid;font-size:0.72rem;font-weight:600;letter-spacing:0.02em;${active ? on : dim}">${active ? '●' : '○'} ${label}</span>`;
+  };
+  const chips = [];
+  chips.push(chip(!!s.uvUsed,  'UV-C', 'var(--accent)'));
+  chips.push(chip(!!s.fanUsed, 'Fan',  'var(--accent2)'));
+  const sprays = Number(s.spraysTotal) || 0;
+  const interval = Number(s.sprayIntervalSeconds) || 0;
+  const pumpLabel = sprays > 0
+    ? `Pump × ${sprays}${sprays > 1 ? ` / ${interval}s` : ''}`
+    : 'Pump';
+  chips.push(chip(sprays > 0, pumpLabel, 'var(--accent4)'));
+  return chips.join(' ');
+}
+
+async function onSterilStatusUpdate(status) {
+  latestSterilStatus = status;
+
+  const recipeRow    = document.getElementById('sterilRecipeRow');
+  const countdownRow = document.getElementById('sterilCountdownRow');
+
+  if (!status || !status.active || !status.startedAt || !status.totalSeconds) {
+    // Cycle tidak aktif → sembunyikan baris, reset ticker.
+    if (recipeRow)    recipeRow.style.display    = 'none';
+    if (countdownRow) countdownRow.style.display = 'none';
+    if (sterilTicker) { clearInterval(sterilTicker); sterilTicker = null; }
+    sprayFiredLocal.clear();
+    return;
+  }
+
+  // Tampilkan recipe + baris countdown.
+  if (recipeRow) {
+    recipeRow.style.display = 'flex';
+    recipeRow.innerHTML = buildRecipeChipsHTML(status);
+  }
+  if (countdownRow) countdownRow.style.display = 'flex';
+
+  if (!sterilTicker) {
+    sterilTicker = setInterval(() => sterilTick(), 1000);
+    sterilTick(); // first tick immediately
+  }
+}
+
+async function sterilTick() {
+  const s = latestSterilStatus;
+  if (!s || !s.active || !s.startedAt || !s.totalSeconds) return;
+
+  const devicePath = s.deviceId || DEVICE_ID;
+  const elapsed = Math.max(0, Math.floor((Date.now() - s.startedAt) / 1000));
+  const total   = Number(s.totalSeconds) || 0;
+  const remaining = Math.max(0, total - elapsed);
+  const pct = total > 0 ? Math.min(100, Math.round((elapsed / total) * 100)) : 0;
+
+  // DOM update
+  const pctEl = document.getElementById('monitorCyclePercent');
+  const barEl = document.getElementById('monitorCycleBar');
+  const cdEl  = document.getElementById('sterilCountdownRemain');
+  const spEl  = document.getElementById('sterilSprayInfo');
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (barEl) barEl.style.width = pct + '%';
+  if (cdEl)  cdEl.textContent  = fmtMMSS(remaining);
+
+  const spraysTotal = Number(s.spraysTotal) || 0;
+  const spraysDone  = Number(s.spraysDone)  || 0;
+  const sprayTimes  = Array.isArray(s.sprayTimes) ? s.sprayTimes.map(Number) : [];
+
+  if (spEl) {
+    if (spraysTotal > 0) {
+      const nextIdx = spraysDone;
+      const nextIn  = nextIdx < sprayTimes.length
+        ? Math.max(0, Math.round(sprayTimes[nextIdx] - elapsed))
+        : null;
+      spEl.textContent = nextIn !== null && nextIn > 0
+        ? `${spraysDone} / ${spraysTotal} · next in ${nextIn}s`
+        : `${spraysDone} / ${spraysTotal}`;
+    } else {
+      spEl.textContent = 'Tidak ada';
+    }
+  }
+
+  // Picu pulse pompa kalau sudah waktunya & belum pernah dipicu dari tab ini.
+  for (let i = 0; i < sprayTimes.length; i++) {
+    if (i < spraysDone) continue;
+    if (elapsed < sprayTimes[i]) break;
+    const key = `${s.startedAt}:${i}`;
+    if (sprayFiredLocal.has(key)) continue;
+    sprayFiredLocal.add(key);
+    pulsePumpOnce(devicePath);
+    try {
+      await update(ref(db, `${devicePath}/sterilizationStatus`), {
+        spraysDone: i + 1,
+        nextSprayInSeconds: (i + 1 < sprayTimes.length)
+          ? Math.max(0, Math.round(sprayTimes[i + 1] - elapsed))
+          : null,
+        updatedAt: Date.now()
+      });
+    } catch (_) {}
+  }
+
+  // Heartbeat umum.
+  try {
+    await update(ref(db, `${devicePath}/sterilizationStatus`), {
+      remainingSeconds: remaining,
+      updatedAt: Date.now()
+    });
+  } catch (_) {}
+
+  // Selesai → matikan relay + tandai inaktif.
+  if (elapsed >= total) {
+    if (sterilTicker) { clearInterval(sterilTicker); sterilTicker = null; }
+    try {
+      if (s.uvUsed)  await set(ref(db, `${devicePath}/relayCommand/uv`),  false);
+      if (s.fanUsed) await set(ref(db, `${devicePath}/relayCommand/fan`), false);
+      // Pastikan pompa mati juga (best-effort).
+      await set(ref(db, `${devicePath}/relayCommand/pump`), false);
+      await update(ref(db, `${devicePath}/sterilizationStatus`), {
+        active: false,
+        remainingSeconds: 0,
+        nextSprayInSeconds: null,
+        endedAt: Date.now(),
+        updatedAt: Date.now()
+      });
+    } catch (e) { console.error('finalize sterilization:', e); }
+    sprayFiredLocal.clear();
+  }
+}
+
+async function stopSterilizationNow() {
+  const s = latestSterilStatus;
+  if (!s || !s.active) return;
+  const devicePath = s.deviceId || DEVICE_ID;
+  if (sterilTicker) { clearInterval(sterilTicker); sterilTicker = null; }
+  try {
+    if (s.uvUsed)  await set(ref(db, `${devicePath}/relayCommand/uv`),  false);
+    if (s.fanUsed) await set(ref(db, `${devicePath}/relayCommand/fan`), false);
+    await set(ref(db, `${devicePath}/relayCommand/pump`), false);
+    await update(ref(db, `${devicePath}/sterilizationStatus`), {
+      active: false,
+      remainingSeconds: 0,
+      nextSprayInSeconds: null,
+      endedAt: Date.now(),
+      updatedAt: Date.now(),
+      stoppedManually: true
+    });
+  } catch (e) { console.error('stop error:', e); }
+  sprayFiredLocal.clear();
+}
+
+// Tidak ada `const page = ...` lagi di top-level — semua logika page-specific
+// (termasuk hash scroll #steril) sudah dipanggil dari refresh() tiap kali
+// first-load / SPA navigate.
 
 export { db, currentDevice, currentRelayCommand };

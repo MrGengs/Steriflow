@@ -13,6 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="js/theme.js"></script>
 <script src="js/i18n.js"></script>
+<script src="js/spa.js"></script>
 </head>
 <body>
 
@@ -84,7 +85,7 @@
         <!-- Analyzing overlay -->
         <div class="analyzing-text" id="analyzingText" style="display:none;" data-i18n="ai.analyzing">ANALYZING...</div>
         <!-- Error overlay -->
-        <div id="cameraError" style="display:none;position:absolute;inset:0;z-index:12;display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:rgba(0,0,0,0.6);border-radius:inherit;">
+        <div id="cameraError" style="display:none;position:absolute;inset:0;z-index:12;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:rgba(0,0,0,0.6);border-radius:inherit;">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent3)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <div style="font-size:0.8rem;color:var(--accent3);text-align:center;padding:0 20px;" id="cameraErrorText" data-i18n="ai.cam_denied">Camera access denied</div>
         </div>
@@ -299,6 +300,48 @@
 
 </div>
 
+<!-- AI Processing Overlay (blur backdrop + animated 0–100% bar) -->
+<div class="ai-overlay" id="aiOverlay" aria-hidden="true" role="status" aria-live="polite">
+  <div class="ai-overlay-backdrop"></div>
+  <div class="ai-overlay-card">
+    <div class="ai-overlay-icon">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 8V6a2 2 0 0 1 2-2h2"/>
+        <path d="M16 4h2a2 2 0 0 1 2 2v2"/>
+        <path d="M20 16v2a2 2 0 0 1-2 2h-2"/>
+        <path d="M8 20H6a2 2 0 0 1-2-2v-2"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    </div>
+    <div class="ai-overlay-title" data-i18n="ai.overlay.title">Menganalisis ompreng…</div>
+    <div class="ai-overlay-subtitle" data-i18n="ai.overlay.subtitle">Gemini sedang memeriksa permukaan & data sensor</div>
+    <div class="ai-overlay-progress"><div class="ai-overlay-fill" id="aiOverlayFill"></div></div>
+    <div class="ai-overlay-pct" id="aiOverlayPct">0%</div>
+  </div>
+</div>
+
+<style>
+  .ai-overlay{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;animation:aiOverlayIn .22s ease;}
+  .ai-overlay.active{display:flex;}
+  .ai-overlay-backdrop{position:absolute;inset:0;background:rgba(10,10,26,0.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
+  [data-theme="light"] .ai-overlay-backdrop{background:rgba(244,245,251,0.65);}
+  .ai-overlay-card{position:relative;z-index:1;max-width:360px;width:100%;padding:32px 28px 26px;border-radius:20px;background:linear-gradient(145deg,var(--glass-bg2),var(--glass-bg));border:1px solid var(--glass-border);box-shadow:0 24px 60px rgba(10,10,26,0.45);text-align:center;}
+  [data-theme="light"] .ai-overlay-card{background:linear-gradient(145deg,rgba(255,255,255,0.97),rgba(249,247,255,0.88));border-color:rgba(124,92,252,0.22);box-shadow:0 24px 60px rgba(124,92,252,0.22),0 8px 20px rgba(54,214,195,0.1);}
+  .ai-overlay-icon{width:72px;height:72px;margin:0 auto 16px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(124,92,252,0.24),rgba(54,214,195,0.18));box-shadow:0 10px 28px rgba(124,92,252,0.38),inset 0 1px 0 rgba(255,255,255,0.35);animation:aiIconPulse 1.6s ease-in-out infinite;}
+  .ai-overlay-icon svg{width:34px;height:34px;stroke:var(--accent);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;animation:aiIconSpin 3.2s linear infinite;}
+  @keyframes aiIconPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+  @keyframes aiIconSpin{to{transform:rotate(360deg);}}
+  .ai-overlay-title{font-family:'Sora',sans-serif;font-weight:700;font-size:1.02rem;color:var(--text);margin-bottom:4px;letter-spacing:-0.01em;}
+  .ai-overlay-subtitle{font-size:0.78rem;color:var(--text-dim);margin-bottom:20px;line-height:1.5;}
+  .ai-overlay-progress{position:relative;height:8px;border-radius:999px;background:rgba(124,92,252,0.14);overflow:hidden;}
+  [data-theme="light"] .ai-overlay-progress{background:rgba(124,92,252,0.1);box-shadow:inset 0 1px 2px rgba(0,0,0,0.05);}
+  .ai-overlay-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2));box-shadow:0 0 12px rgba(124,92,252,0.55);transition:width .25s ease;position:relative;overflow:hidden;}
+  .ai-overlay-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent);animation:aiShimmer 1.4s linear infinite;transform:translateX(-100%);}
+  @keyframes aiShimmer{to{transform:translateX(100%);}}
+  .ai-overlay-pct{font-family:'Sora',sans-serif;font-size:0.9rem;font-weight:700;margin-top:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  @keyframes aiOverlayIn{from{opacity:0;}to{opacity:1;}}
+</style>
+
 <!-- Device Selection Modal -->
 <div class="modal-overlay" id="deviceModal" style="display:none;">
   <div class="modal-box">
@@ -419,9 +462,26 @@
     return raw.length > 420 ? raw.slice(0, 420) + '…' : raw;
   }
 
+  // Ambil detail kuota yang Gemini lampirkan di error 429 supaya bisa ditampilkan di console.
+  function extractQuotaDetail(errData) {
+    const details = errData?.error?.details || [];
+    const qf = details.find(d => (d['@type'] || '').includes('QuotaFailure'));
+    const violations = qf?.violations || [];
+    const retry = details.find(d => (d['@type'] || '').includes('RetryInfo'));
+    return {
+      model:       errData?.error?.metadata?.model || null,
+      status:      errData?.error?.status || null,
+      message:     errData?.error?.message || null,
+      violations:  violations.map(v => ({ quota: v.quotaId || v.subject, metric: v.quotaMetric, desc: v.description })),
+      retryAfter:  retry?.retryDelay || null
+    };
+  }
+
   // Automatic key rotation on 429: tries all available keys before giving up.
+  // Semua error (429, 403, 404, 500, dsb) dicatat detail di console.
   async function geminiGenerateContent(requestBody) {
     if (!GEMINI_KEYS.length) {
+      console.error('[Gemini] ✗ tidak ada API key. Copy js/gemini-config.example.js → js/gemini-config.js.');
       throw new Error('Gemini API key missing. Copy js/gemini-config.example.js to js/gemini-config.js and add your key.');
     }
     let lastResponse = null;
@@ -430,29 +490,74 @@
 
     while (triedKeys < GEMINI_KEYS.length) {
       var url = getGeminiUrl(currentKeyIndex);
-      console.log('[AI Detection] Trying key ' + (currentKeyIndex + 1) + '/' + GEMINI_KEYS.length);
+      console.log('[Gemini] → key ' + (currentKeyIndex + 1) + '/' + GEMINI_KEYS.length + ' · model ' + GEMINI_MODEL);
+      const reqT0 = performance.now();
 
-      var response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
-      });
+      var response;
+      try {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+        });
+      } catch (netErr) {
+        console.error('[Gemini] ✗ network error (fetch gagal):', netErr);
+        throw new Error('Tidak bisa hubungi Gemini API: ' + (netErr.message || netErr));
+      }
+      const reqMs = Math.round(performance.now() - reqT0);
       lastResponse = response;
-      if (response.ok) return response;
-      lastErrData = await response.json().catch(function() { return {}; });
 
+      if (response.ok) {
+        console.log('[Gemini] ✓ 200 OK dalam', reqMs, 'ms (key', currentKeyIndex + 1, ')');
+        return response;
+      }
+
+      lastErrData = await response.json().catch(function() { return {}; });
+      const detail = extractQuotaDetail(lastErrData);
+
+      // Klasifikasi error untuk log yang berguna.
       if (response.status === 429) {
-        console.warn('[AI Detection] Key ' + (currentKeyIndex + 1) + ' rate-limited, rotating...');
+        const secs = parseRetryDelaySeconds(lastErrData);
+        console.warn(
+          '[Gemini] ⚠ 429 RATE LIMIT · key ' + (currentKeyIndex + 1) + '/' + GEMINI_KEYS.length +
+          ' · coba lagi dalam ~' + (secs || detail.retryAfter || '?') + 's'
+        );
+        if (detail.violations.length) console.warn('[Gemini]   quota violations:', detail.violations);
+        if (detail.message)            console.warn('[Gemini]   message:', detail.message);
         currentKeyIndex = (currentKeyIndex + 1) % GEMINI_KEYS.length;
         triedKeys++;
         if (triedKeys < GEMINI_KEYS.length) {
+          console.log('[Gemini] → rotasi ke key', currentKeyIndex + 1);
           cameraStatus.textContent = 'Status: Key limit — switching key ' + (currentKeyIndex + 1) + '…';
+        } else {
+          console.error('[Gemini] ✗ SEMUA ' + GEMINI_KEYS.length + ' key kena rate limit.');
         }
         continue;
       }
+
+      if (response.status === 401 || response.status === 403) {
+        console.error('[Gemini] ✗ ' + response.status + ' AUTH · key' + (currentKeyIndex + 1) +
+                      ' ditolak. Cek API key / project / izin di Google AI Studio.');
+        if (detail.message) console.error('[Gemini]   message:', detail.message);
+      } else if (response.status === 400) {
+        console.error('[Gemini] ✗ 400 BAD REQUEST — payload tidak valid. Periksa prompt/gambar.');
+        if (detail.message) console.error('[Gemini]   message:', detail.message);
+      } else if (response.status === 404) {
+        console.error('[Gemini] ✗ 404 MODEL tidak tersedia · GEMINI_MODEL =', GEMINI_MODEL,
+                      '· cek daftar model dengan GET https://generativelanguage.googleapis.com/v1beta/models?key=YOUR_KEY');
+      } else if (response.status >= 500) {
+        console.error('[Gemini] ✗ ' + response.status + ' SERVER ERROR — coba ulang beberapa detik lagi.');
+        if (detail.message) console.error('[Gemini]   message:', detail.message);
+      } else {
+        console.error('[Gemini] ✗ ' + response.status + ' ' + response.statusText);
+        if (detail.message) console.error('[Gemini]   message:', detail.message);
+      }
+      if (lastErrData?.error) console.error('[Gemini]   raw error payload:', lastErrData.error);
       break;
     }
-    throw new Error(formatGeminiApiError(lastResponse, lastErrData));
+    const finalMsg = formatGeminiApiError(lastResponse, lastErrData);
+    console.error('[Gemini] ✗ menyerah:', finalMsg);
+    throw new Error(finalMsg);
   }
 
   // Elements
@@ -486,6 +591,46 @@
   const residueList = document.getElementById('residueList');
   const scanHistory = document.getElementById('scanHistory');
 
+  // Loading overlay (AI processing)
+  const aiOverlay     = document.getElementById('aiOverlay');
+  const aiOverlayFill = document.getElementById('aiOverlayFill');
+  const aiOverlayPct  = document.getElementById('aiOverlayPct');
+  let   aiOverlayRAF  = null;
+  let   aiOverlayPctVal = 0;
+
+  function showAiOverlay() {
+    aiOverlayPctVal = 0;
+    aiOverlayFill.style.width = '0%';
+    aiOverlayPct.textContent  = '0%';
+    aiOverlay.classList.add('active');
+    aiOverlay.setAttribute('aria-hidden', 'false');
+    const started = performance.now();
+    // Kurva asimptotik: 0 → ~88% perlahan sebelum AI balas.
+    const tick = () => {
+      const elapsed = performance.now() - started;
+      const target  = 88 * (1 - Math.exp(-elapsed / 9000));
+      if (target > aiOverlayPctVal) {
+        aiOverlayPctVal = target;
+        aiOverlayFill.style.width = aiOverlayPctVal.toFixed(1) + '%';
+        aiOverlayPct.textContent  = Math.round(aiOverlayPctVal) + '%';
+      }
+      if (aiOverlayPctVal < 87.5) aiOverlayRAF = requestAnimationFrame(tick);
+    };
+    aiOverlayRAF = requestAnimationFrame(tick);
+  }
+
+  function hideAiOverlay() {
+    if (aiOverlayRAF) cancelAnimationFrame(aiOverlayRAF);
+    aiOverlayRAF = null;
+    // Snap ke 100% sebentar sebelum hilang.
+    aiOverlayFill.style.width = '100%';
+    aiOverlayPct.textContent  = '100%';
+    setTimeout(() => {
+      aiOverlay.classList.remove('active');
+      aiOverlay.setAttribute('aria-hidden', 'true');
+    }, 380);
+  }
+
   // Device modal elements
   const deviceModal = document.getElementById('deviceModal');
   const deviceList = document.getElementById('deviceList');
@@ -494,11 +639,82 @@
 
   let cameraActive = false;
   let scanning = false;
-  let scanCount = 0;
-  let scans = [];
   let selectedDeviceId = null; // e.g. 'steriflow-001'
   let streamUrl = null;  // http://<esp32-cam-ip>/stream
   let captureUrl = null; // http://<esp32-cam-ip>/capture
+
+  // Live stream HTTPS bridge:
+  //   Web ping /camera/streamRequest tiap 3s → ESP32-CAM dorong frame ke
+  //   /camera/livePreview tiap ~700ms selama ping fresh. onValue di sini
+  //   langsung update cameraImg.src — jadi terasa seperti stream.
+  let streamKeepaliveTimer = null;
+  let livePreviewUnsub     = null;
+  const STREAM_PING_MS     = 3000;
+
+  async function getRtdbShared() {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+    const dbMod = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js");
+    const { firebaseConfig } = await import("./js/firebase-config.js");
+    let rtApp;
+    try { rtApp = initializeApp(firebaseConfig); } catch (e) {
+      const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+      rtApp = getApp();
+    }
+    return { rtdb: dbMod.getDatabase(rtApp), ref: dbMod.ref, set: dbMod.set, onValue: dbMod.onValue };
+  }
+
+  async function startHttpsStream() {
+    if (!selectedDeviceId) return;
+    stopHttpsStream();
+    console.log('[Stream] memulai HTTPS bridge stream…');
+    const { rtdb, ref, set, onValue } = await getRtdbShared();
+    const streamReqPath   = `${selectedDeviceId}/camera/streamRequest`;
+    const livePreviewPath = `${selectedDeviceId}/camera/livePreview`;
+
+    // 1) Kirim keep-alive timestamp — ESP akan push frame selama ini fresh.
+    const ping = () => set(ref(rtdb, streamReqPath), Math.floor(Date.now() / 1000))
+      .catch(err => console.warn('[Stream] ping err:', err));
+    await ping();
+    streamKeepaliveTimer = setInterval(ping, STREAM_PING_MS);
+
+    // 2) Subscribe livePreview — tiap update = frame baru.
+    let frameCount = 0;
+    const t0 = performance.now();
+    livePreviewUnsub = onValue(ref(rtdb, livePreviewPath), (snap) => {
+      const v = snap.val();
+      if (!v || !v.data) return;
+      if (!cameraActive || scanning) return;
+      cameraImg.src = 'data:image/jpeg;base64,' + v.data;
+      cameraImg.style.display = 'block';
+      canvas.style.display    = 'none';
+      frameCount++;
+      if (frameCount === 1 || frameCount % 10 === 0) {
+        const secs = ((performance.now() - t0) / 1000).toFixed(1);
+        console.log(`[Stream] frame #${frameCount} · ${(v.size / 1024).toFixed(1)} KB · ${(frameCount / secs).toFixed(2)} fps rata-rata`);
+      }
+    });
+    console.log('[Stream] keep-alive + listener aktif');
+  }
+
+  async function stopHttpsStream() {
+    if (streamKeepaliveTimer) { clearInterval(streamKeepaliveTimer); streamKeepaliveTimer = null; }
+    if (livePreviewUnsub) {
+      try { livePreviewUnsub(); } catch (_) {}
+      livePreviewUnsub = null;
+    }
+    // Kirim sinyal STOP agar ESP berhenti push segera (tidak menunggu timeout 8s).
+    if (selectedDeviceId) {
+      try {
+        const { rtdb, ref, set } = await getRtdbShared();
+        await set(ref(rtdb, `${selectedDeviceId}/camera/streamRequest`), 0);
+      } catch (_) {}
+    }
+    console.log('[Stream] berhenti');
+  }
+
+  // Pastikan stream berhenti kalau user navigasi SPA ke halaman lain.
+  window.__spaCleanup = window.__spaCleanup || [];
+  window.__spaCleanup.push(() => { stopHttpsStream(); });
 
   // ── ESP32-CAM Controls (stream via MJPEG, capture via /capture) ──
   // streamUrl & captureUrl diresolusi dari /{deviceId}/camera di RTDB
@@ -509,24 +725,61 @@
       idleIcon.style.display = 'none';
       cameraError.style.display = 'none';
       cameraStatus.textContent = 'Status: Connecting…';
+      console.log('[Camera] Open device', deviceId);
 
       const info = await fetchCameraInfo(deviceId);
+      console.log('[Camera] cameraInfo:', info);
       if (!info || !info.streamUrl || !info.captureUrl) {
         throw new Error('ESP32-CAM belum register untuk ' + deviceId + '. Nyalakan ESP32-CAM & pastikan 1 jaringan WiFi.');
       }
       streamUrl  = info.streamUrl;
       captureUrl = info.captureUrl;
 
-      await new Promise((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error('Timeout akses ESP32-CAM di ' + info.ip + '. Cek WiFi / firewall.')), 10000);
-        cameraImg.onload  = () => { clearTimeout(timer); resolve(); };
-        cameraImg.onerror = () => { clearTimeout(timer); reject(new Error('Gagal akses ESP32-CAM di ' + info.ip + '. Pastikan HP & ESP32-CAM 1 jaringan.')); };
-        cameraImg.src = streamUrl + '?t=' + Date.now(); // bust cache
-      });
+      const httpsBlocked = window.location.protocol === 'https:' && /^http:\/\//i.test(info.streamUrl);
+      console.log('[Camera] HTTPS page?', window.location.protocol === 'https:',
+                  '· streamUrl=', info.streamUrl, '→ bridge-mode:', httpsBlocked);
 
-      cameraImg.style.display = 'block';
-      canvas.style.display = 'none';
-      cameraResolution.textContent = 'Source: ' + info.ip;
+      if (httpsBlocked) {
+        // Tidak bisa tampilkan MJPEG langsung. Gunakan RTDB bridge: minta
+        // satu preview lalu tampilkan sebagai snapshot statik.
+        cameraResolution.textContent = 'Source: ' + info.ip + ' · HTTPS bridge';
+        cameraStatus.textContent = 'Status: Requesting preview…';
+        try {
+          console.log('[Camera] meminta preview awal via RTDB…');
+          const b64 = await captureViaRTDB();
+          console.log('[Camera] preview awal diterima, bytes ≈', b64.length);
+          // Gunakan hasil dari canvas (sudah di-draw oleh captureViaRTDB) sebagai
+          // data-url untuk cameraImg, supaya tampilan konsisten.
+          cameraImg.src = canvas.toDataURL('image/jpeg', 0.85);
+          cameraImg.style.display = 'block';
+          canvas.style.display    = 'none';
+        } catch (e) {
+          console.warn('[Camera] preview awal gagal — lanjut tanpa snapshot.', e);
+          cameraImg.removeAttribute('src');
+          cameraImg.style.display = 'none';
+          idleIcon.style.display  = '';
+          cameraStatus.textContent = 'Status: Online (tekan Scan)';
+        }
+        // Start continuous push-stream dari ESP (feels like live).
+        cameraActive = true;   // set lebih dulu supaya listener langsung lolos guard
+        startHttpsStream();
+      } else {
+        // HTTP langsung — bisa pakai MJPEG live.
+        console.log('[Camera] memuat MJPEG langsung…');
+        await new Promise((resolve, reject) => {
+          const timer = setTimeout(
+            () => reject(new Error('Timeout akses ESP32-CAM di ' + info.ip + '. Cek WiFi / firewall.')),
+            10000
+          );
+          cameraImg.onload  = () => { clearTimeout(timer); resolve(); };
+          cameraImg.onerror = () => { clearTimeout(timer); reject(new Error('Gagal akses ESP32-CAM di ' + info.ip + '. Pastikan HP & ESP32-CAM 1 jaringan.')); };
+          cameraImg.src = streamUrl + '?t=' + Date.now();
+        });
+        cameraImg.style.display = 'block';
+        canvas.style.display    = 'none';
+        cameraResolution.textContent = 'Source: ' + info.ip;
+      }
+
       cameraActive = true;
       cameraBtnText.textContent = tr('ai.btn.close', 'Close Camera');
       cameraBtnText.setAttribute('data-i18n', 'ai.btn.close');
@@ -535,7 +788,9 @@
         scanBtn.disabled = false;
         scanBtn.style.opacity = '1';
         scanBtn.removeAttribute('title');
-        cameraStatus.textContent = 'Status: Live — ' + deviceId;
+        cameraStatus.textContent = httpsBlocked
+          ? 'Status: Live (HTTPS bridge) — ' + deviceId
+          : 'Status: Live — ' + deviceId;
       } else {
         scanBtn.disabled = true;
         scanBtn.style.opacity = '0.5';
@@ -544,7 +799,7 @@
       }
       liveDot.style.display = '';
     } catch (err) {
-      console.error('Camera error:', err);
+      console.error('[Camera] startCamera error:', err);
       stopCamera();
       cameraError.style.display = 'flex';
       cameraErrorText.textContent = err.message || 'Gagal buka ESP32-CAM.';
@@ -552,6 +807,7 @@
   }
 
   function stopCamera() {
+    stopHttpsStream();                // hentikan RTDB push-stream + keep-alive
     cameraImg.removeAttribute('src'); // stop MJPEG pull
     cameraImg.onload = null;
     cameraImg.onerror = null;
@@ -568,12 +824,60 @@
     canvas.style.display = 'none';
   }
 
-  // Ambil JPEG frame dari /capture ESP32-CAM → gambar ke canvas → base64 untuk Gemini.
+  // Ambil JPEG frame → gambar ke canvas → base64 untuk Gemini.
+  // Di HTTPS: fetch HTTP diblokir browser, jadi lewat RTDB (ESP upload base64).
   async function captureFrame() {
+    const needRtdb = window.location.protocol === 'https:'
+                     && captureUrl && /^http:\/\//i.test(captureUrl);
+    if (needRtdb) {
+      console.log('[Scan] Mode HTTPS terdeteksi → capture via RTDB bridge.');
+      return captureViaRTDB();
+    }
+    console.log('[Scan] Mode HTTP → fetch langsung', captureUrl);
     if (!captureUrl) throw new Error('ESP32-CAM belum terhubung.');
-    const res = await fetch(captureUrl + '?t=' + Date.now(), { cache: 'no-store' });
+
+    // Kalau MJPEG stream sedang aktif di ESP32-CAM dengan 1 httpd, thread httpd-nya
+    // menggantung di loop /stream → /capture tidak pernah diproses. Kita jeda
+    // MJPEG dulu (lepas src), beri waktu singkat buat ESP melepas thread, lalu fetch.
+    const prevSrc = cameraImg.getAttribute('src') || '';
+    const streamWasActive = /\/stream(\?|$)/i.test(prevSrc);
+    if (streamWasActive) {
+      console.log('[Scan] jeda MJPEG supaya httpd ESP bebas memproses /capture');
+      cameraImg.removeAttribute('src');
+      await new Promise(r => setTimeout(r, 400));
+    }
+
+    const t0 = performance.now();
+    const ac = new AbortController();
+    const abortTimer = setTimeout(() => {
+      console.warn('[Scan] /capture melewati batas 10 detik — dibatalkan.');
+      ac.abort();
+    }, 10000);
+
+    let res;
+    try {
+      res = await fetch(captureUrl + '?t=' + Date.now(), { cache: 'no-store', signal: ac.signal });
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        throw new Error(
+          'ESP32-CAM /capture timeout 10 detik. Biasanya karena MJPEG stream memakai ' +
+          'satu-satunya thread httpd. Tutup kamera dan buka lagi, atau flash firmware ' +
+          'terbaru (stream dipindah ke port 81).'
+        );
+      }
+      throw err;
+    } finally {
+      clearTimeout(abortTimer);
+      if (streamWasActive) {
+        console.log('[Scan] resume MJPEG');
+        cameraImg.src = prevSrc.split('?')[0] + '?t=' + Date.now();
+      }
+    }
+
+    console.log('[Scan] /capture status:', res.status, 'waktu:', Math.round(performance.now() - t0), 'ms');
     if (!res.ok) throw new Error('ESP32-CAM /capture HTTP ' + res.status);
     const blob = await res.blob();
+    console.log('[Scan] blob size:', blob.size, 'bytes · type:', blob.type);
     const objUrl = URL.createObjectURL(blob);
     try {
       const img = await new Promise((resolve, reject) => {
@@ -587,10 +891,92 @@
       ctx.drawImage(img, 0, 0);
       cameraImg.style.display = 'none';
       canvas.style.display = 'block';
-      return encodeCanvasForGemini(canvas);
+      const b64 = encodeCanvasForGemini(canvas);
+      console.log('[Scan] Canvas di-encode untuk Gemini. Panjang base64 ≈', b64.length);
+      return b64;
     } finally {
       URL.revokeObjectURL(objUrl);
     }
+  }
+
+  // Capture via Firebase RTDB — ESP32-CAM watch /camera/captureRequest (int detik),
+  // lalu upload JPEG base64 ke /camera/lastCapture dengan timestamp yang sama.
+  async function captureViaRTDB() {
+    if (!selectedDeviceId) throw new Error('Belum pilih device.');
+    const ts = Math.floor(Date.now() / 1000);
+    console.log('[RTDB-cap] request ts =', ts, 'device =', selectedDeviceId);
+
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+    const { getDatabase, ref, set, onValue, off } =
+      await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js");
+    const { firebaseConfig } = await import("./js/firebase-config.js");
+    let rtApp;
+    try { rtApp = initializeApp(firebaseConfig); } catch (e) {
+      const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+      rtApp = getApp();
+    }
+    const rtdb = getDatabase(rtApp);
+
+    // 1) Tulis permintaan capture.
+    const reqT0 = performance.now();
+    await set(ref(rtdb, `${selectedDeviceId}/camera/captureRequest`), ts);
+    console.log('[RTDB-cap] captureRequest tertulis dalam', Math.round(performance.now() - reqT0), 'ms');
+
+    // 2) Tunggu /camera/lastCapture dengan timestamp >= ts (maks 15s).
+    const capRef = ref(rtdb, `${selectedDeviceId}/camera/lastCapture`);
+    const waitT0 = performance.now();
+
+    return new Promise((resolve, reject) => {
+      let done = false;
+      const finish = (fn) => {
+        if (done) return;
+        done = true;
+        try { unsub && unsub(); } catch (_) {}
+        try { off(capRef); } catch (_) {}
+        fn();
+      };
+      const timer = setTimeout(() => {
+        console.warn('[RTDB-cap] TIMEOUT 15s — ESP32-CAM tidak merespons.');
+        finish(() => reject(new Error(
+          'ESP32-CAM tidak merespons (15s). Pastikan ESP32-CAM ON, terhubung WiFi, dan ' +
+          'firmware sudah versi terbaru (dengan pollCaptureRequest).'
+        )));
+      }, 15000);
+
+      const unsub = onValue(capRef, (snap) => {
+        const v = snap.val();
+        if (!v) { console.log('[RTDB-cap] lastCapture kosong — menunggu…'); return; }
+        const vts = Number(v.timestamp) || 0;
+        if (vts < ts) {
+          console.log('[RTDB-cap] snapshot lama (ts', vts, '<', ts, ') — diabaikan.');
+          return;
+        }
+        clearTimeout(timer);
+        const waitMs = Math.round(performance.now() - waitT0);
+        console.log('[RTDB-cap] ✓ dapat capture — ts=', vts, 'ukuran jpg=', v.size,
+                    'b64=', (v.data || '').length, 'tunggu=', waitMs, 'ms');
+
+        const img = new Image();
+        img.onload = () => {
+          canvas.width  = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          ctx.drawImage(img, 0, 0);
+          cameraImg.style.display = 'none';
+          canvas.style.display    = 'block';
+          const b64 = encodeCanvasForGemini(canvas);
+          console.log('[RTDB-cap] canvas di-encode untuk Gemini. Panjang base64 ≈', b64.length);
+          finish(() => resolve(b64));
+        };
+        img.onerror = () => {
+          console.error('[RTDB-cap] decode gagal');
+          finish(() => reject(new Error('Gagal decode gambar dari RTDB.')));
+        };
+        img.src = 'data:image/jpeg;base64,' + v.data;
+      }, (err) => {
+        console.error('[RTDB-cap] listener error:', err);
+        finish(() => reject(new Error('Firebase listener error: ' + err.message)));
+      });
+    });
   }
 
   // Baca /{deviceId}/camera dari RTDB (ip, streamUrl, captureUrl, online, lastSeen).
@@ -771,32 +1157,48 @@
     scanBtnText.setAttribute('data-i18n', 'ai.analyzing');
     scanBtn.disabled = true;
     cameraStatus.textContent = 'Status: Capturing';
+    showAiOverlay();
 
     try {
+      console.log('[Scan] ▶ mulai — device:', selectedDeviceId);
+      const t0 = performance.now();
+
       // Ambil frame + snapshot sensor secara paralel → 1x latensi.
       const [imageBase64, snapshot] = await Promise.all([
         captureFrame(),
-        fetchSensorSnapshot(selectedDeviceId).catch(() => ({ sensorData: {}, status: {}, relay: {} }))
+        fetchSensorSnapshot(selectedDeviceId).catch((e) => {
+          console.warn('[Scan] fetchSensorSnapshot gagal:', e);
+          return { sensorData: {}, status: {}, relay: {} };
+        })
       ]);
+      console.log('[Scan] capture + sensor snapshot selesai dalam',
+                  Math.round(performance.now() - t0), 'ms · sensor:', snapshot);
+
       cameraStatus.textContent = 'Status: Analyzing';
+      const aiT0 = performance.now();
       const result = await analyzeWithGemini(imageBase64, snapshot);
+      console.log('[Scan] Gemini balas dalam', Math.round(performance.now() - aiT0), 'ms', result);
+
       result.__deviceId = selectedDeviceId;
       result.__sensorSnapshot = snapshot;
       window.__lastScanResult = result;
       displayResults(result);
-      addToHistory(result);
+      scheduleRecentScansRefresh();  // Firestore akan terisi lewat saveLog()
 
       // Kalau AI bilang tidak ada ompreng → jangan mulai sterilisasi.
       if (result.object_detected === false) {
+        console.log('[Scan] object_detected=false → sterilisasi tidak ditawarkan');
         hideSterilizationPanel();
       } else {
         showSterilizationPanel(result);
       }
+      console.log('[Scan] ✓ total', Math.round(performance.now() - t0), 'ms');
     } catch (err) {
-      console.error('Scan error:', err);
+      console.error('[Scan] GAGAL:', err);
       displayError(err.message);
     }
 
+    hideAiOverlay();
     analyzingText.style.display = 'none';
     scanLine.classList.remove('active');
     scanBtnText.textContent = tr('ai.btn.scan_again', 'Scan Again');
@@ -843,6 +1245,8 @@
       '"residues":[{"name":"string","percentage":0-100}],' +
       '"sterilization":{"uv_needed":true|false,"fan_needed":true|false,"spray_count":0-5,"spray_interval_seconds":0-180,"duration_minutes":0-10,"reason":"short reason"}}';
 
+    console.log('[Gemini] mengirim request · image b64 ≈', imageBase64.length,
+                'bytes · prompt ≈', prompt.length, 'char');
     const response = await geminiGenerateContent({
       contents: [{
         parts: [
@@ -858,13 +1262,16 @@
 
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    console.log('[Gemini] raw text (', text.length, 'char):', text.slice(0, 200) + (text.length > 200 ? '…' : ''));
 
     // Parse JSON from response (strip markdown code blocks if present)
     const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     try {
-      return JSON.parse(jsonStr);
+      const parsed = JSON.parse(jsonStr);
+      console.log('[Gemini] parsed JSON:', parsed);
+      return parsed;
     } catch (e) {
-      console.error('Failed to parse Gemini response:', text);
+      console.error('[Gemini] Gagal parse JSON. Raw:', text);
       throw new Error('Failed to parse AI response');
     }
   }
@@ -983,39 +1390,88 @@
     residueList.innerHTML = '';
   }
 
-  // ── Scan History ───────────────────────────────────────────
-  function addToHistory(result) {
-    scanCount++;
-    const now = new Date();
-    scans.unshift({
-      id: scanCount,
-      time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      date: now.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
-      classification: result.classification
-    });
+  // ── Scan History (Firestore) ───────────────────────────────
+  // Setiap scan baru tersimpan sebagai dokumen di
+  // users/{uid}/sterilization_logs (lewat saveLog()). Card ini
+  // selalu membaca 10 terbaru dari sana — jadi konsisten dengan
+  // halaman History dan lintas-device.
+  const HISTORY_SKELETON_HTML =
+    '<div style="font-size:0.78rem;color:var(--text-dim);text-align:center;padding:16px 0;" data-i18n="ai.no_scans">' +
+    tr('ai.no_scans', 'Belum ada. Mulai scan untuk melihat riwayat.') +
+    '</div>';
 
-    // Keep only last 10
-    if (scans.length > 10) scans.pop();
+  async function loadRecentScans() {
+    try {
+      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+      const { getFirestore, collection, query, orderBy, getDocs, limit: fsLimit } =
+        await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-firestore.js");
+      const { getAuth } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js");
+      const { firebaseConfig } = await import("./js/firebase-config.js");
 
-    renderHistory();
+      let fsApp;
+      try { fsApp = initializeApp(firebaseConfig); } catch (_) {
+        const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+        fsApp = getApp();
+      }
+      const auth = getAuth(fsApp);
+      const user = auth.currentUser;
+      if (!user) {
+        console.log('[Recent] user belum siap — menunda render');
+        return;
+      }
+      const fsdb = getFirestore(fsApp);
+
+      const q = query(
+        collection(fsdb, 'users', user.uid, 'sterilization_logs'),
+        orderBy('createdAt', 'desc'),
+        fsLimit(10)
+      );
+      const snap = await getDocs(q);
+      const rows = [];
+      snap.forEach(doc => rows.push({ id: doc.id, ...doc.data() }));
+      console.log('[Recent] Firestore snapshot →', rows.length, 'entri');
+      renderRecentScans(rows);
+    } catch (e) {
+      console.error('[Recent] gagal muat:', e);
+    }
   }
 
-  function renderHistory() {
-    scanHistory.innerHTML = scans.map((s, i) => {
+  function renderRecentScans(rows) {
+    if (!rows || rows.length === 0) {
+      scanHistory.innerHTML = HISTORY_SKELETON_HTML;
+      return;
+    }
+    scanHistory.innerHTML = rows.map((s, i) => {
+      const d = s.createdAt?.toDate?.() || new Date();
+      const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      const day  = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+      const cls  = s.classification || 'Unknown';
       let badgeClass = 'badge-clean';
-      if (s.classification === 'Moderate') badgeClass = 'badge-moderate';
-      if (s.classification === 'Dirty') badgeClass = 'badge-dirty';
+      if (cls === 'Moderate') badgeClass = 'badge-moderate';
+      else if (cls === 'Dirty') badgeClass = 'badge-dirty';
+      else if (cls === 'Unknown' || s.objectDetected === false) badgeClass = 'badge-standby';
 
-      const border = i < scans.length - 1 ? 'border-bottom:1px solid var(--glass-border);' : '';
+      const border = i < rows.length - 1 ? 'border-bottom:1px solid var(--glass-border);' : '';
+      const statusChip = s.status === 'Sterilized'
+        ? `<span style="font-size:0.62rem;color:var(--accent2);">✓ disteril ${s.durationMinutes || 0} min</span>`
+        : s.status === 'Skipped'
+          ? '<span style="font-size:0.62rem;color:var(--text-muted);">dilewati</span>'
+          : '';
       return `
         <div class="flex items-center justify-between" style="padding:10px 0;${border}">
-          <div style="font-size:0.8rem;">
-            <div style="font-weight:500;">Scan #${String(s.id).padStart(3, '0')}</div>
-            <div style="font-size:0.68rem;color:var(--text-dim);">${s.time} — ${s.date}</div>
+          <div style="font-size:0.8rem;min-width:0;">
+            <div style="font-weight:500;">${escapeHtml(cls)} <span style="font-size:0.62rem;color:var(--text-muted);">· ${s.confidence || 0}%</span></div>
+            <div style="font-size:0.68rem;color:var(--text-dim);">${time} — ${day} ${statusChip ? '· ' + statusChip : ''}</div>
           </div>
-          <span class="badge ${badgeClass}">${s.classification}</span>
+          <span class="badge ${badgeClass}">${escapeHtml(cls)}</span>
         </div>`;
     }).join('');
+  }
+
+  // Dipanggil setelah scan baru dimasukkan Firestore — refresh daftar.
+  function scheduleRecentScansRefresh() {
+    // Beri sedikit jeda supaya serverTimestamp sudah tertulis.
+    setTimeout(() => loadRecentScans().catch(() => {}), 400);
   }
 
   // ── Sterilization Panel Logic ────────────────────────────
@@ -1032,7 +1488,6 @@
   const sterilSkipBtn = document.getElementById('sterilSkipBtn');
   const sterilComplete = document.getElementById('sterilComplete');
 
-  let sterilTimer = null;
   let currentSterilResult = null;
   let currentDurationMin = 0;
   let currentUvNeeded = false;
@@ -1073,9 +1528,12 @@
     if (!count || count <= 0) return [];
     const buffer = 3;
     if (count === 1) return [0];
+    // Kalau interval tidak masuk akal tapi jumlah semprot >1, sebar rata di durasi.
+    let step = Number(intervalSec) || 0;
+    if (step <= 0) step = Math.max(10, Math.floor(Math.max(1, totalSec - buffer) / count));
     const times = [];
     for (let i = 0; i < count; i++) {
-      const t = i * (intervalSec || 0);
+      const t = i * step;
       if (t >= totalSec - buffer) break;
       times.push(t);
     }
@@ -1106,8 +1564,8 @@
 
     const nothingToDo = !currentUvNeeded && !currentFanNeeded && currentSprayTimes.length === 0;
     if (cls === 'Clean' || nothingToDo) {
-      // No sterilization needed — auto-save
-      sterilRecommendation.innerHTML = '<span style="color:var(--accent2);font-weight:600;">Ompreng is clean!</span> No sterilization needed.';
+      // Tidak perlu sterilisasi → auto-save, tanpa tombol Start.
+      sterilRecommendation.innerHTML = '<span style="color:var(--accent2);font-weight:600;">Ompreng bersih!</span> Tidak perlu sterilisasi.';
       sterilDuration.textContent = '0 min';
       sterilStatus.textContent = 'Clean';
       sterilStatus.className = 'badge badge-clean';
@@ -1122,48 +1580,53 @@
       return;
     }
 
-    // Resep yang dipakai
-    const activeParts = [];
-    if (currentUvNeeded)  activeParts.push('UV-C');
-    if (currentFanNeeded) activeParts.push('Fan');
-    const activeText = activeParts.length ? activeParts.join(' + ') : 'Spray only';
-    const levelText = cls === 'Dirty' ? 'heavily contaminated' : 'lightly contaminated';
-    const reasonText = sterilRec.reason ? ` <span style="font-size:0.75rem;color:var(--text-dim);">(${escapeHtml(sterilRec.reason)})</span>` : '';
-
-    // Ringkasan spray
-    let sprayLine = '';
-    if (currentSprayTimes.length > 0) {
-      if (currentSprayTimes.length === 1) {
-        sprayLine = `Sanitizer <strong>1 semprot</strong> saat proses dimulai.`;
-      } else {
-        sprayLine = `Sanitizer <strong>${currentSprayTimes.length} semprot</strong> setiap <strong>${currentSprayIntervalSec}s</strong>.`;
-      }
-    } else {
-      sprayLine = 'Tanpa semprot sanitizer.';
+    // Resep dari Gemini → chip UV / Fan / Pump
+    function chip(active, label, color) {
+      const dim = 'color:var(--text-muted);background:rgba(255,255,255,0.04);border-color:var(--glass-border);';
+      const on  = `color:${color};background:color-mix(in srgb, ${color} 14%, transparent);border-color:color-mix(in srgb, ${color} 55%, transparent);`;
+      return `<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid;font-size:0.72rem;font-weight:600;letter-spacing:0.02em;${active ? on : dim}">${active ? '●' : '○'} ${label}</span>`;
     }
 
+    const chips = [
+      chip(currentUvNeeded,  'UV-C',  'var(--accent)'),
+      chip(currentFanNeeded, 'Fan',   'var(--accent2)'),
+      chip(currentSprayTimes.length > 0,
+        currentSprayTimes.length === 0
+          ? 'Pump'
+          : `Pump × ${currentSprayTimes.length}${currentSprayTimes.length > 1 ? ` / ${currentSprayIntervalSec}s` : ''}`,
+        'var(--accent4)')
+    ].join(' ');
+
+    const levelText = cls === 'Dirty' ? 'sangat kotor' : 'kotor ringan';
+    const reasonText = sterilRec.reason ? `<div style="font-size:0.72rem;color:var(--text-dim);margin-top:4px;">${escapeHtml(sterilRec.reason)}</div>` : '';
+
     sterilRecommendation.innerHTML =
-      `Tray surface is <span style="color:${cls === 'Dirty' ? 'var(--accent3)' : 'var(--accent4)'};font-weight:600;">${levelText}</span>. ` +
-      `Gemini merekomendasikan <strong>${activeText}</strong> selama <strong>${currentDurationMin} menit</strong>.${reasonText}` +
-      `<div style="font-size:0.78rem;color:var(--text);margin-top:6px;">${sprayLine}</div>` +
-      `<div style="font-size:0.7rem;color:var(--text-muted);margin-top:6px;">Device: <strong>${escapeHtml(sterilDeviceId)}</strong></div>`;
+      `<div style="font-size:0.82rem;">Analisis AI: permukaan ompreng <span style="color:${cls === 'Dirty' ? 'var(--accent3)' : 'var(--accent4)'};font-weight:600;">${levelText}</span>. Disarankan sterilisasi selama <strong>${currentDurationMin} menit</strong>.</div>` +
+      `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">${chips}</div>` +
+      reasonText +
+      `<div style="font-size:0.7rem;color:var(--text-muted);margin-top:8px;">Device: <strong>${escapeHtml(sterilDeviceId)}</strong></div>`;
 
     sterilDuration.textContent = currentDurationMin + ' min';
-    sterilStatus.textContent = 'Starting...';
-    sterilStatus.className = 'badge badge-sterilizing';
+    sterilStatus.textContent = 'Ready';
+    sterilStatus.className = 'badge badge-standby';
     sterilBar.style.width = '0%';
     sterilPercent.textContent = '0%';
     sterilCountdown.textContent = String(currentDurationMin).padStart(2, '0') + ':00';
-    sterilCountdownLabel.textContent = 'Time remaining';
+    sterilCountdownLabel.textContent = 'Estimasi durasi';
 
-    // Show stop button
+    // Tampilkan Start + Skip. Stop akan dikendalikan dari monitoring.html.
+    sterilStartBtn.style.display = '';
+    sterilStartBtn.disabled = false;
+    sterilStartBtn.style.opacity = '1';
+    if (sterilStartText) sterilStartText.textContent =
+      (window.SteriflowI18n && window.SteriflowI18n.t('ai.steril.start_btn')) || 'Start Sterilisasi';
+
     sterilSkipBtn.style.display = '';
-    sterilSkipBtn.textContent = 'Stop';
+    sterilSkipBtn.disabled = false;
+    sterilSkipBtn.textContent =
+      (window.SteriflowI18n && window.SteriflowI18n.t('common.skip')) || 'Lewati';
 
     sterilPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-    // Auto-start sterilization after 1 second
-    setTimeout(() => beginSterilization(), 1000);
   }
 
   // Helper: get RTDB instance
@@ -1191,34 +1654,38 @@
     }
   }
 
-  // Auto-start sterilization function
-  async function beginSterilization() {
-    if (sterilTimer) return;
+  // Klik "Start Sterilisasi" → publish cycle ke RTDB + nyalakan relay + redirect
+  // ke monitoring.html. Timer + pulse pump + auto-off ditangani driver di
+  // monitoring.html (realtime.js) supaya tidak bergantung pada tab ini.
+  async function launchSterilizationAndRedirect() {
+    if (sterilStartBtn.disabled) return;
+    sterilStartBtn.disabled = true;
+    sterilStartBtn.style.opacity = '0.6';
+    sterilSkipBtn.disabled = true;
+    sterilSkipBtn.style.opacity = '0.6';
 
-    sterilStatus.textContent = 'Sterilizing';
+    sterilStatus.textContent = 'Starting…';
     sterilStatus.className = 'badge badge-sterilizing';
 
     const devicePath = sterilDeviceId || 'steriflow-001';
+    const totalSec = Math.round(currentDurationMin * 60);
+    const totalSprays = currentSprayTimes.length;
+    const startedAt = Date.now();
+
+    console.log('[Steril] ▶ launch', {
+      device: devicePath, durationMin: currentDurationMin,
+      uv: currentUvNeeded, fan: currentFanNeeded, sprays: currentSprayTimes
+    });
 
     try {
-      const { rtdb, ref, set, update, onDisconnect } = await getRTDB();
+      const { rtdb, ref, set } = await getRTDB();
 
-      // Nyalakan hanya yang diminta Gemini.
-      if (currentUvNeeded) {
-        await set(ref(rtdb, `${devicePath}/relayCommand/uv`), true);
-      }
-      if (currentFanNeeded) {
-        await set(ref(rtdb, `${devicePath}/relayCommand/fan`), true);
-      }
+      // Nyalakan relay sesuai resep.
+      if (currentUvNeeded)  { await set(ref(rtdb, `${devicePath}/relayCommand/uv`),  true); console.log('[Steril] UV ON'); }
+      if (currentFanNeeded) { await set(ref(rtdb, `${devicePath}/relayCommand/fan`), true); console.log('[Steril] Fan ON'); }
 
-      const totalSec = Math.round(currentDurationMin * 60);
-      const startedAt = Date.now();
-      const totalSprays = currentSprayTimes.length;
-      let spraysDone = 0;
-
-      // Publish initial sterilization status ke RTDB (dashboard + ESP32 bisa baca).
-      const statusRef = ref(rtdb, `${devicePath}/sterilizationStatus`);
-      await set(statusRef, {
+      // Tulis status sterilisasi (driver monitoring tinggal baca).
+      await set(ref(rtdb, `${devicePath}/sterilizationStatus`), {
         active: true,
         deviceId: devicePath,
         durationMinutes: currentDurationMin,
@@ -1231,131 +1698,48 @@
         pumpUsed: totalSprays > 0,
         spraysTotal: totalSprays,
         spraysDone: 0,
+        sprayTimes: currentSprayTimes,          // jadwal tiap semprot (detik elapsed)
         sprayIntervalSeconds: currentSprayIntervalSec,
-        nextSprayInSeconds: totalSprays > 0 ? 0 : null
+        nextSprayInSeconds: totalSprays > 0 ? (currentSprayTimes[0] || 0) : null,
+        classification: currentSterilResult?.classification || null,
+        contaminationLevel: currentSterilResult?.contamination_level || 0,
+        reason: currentSterilResult?.sterilization?.reason || ''
       });
-      // Kalau tab disconnect, RTDB otomatis clear flag active.
-      try { await onDisconnect(statusRef).update({ active: false, updatedAt: Date.now() }); } catch (_) {}
 
-      let elapsed = 0;
+      // Semprotan pertama (t=0) dipicu dari sini supaya user langsung lihat pump
+      // aktif sebelum pindah halaman. Semprotan selanjutnya dijalankan driver.
+      if (totalSprays > 0 && currentSprayTimes[0] === 0) {
+        // fire-and-forget — driver akan menaikkan spraysDone via tick.
+        pulsePump(devicePath, rtdb, ref, set);
+      }
 
-      sterilTimer = setInterval(async () => {
-        elapsed++;
-        const pct = Math.min(100, Math.round((elapsed / totalSec) * 100));
-        const remaining = Math.max(0, totalSec - elapsed);
-        const m = Math.floor(remaining / 60);
-        const s = remaining % 60;
+      console.log('[Steril] sterilizationStatus tertulis. Menyimpan log…');
 
-        sterilPercent.textContent = pct + '%';
-        sterilBar.style.width = pct + '%';
-        sterilCountdown.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+      // Simpan log ke Firestore sebagai "Sterilized" (user sudah memulai siklus).
+      // Di-await supaya tidak hilang gara-gara tab pindah ke monitoring sebelum selesai.
+      try { await saveLog(currentSterilResult, currentDurationMin, 'Sterilized'); console.log('[Steril] log Firestore tersimpan'); }
+      catch (e) { console.error('[Steril] saveLog gagal:', e); }
 
-        // Trigger semprot kalau sudah waktunya (boleh >1 kalau timer telat).
-        while (spraysDone < totalSprays && elapsed >= currentSprayTimes[spraysDone]) {
-          spraysDone++;
-          pulsePump(devicePath, rtdb, ref, set); // fire-and-forget, jangan blokir tick
-        }
-
-        const nextSprayIn = spraysDone < totalSprays
-          ? Math.max(0, currentSprayTimes[spraysDone] - elapsed)
-          : null;
-
-        // Heartbeat ke RTDB supaya dashboard & ESP bisa render live.
-        try {
-          await update(statusRef, {
-            remainingSeconds: remaining,
-            spraysDone,
-            nextSprayInSeconds: nextSprayIn,
-            updatedAt: Date.now()
-          });
-        } catch (_) { /* best-effort */ }
-
-        if (elapsed >= totalSec) {
-          clearInterval(sterilTimer);
-          sterilTimer = null;
-
-          // Matikan semua yang sempat nyala.
-          if (currentUvNeeded)  await set(ref(rtdb, `${devicePath}/relayCommand/uv`),  false);
-          if (currentFanNeeded) await set(ref(rtdb, `${devicePath}/relayCommand/fan`), false);
-          if (totalSprays > 0)  await set(ref(rtdb, `${devicePath}/relayCommand/pump`), false);
-
-          // Tandai selesai di RTDB.
-          try {
-            await update(statusRef, {
-              active: false,
-              remainingSeconds: 0,
-              spraysDone: totalSprays,
-              nextSprayInSeconds: null,
-              endedAt: Date.now(),
-              updatedAt: Date.now()
-            });
-            await onDisconnect(statusRef).cancel();
-          } catch (_) {}
-
-          // UI selesai
-          sterilStatus.textContent = 'Complete';
-          sterilStatus.className = 'badge badge-done';
-          sterilCountdown.textContent = '00:00';
-          sterilSkipBtn.style.display = 'none';
-          sterilComplete.style.display = '';
-          sterilComplete.querySelector('div:first-of-type').textContent = 'Sterilization Complete!';
-          const finishParts = [];
-          if (currentUvNeeded)  finishParts.push('UV');
-          if (currentFanNeeded) finishParts.push('Fan');
-          if (totalSprays > 0)  finishParts.push('Pump');
-          const finishText = finishParts.length
-            ? `${finishParts.join(' + ')} auto-off. Log saved.`
-            : 'Log saved to history.';
-          sterilComplete.querySelector('div:last-of-type').textContent = finishText;
-
-          saveLog(currentSterilResult, currentDurationMin, 'Sterilized');
-        }
-      }, 1000);
-
+      console.log('[Steril] → redirect ke monitoring.html#steril');
+      window.location.href = 'monitoring.html#steril';
     } catch (e) {
-      console.error('Sterilization error:', e);
+      console.error('[Steril] GAGAL launch:', e);
       sterilStatus.textContent = 'Error';
       sterilStatus.className = 'badge badge-dirty';
+      sterilStartBtn.disabled = false;
+      sterilStartBtn.style.opacity = '1';
+      sterilSkipBtn.disabled = false;
+      sterilSkipBtn.style.opacity = '1';
     }
   }
 
-  // Stop button
+  if (sterilStartBtn) sterilStartBtn.addEventListener('click', launchSterilizationAndRedirect);
+
+  // Skip: tutup panel tanpa memulai siklus.
   if (sterilSkipBtn) {
-    sterilSkipBtn.addEventListener('click', async () => {
-      // Stop the timer
-      if (sterilTimer) {
-        clearInterval(sterilTimer);
-        sterilTimer = null;
-      }
-
-      const devicePath = sterilDeviceId || 'steriflow-001';
-
-      // Turn off relays + mark sterilization stopped in RTDB
-      try {
-        const { rtdb, ref, set, update, onDisconnect } = await getRTDB();
-        if (currentUvNeeded)  await set(ref(rtdb, `${devicePath}/relayCommand/uv`),  false);
-        if (currentFanNeeded) await set(ref(rtdb, `${devicePath}/relayCommand/fan`), false);
-        // Selalu pastikan pompa mati biar aman, walau sebelumnya tidak diresepkan.
-        await set(ref(rtdb, `${devicePath}/relayCommand/pump`), false);
-        const statusRef = ref(rtdb, `${devicePath}/sterilizationStatus`);
-        await update(statusRef, {
-          active: false,
-          remainingSeconds: 0,
-          nextSprayInSeconds: null,
-          endedAt: Date.now(),
-          updatedAt: Date.now()
-        });
-        try { await onDisconnect(statusRef).cancel(); } catch(_) {}
-      } catch(e) { console.error(e); }
-
-      sterilStatus.textContent = 'Stopped';
-      sterilStatus.className = 'badge badge-moderate';
-      sterilSkipBtn.style.display = 'none';
-      sterilComplete.style.display = '';
-      sterilComplete.querySelector('div:first-of-type').textContent = 'Sterilization Stopped';
-      sterilComplete.querySelector('div:last-of-type').textContent = 'Log saved. Tray surface may still be contaminated.';
-      sterilComplete.querySelector('svg').setAttribute('stroke', 'var(--accent4)');
-      saveLog(currentSterilResult, 0, 'Stopped');
+    sterilSkipBtn.addEventListener('click', () => {
+      hideSterilizationPanel();
+      saveLog(currentSterilResult, 0, 'Skipped').catch(console.error);
     });
   }
 
@@ -1431,6 +1815,25 @@
     if (p != null) parts.push(`VOC ${Number(p).toFixed(2)} ppm${s ? ` (${escapeHtml(s)})` : ''}`);
     return `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--glass-border);font-size:0.7rem;color:var(--text-dim);">Sensor saat scan: ${parts.join(' · ')}</div>`;
   }
+
+  // ── Init: tampilkan riwayat Firestore saat user siap ──────
+  (async () => {
+    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+    const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-auth.js");
+    const { firebaseConfig } = await import("./js/firebase-config.js");
+    let fsApp;
+    try { fsApp = initializeApp(firebaseConfig); } catch (_) {
+      const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
+      fsApp = getApp();
+    }
+    const auth = getAuth(fsApp);
+    // Kalau sudah login saat page load, langsung muat.
+    if (auth.currentUser) loadRecentScans();
+    // Jika belum, tunggu event pertama auth.
+    onAuthStateChanged(auth, (user) => {
+      if (user) loadRecentScans();
+    });
+  })();
 
 })();
 </script>

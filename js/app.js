@@ -1,9 +1,15 @@
 /* ============================================================
    SteriFlow — app.js
    Shared JavaScript for all pages
+   (dibungkus IIFE — aman dieksekusi ulang tanpa redeklarasi global)
    ============================================================ */
 
+(function () {
 'use strict';
+
+/* Idempotent guard — kalau app.js sudah jalan sebelumnya, skip. */
+if (window.__steriflowAppInited) return;
+window.__steriflowAppInited = true;
 
 /* ── CSS variable helpers ─────────────────────────────────── */
 const CSS = {
@@ -1092,3 +1098,12 @@ if (document.readyState === 'loading') {
 } else {
   initPage();
 }
+
+// SPA re-init: DOM diganti tanpa reload → panggil initPage lagi agar
+// chart/animator re-bind ke elemen baru.
+window.addEventListener('spa:navigate', () => {
+  try { initPage(); } catch (e) { console.warn('[app.js] initPage on spa:navigate:', e); }
+});
+
+})();  // end IIFE
+

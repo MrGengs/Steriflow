@@ -13,6 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="js/theme.js"></script>
 <script src="js/i18n.js"></script>
+<script src="js/spa.js"></script>
 </head>
 <body>
 
@@ -168,7 +169,7 @@
     </div>
 
     <!-- Sterilization Status Card -->
-    <div class="glass card-p mt-12 fade-in fade-in-delay-3">
+    <div class="glass card-p mt-12 fade-in fade-in-delay-3" id="sterilSection">
       <div class="section-title" data-i18n="mon.steril.status">Sterilization Status</div>
 
       <div class="flex items-center justify-between mb-12">
@@ -198,6 +199,20 @@
           <span class="status-pill inactive" id="monitorFan">INACTIVE</span>
           <div style="font-size:0.6rem;color:var(--text-muted);margin-top:3px;"><span data-i18n="dash.mode">Mode:</span> <span id="monitorFanMode">—</span></div>
         </div>
+      </div>
+
+      <!-- Live cycle recipe + countdown (driven by sterilizationStatus in RTDB) -->
+      <div id="sterilRecipeRow" style="display:none;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+      <div id="sterilCountdownRow" style="display:none;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;padding:10px 12px;border-radius:var(--radius);background:rgba(124,92,252,0.08);border:1px solid rgba(124,92,252,0.22);">
+        <div>
+          <div style="font-size:0.62rem;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase;">Sisa waktu</div>
+          <div style="font-family:'Sora',sans-serif;font-size:1.35rem;font-weight:700;letter-spacing:0.04em;color:var(--accent);" id="sterilCountdownRemain">00:00</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.62rem;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase;">Semprotan</div>
+          <div style="font-size:0.88rem;font-weight:600;color:var(--accent4);" id="sterilSprayInfo">—</div>
+        </div>
+        <button id="sterilStopBtn" type="button" class="btn btn-secondary" style="padding:8px 14px;border-radius:var(--radius-sm,10px);font-size:0.78rem;">Stop</button>
       </div>
 
       <div class="progress-wrap">
