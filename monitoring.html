@@ -13,7 +13,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="js/theme.js"></script>
 <script src="js/i18n.js"></script>
-<script src="js/spa.js"></script>
 </head>
 <body>
 
@@ -66,15 +65,15 @@
       </div>
     </div>
 
-    <!-- Sensor Cards: VOC · Suhu · Kelembapan -->
+    <!-- Sensor Cards: Bakteri · Suhu · Kelembapan · Gas · Kipas -->
     <div class="sensor-row fade-in fade-in-delay-1">
 
-      <!-- VOC (air quality / bakteri proxy) -->
-      <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent);">
-        <div class="stat-label" data-i18n="mon.label.voc">VOC</div>
+      <!-- Bakteri (TVOC dari SGP30) -->
+      <div class="glass stat-card" style="border-top:2px solid var(--accent);">
+        <div class="stat-label" data-i18n="mon.label.bakteri">Bakteri</div>
         <div class="flex items-center gap-4">
           <div class="stat-value" id="vocValue" style="color:var(--accent);">—</div>
-          <div class="stat-unit" style="padding-top:6px;">ppm</div>
+          <div class="stat-unit" style="padding-top:6px;">ppb</div>
         </div>
         <div style="margin-top:4px;">
           <div class="progress-track" style="height:4px;">
@@ -87,7 +86,7 @@
       </div>
 
       <!-- Temperature -->
-      <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent2);">
+      <div class="glass stat-card" style="border-top:2px solid var(--accent2);">
         <div class="stat-label" data-i18n="mon.label.temp">Suhu</div>
         <div class="flex items-center gap-4">
           <div class="stat-value" id="tempValue" style="color:var(--accent2);">—</div>
@@ -104,7 +103,7 @@
       </div>
 
       <!-- Humidity -->
-      <div class="glass stat-card" style="min-width:140px;border-top:2px solid var(--accent3);">
+      <div class="glass stat-card" style="border-top:2px solid var(--accent3);">
         <div class="stat-label" data-i18n="mon.label.hum">Kelembapan</div>
         <div class="flex items-center gap-4">
           <div class="stat-value" id="humidityValue" style="color:var(--accent3);">—</div>
@@ -120,22 +119,76 @@
         </div>
       </div>
 
+      <!-- Gas (eCO2 dari SGP30) -->
+      <div class="glass stat-card" style="border-top:2px solid var(--accent4);">
+        <div class="stat-label" data-i18n="mon.label.gas">Gas</div>
+        <div class="flex items-center gap-4">
+          <div class="stat-value" id="gasValue" style="color:var(--accent4);">—</div>
+          <div class="stat-unit" style="padding-top:6px;">ppm</div>
+        </div>
+        <div style="margin-top:4px;">
+          <div class="progress-track" style="height:4px;">
+            <div class="progress-fill yellow" id="gasBar" style="width:0%;animation:none;"></div>
+          </div>
+        </div>
+        <div class="stat-trend" id="gasStatus" style="margin-top:4px;color:var(--text-dim);">
+          <span data-i18n="mon.waiting">Waiting...</span>
+        </div>
+      </div>
+
+      <!-- Fan (dummy RPM — ikut relay.fan dari Firebase) -->
+      <div class="glass stat-card" style="border-top:2px solid #27c76a;">
+        <div class="stat-label" data-i18n="mon.label.fan">Kipas</div>
+        <div class="flex items-center gap-4">
+          <div class="stat-value" id="fanRpm" style="color:var(--text-dim);">0</div>
+          <div class="stat-unit" style="padding-top:6px;">RPM</div>
+        </div>
+        <div style="margin-top:4px;">
+          <div class="progress-track" style="height:4px;">
+            <div class="progress-fill green" id="fanBar" style="width:0%;animation:none;"></div>
+          </div>
+        </div>
+        <div class="stat-trend" id="fanTrend" style="margin-top:4px;color:var(--text-dim);">
+          <span data-i18n="mon.waiting">Waiting...</span>
+        </div>
+      </div>
+
     </div>
 
-    <!-- VOC Chart -->
+    <!-- Bakteri Chart (TVOC dari SGP30) -->
     <div class="glass card-p mt-16 fade-in fade-in-delay-2">
       <div class="flex items-center justify-between mb-8">
         <div>
-          <div class="section-title" style="margin-bottom:2px;" data-i18n="mon.voc.card.title">VOC (Air Quality)</div>
-          <div style="font-size:0.68rem;color:var(--text-dim);" data-i18n="mon.voc.card.desc">Last 20 readings · MQ135 sensor</div>
+          <div class="section-title" style="margin-bottom:2px;" data-i18n="mon.voc.card.title">Bacteria (Air Quality)</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);" data-i18n="mon.voc.card.desc">Last 20 readings · SGP30 sensor</div>
         </div>
-        <div class="flex items-center gap-8" style="font-size:0.7rem;color:var(--text-dim);">
+        <div class="flex items-center gap-8" style="font-size:0.7rem;color:var(--text);font-weight:500;">
           <span style="display:inline-block;width:10px;height:3px;border-radius:2px;background:var(--accent);"></span>
-          ppm
+          ppb
         </div>
       </div>
       <div class="chart-container" style="height:160px;">
         <canvas id="vocChart" data-h="160"></canvas>
+      </div>
+      <div class="flex justify-between mt-4" style="font-size:0.6rem;color:var(--text-muted);padding:0 4px;">
+        <span>-40s</span><span>-30s</span><span>-20s</span><span>-10s</span><span>now</span>
+      </div>
+    </div>
+
+    <!-- Gas Chart (eCO2 dari SGP30) -->
+    <div class="glass card-p mt-12 fade-in fade-in-delay-2">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <div class="section-title" style="margin-bottom:2px;" data-i18n="mon.gas.card.title">Gas Level</div>
+          <div style="font-size:0.68rem;color:var(--text-dim);" data-i18n="mon.gas.card.desc">Last 20 readings · SGP30 sensor</div>
+        </div>
+        <div class="flex items-center gap-8" style="font-size:0.7rem;color:var(--text);font-weight:500;">
+          <span style="display:inline-block;width:10px;height:3px;border-radius:2px;background:var(--accent4);"></span>
+          ppm
+        </div>
+      </div>
+      <div class="chart-container" style="height:160px;">
+        <canvas id="gasChart" data-h="160"></canvas>
       </div>
       <div class="flex justify-between mt-4" style="font-size:0.6rem;color:var(--text-muted);padding:0 4px;">
         <span>-40s</span><span>-30s</span><span>-20s</span><span>-10s</span><span>now</span>
@@ -152,11 +205,11 @@
         <div class="flex gap-10" style="font-size:0.68rem;">
           <div class="flex items-center gap-4">
             <span style="width:8px;height:3px;border-radius:2px;background:var(--accent2);display:inline-block;"></span>
-            <span style="color:var(--text-dim);">Suhu</span>
+            <span style="color:var(--text);font-weight:500;"><span data-i18n="mon.label.temp">Suhu</span> (&deg;C)</span>
           </div>
           <div class="flex items-center gap-4">
             <span style="width:8px;height:3px;border-radius:2px;background:var(--accent3);display:inline-block;"></span>
-            <span style="color:var(--text-dim);">Kelembapan</span>
+            <span style="color:var(--text);font-weight:500;"><span data-i18n="mon.label.hum">Kelembapan</span> (%)</span>
           </div>
         </div>
       </div>
@@ -249,11 +302,31 @@
         <div class="flex items-center justify-between" style="font-size:0.8rem;">
           <div class="flex items-center gap-8">
             <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;"></div>
-            <span data-i18n="mon.voc.card.title">VOC (Air Quality)</span>
+            <span data-i18n="mon.label.bakteri">Bakteri</span>
           </div>
           <div style="text-align:right;">
             <span style="color:var(--text-dim);font-size:0.7rem;" data-i18n="mon.threshold.safe">Safe: </span>
-            <span style="font-weight:600;">&lt; 2 ppm</span>
+            <span style="font-weight:600;">&lt; 220 ppb</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between" style="font-size:0.8rem;">
+          <div class="flex items-center gap-8">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--accent4);flex-shrink:0;"></div>
+            <span data-i18n="mon.label.gas">Gas</span>
+          </div>
+          <div style="text-align:right;">
+            <span style="color:var(--text-dim);font-size:0.7rem;" data-i18n="mon.threshold.safe">Safe: </span>
+            <span style="font-weight:600;">&lt; 1000 ppm</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between" style="font-size:0.8rem;">
+          <div class="flex items-center gap-8">
+            <div style="width:10px;height:10px;border-radius:50%;background:#27c76a;flex-shrink:0;"></div>
+            <span data-i18n="mon.label.fan">Kipas</span>
+          </div>
+          <div style="text-align:right;">
+            <span style="color:var(--text-dim);font-size:0.7rem;" data-i18n="mon.threshold.safe">Safe: </span>
+            <span style="font-weight:600;">1000 – 1500 RPM</span>
           </div>
         </div>
         <div class="flex items-center justify-between" style="font-size:0.8rem;">

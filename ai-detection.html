@@ -13,7 +13,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="js/theme.js"></script>
 <script src="js/i18n.js"></script>
-<script src="js/spa.js"></script>
 </head>
 <body>
 
@@ -41,6 +40,12 @@
       </div>
     </div>
     <div class="header-actions">
+      <button class="icon-btn" id="notifBtn" aria-label="Notifications">
+        <span class="notif-dot" id="notifDot"></span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+      </button>
       <button class="icon-btn" id="switchCamBtn" aria-label="Switch Camera" title="Switch Camera">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M11 19H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5l2-2h6l2 2h1"/><circle cx="12" cy="12" r="3"/>
@@ -84,12 +89,41 @@
         </div>
         <!-- Analyzing overlay -->
         <div class="analyzing-text" id="analyzingText" style="display:none;" data-i18n="ai.analyzing">ANALYZING...</div>
+        <!-- Refresh preview (manual) — hanya tampil saat kamera aktif -->
+        <button id="cameraRefreshBtn" type="button"
+                class="cam-refresh-btn"
+                aria-label="Refresh preview"
+                title="Refresh preview"
+                style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+        </button>
         <!-- Error overlay -->
         <div id="cameraError" style="display:none;position:absolute;inset:0;z-index:12;align-items:center;justify-content:center;flex-direction:column;gap:8px;background:rgba(0,0,0,0.6);border-radius:inherit;">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent3)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           <div style="font-size:0.8rem;color:var(--accent3);text-align:center;padding:0 20px;" id="cameraErrorText" data-i18n="ai.cam_denied">Camera access denied</div>
         </div>
       </div>
+
+      <style>
+        .cam-refresh-btn{
+          position:absolute;top:10px;right:10px;z-index:13;
+          width:36px;height:36px;border-radius:50%;
+          background:rgba(10,10,26,0.55);border:1px solid rgba(255,255,255,0.2);
+          color:#fff;cursor:pointer;
+          display:inline-flex;align-items:center;justify-content:center;
+          backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+          transition:all .2s ease;padding:0;
+        }
+        .cam-refresh-btn:hover{background:rgba(124,92,252,0.35);border-color:rgba(124,92,252,0.7);transform:rotate(30deg);}
+        .cam-refresh-btn:active{transform:scale(.92);}
+        .cam-refresh-btn svg{width:16px;height:16px;}
+        .cam-refresh-btn.spinning svg{animation:camRefreshSpin 0.9s linear infinite;}
+        .cam-refresh-btn:disabled{opacity:0.6;cursor:wait;}
+        @keyframes camRefreshSpin{to{transform:rotate(360deg);}}
+      </style>
 
       <div class="flex justify-between mt-10" style="font-size:0.68rem;color:var(--text-dim);">
         <span data-i18n="ai.model">Model: Gemini 2.0 Flash</span>
@@ -384,6 +418,7 @@
 <!-- Gemini key: load js/gemini-config.js from gemini-config.example.js (see .gitignore). -->
 <script src="js/gemini-config.js"></script>
 <script type="module" src="js/auth.js"></script>
+<script type="module" src="js/realtime.js"></script>
 <script type="module" src="js/sterilization.js"></script>
 <script>
 (function() {
@@ -643,78 +678,70 @@
   let streamUrl = null;  // http://<esp32-cam-ip>/stream
   let captureUrl = null; // http://<esp32-cam-ip>/capture
 
-  // Live stream HTTPS bridge:
-  //   Web ping /camera/streamRequest tiap 3s → ESP32-CAM dorong frame ke
-  //   /camera/livePreview tiap ~700ms selama ping fresh. onValue di sini
-  //   langsung update cameraImg.src — jadi terasa seperti stream.
-  let streamKeepaliveTimer = null;
-  let livePreviewUnsub     = null;
-  const STREAM_PING_MS     = 3000;
+  // Preview loop (HTTPS bridge mode — ambil frame periodik via RTDB).
+  //   Setiap tick: tulis captureRequest, tunggu lastCapture, set cameraImg.src.
+  //   Sederhana, tidak butuh firmware push.
+  let rtdbPreviewTimer = null;
+  let rtdbPreviewBusy  = false;
+  const RTDB_PREVIEW_INTERVAL_MS = 2000;
 
-  async function getRtdbShared() {
-    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
-    const dbMod = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js");
-    const { firebaseConfig } = await import("./js/firebase-config.js");
-    let rtApp;
-    try { rtApp = initializeApp(firebaseConfig); } catch (e) {
-      const { getApp } = await import("https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js");
-      rtApp = getApp();
-    }
-    return { rtdb: dbMod.getDatabase(rtApp), ref: dbMod.ref, set: dbMod.set, onValue: dbMod.onValue };
-  }
-
-  async function startHttpsStream() {
-    if (!selectedDeviceId) return;
-    stopHttpsStream();
-    console.log('[Stream] memulai HTTPS bridge stream…');
-    const { rtdb, ref, set, onValue } = await getRtdbShared();
-    const streamReqPath   = `${selectedDeviceId}/camera/streamRequest`;
-    const livePreviewPath = `${selectedDeviceId}/camera/livePreview`;
-
-    // 1) Kirim keep-alive timestamp — ESP akan push frame selama ini fresh.
-    const ping = () => set(ref(rtdb, streamReqPath), Math.floor(Date.now() / 1000))
-      .catch(err => console.warn('[Stream] ping err:', err));
-    await ping();
-    streamKeepaliveTimer = setInterval(ping, STREAM_PING_MS);
-
-    // 2) Subscribe livePreview — tiap update = frame baru.
-    let frameCount = 0;
-    const t0 = performance.now();
-    livePreviewUnsub = onValue(ref(rtdb, livePreviewPath), (snap) => {
-      const v = snap.val();
-      if (!v || !v.data) return;
-      if (!cameraActive || scanning) return;
-      cameraImg.src = 'data:image/jpeg;base64,' + v.data;
+  async function rtdbPreviewTick() {
+    if (!cameraActive || rtdbPreviewBusy || scanning) return;
+    rtdbPreviewBusy = true;
+    try {
+      await captureViaRTDB();
+      // captureViaRTDB menaruh hasil di canvas + toggle display. Untuk
+      // preview, salin ke <img> supaya DOM style konsisten dengan mode HTTP.
+      cameraImg.src = canvas.toDataURL('image/jpeg', 0.82);
       cameraImg.style.display = 'block';
       canvas.style.display    = 'none';
-      frameCount++;
-      if (frameCount === 1 || frameCount % 10 === 0) {
-        const secs = ((performance.now() - t0) / 1000).toFixed(1);
-        console.log(`[Stream] frame #${frameCount} · ${(v.size / 1024).toFixed(1)} KB · ${(frameCount / secs).toFixed(2)} fps rata-rata`);
+    } catch (e) {
+      console.warn('[Preview] skip frame:', e.message || e);
+    } finally {
+      rtdbPreviewBusy = false;
+    }
+  }
+
+  function startRtdbPreviewLoop() {
+    stopRtdbPreviewLoop();
+    console.log('[Preview] loop ON interval', RTDB_PREVIEW_INTERVAL_MS, 'ms');
+    rtdbPreviewTimer = setInterval(rtdbPreviewTick, RTDB_PREVIEW_INTERVAL_MS);
+  }
+
+  function stopRtdbPreviewLoop() {
+    if (rtdbPreviewTimer) {
+      clearInterval(rtdbPreviewTimer);
+      rtdbPreviewTimer = null;
+      console.log('[Preview] loop OFF');
+    }
+    rtdbPreviewBusy = false;
+  }
+
+  // Stop loop saat user navigasi SPA ke halaman lain.
+  window.__spaCleanup = window.__spaCleanup || [];
+  window.__spaCleanup.push(stopRtdbPreviewLoop);
+
+  // Manual refresh: tekan tombol → paksa ambil frame baru sekarang +
+  // reset interval supaya tidak bertabrakan dengan tick yang akan datang.
+  const cameraRefreshBtn = document.getElementById('cameraRefreshBtn');
+  if (cameraRefreshBtn) {
+    cameraRefreshBtn.addEventListener('click', async () => {
+      if (!cameraActive || scanning) return;
+      console.log('[Preview] refresh manual');
+      cameraRefreshBtn.disabled = true;
+      cameraRefreshBtn.classList.add('spinning');
+      // Rebase interval dari sekarang supaya otomatisnya tidak langsung menabrak.
+      if (rtdbPreviewTimer) {
+        clearInterval(rtdbPreviewTimer);
+        rtdbPreviewTimer = setInterval(rtdbPreviewTick, RTDB_PREVIEW_INTERVAL_MS);
+      }
+      try { await rtdbPreviewTick(); }
+      finally {
+        cameraRefreshBtn.classList.remove('spinning');
+        cameraRefreshBtn.disabled = false;
       }
     });
-    console.log('[Stream] keep-alive + listener aktif');
   }
-
-  async function stopHttpsStream() {
-    if (streamKeepaliveTimer) { clearInterval(streamKeepaliveTimer); streamKeepaliveTimer = null; }
-    if (livePreviewUnsub) {
-      try { livePreviewUnsub(); } catch (_) {}
-      livePreviewUnsub = null;
-    }
-    // Kirim sinyal STOP agar ESP berhenti push segera (tidak menunggu timeout 8s).
-    if (selectedDeviceId) {
-      try {
-        const { rtdb, ref, set } = await getRtdbShared();
-        await set(ref(rtdb, `${selectedDeviceId}/camera/streamRequest`), 0);
-      } catch (_) {}
-    }
-    console.log('[Stream] berhenti');
-  }
-
-  // Pastikan stream berhenti kalau user navigasi SPA ke halaman lain.
-  window.__spaCleanup = window.__spaCleanup || [];
-  window.__spaCleanup.push(() => { stopHttpsStream(); });
 
   // ── ESP32-CAM Controls (stream via MJPEG, capture via /capture) ──
   // streamUrl & captureUrl diresolusi dari /{deviceId}/camera di RTDB
@@ -760,9 +787,9 @@
           idleIcon.style.display  = '';
           cameraStatus.textContent = 'Status: Online (tekan Scan)';
         }
-        // Start continuous push-stream dari ESP (feels like live).
-        cameraActive = true;   // set lebih dulu supaya listener langsung lolos guard
-        startHttpsStream();
+        // Start continuous preview (simulasi stream lewat polling RTDB).
+        cameraActive = true;   // set lebih dulu supaya tick langsung lolos guard
+        startRtdbPreviewLoop();
       } else {
         // HTTP langsung — bisa pakai MJPEG live.
         console.log('[Camera] memuat MJPEG langsung…');
@@ -783,6 +810,7 @@
       cameraActive = true;
       cameraBtnText.textContent = tr('ai.btn.close', 'Close Camera');
       cameraBtnText.setAttribute('data-i18n', 'ai.btn.close');
+      if (cameraRefreshBtn) cameraRefreshBtn.style.display = '';  // muncul saat aktif
 
       if (GEMINI_KEYS.length) {
         scanBtn.disabled = false;
@@ -807,7 +835,8 @@
   }
 
   function stopCamera() {
-    stopHttpsStream();                // hentikan RTDB push-stream + keep-alive
+    stopRtdbPreviewLoop();            // hentikan polling RTDB preview
+    if (cameraRefreshBtn) cameraRefreshBtn.style.display = 'none';
     cameraImg.removeAttribute('src'); // stop MJPEG pull
     cameraImg.onload = null;
     cameraImg.onerror = null;
@@ -1497,7 +1526,16 @@
   let currentSprayTimes = [];         // timestamp (detik elapsed) tiap semprotan
   let sterilDeviceId = null;
 
-  const SPRAY_PULSE_MS = 800; // durasi satu semprotan (pompa ON)
+  // ESP32 utama (steriflow.ino) polling /relayCommand tiap FIREBASE_SEND_INTERVAL
+  // = 5000 ms. Supaya perintah ON pasti ter-sampling minimal sekali, web harus
+  // menahan ON > 5000 ms. Kita pakai 5500 ms — margin aman 500 ms, sekaligus
+  // perintah OFF berangkat secepat mungkin.
+  //
+  // Waktu relay FISIK menyala tetap ~5 detik (satu siklus polling) — itu batas
+  // hardware tanpa ubah firmware. Kalau butuh lebih pendek, firmware harus
+  // dikecilkan polling-nya atau pulse ditangani ESP lokal (misal
+  // /relayCommand/pumpPulse dalam ms yang ESP hold sendiri).
+  const SPRAY_PULSE_MS = 5500; // durasi perintah ON yang web tahan (ms)
 
   // Fallback kalau Gemini tidak mengembalikan data sterilisasi.
   function getFallbackSterilization(cls, contLevel) {

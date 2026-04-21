@@ -892,19 +892,16 @@ h1, h2, h3, h4 {
 .trend-up { color: #27c76a; }
 .trend-down { color: #ff4757; }
 
-/* Sensor scroll row */
+/* Sensor grid (2 columns) */
 .sensor-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-  scroll-snap-type: x mandatory;
 }
 
 .sensor-row .stat-card {
-  min-width: 130px;
-  flex-shrink: 0;
-  scroll-snap-align: start;
+  min-width: 0;
+  width: 100%;
 }
 
 /* ── Progress Bars ─────────────────────────────────────────── */

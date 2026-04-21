@@ -13,7 +13,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <script src="js/theme.js"></script>
 <script src="js/i18n.js"></script>
-<script src="js/spa.js"></script>
 </head>
 <body>
 
@@ -89,11 +88,11 @@
         </div>
         <div>
           <div style="color:var(--text-dim);" data-i18n="dash.duration">Duration</div>
-          <div style="font-weight:600;margin-top:2px;">15 min</div>
+          <div style="font-weight:600;margin-top:2px;" id="lastCycleDuration">—</div>
         </div>
         <div>
           <div style="color:var(--text-dim);" data-i18n="dash.cycles_today">Cycles Today</div>
-          <div style="font-weight:600;margin-top:2px;" id="cyclesToday">3</div>
+          <div style="font-weight:600;margin-top:2px;" id="cyclesToday">0</div>
         </div>
       </div>
     </div>
@@ -219,44 +218,13 @@
       </div>
     </div>
 
-    <!-- Notifications Panel -->
+    <!-- Notifications Panel (diisi dinamis oleh js/realtime.js) -->
     <div class="glass card-p mt-16 fade-in fade-in-delay-4">
       <div class="flex items-center justify-between mb-12">
         <div class="section-title" style="margin-bottom:0;" data-i18n="common.notifications">Notifications</div>
-        <span style="background:var(--accent);color:#fff;font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:100px;" id="notifCount">3</span>
+        <span style="background:var(--accent);color:#fff;font-size:0.62rem;font-weight:700;padding:2px 8px;border-radius:100px;" id="notifCount">0</span>
       </div>
-      <div id="notifList">
-        <div class="notif-item fade-in">
-          <div class="notif-icon purple">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 11.08 12 2 2 11.08"/><path d="M9 22V12h6v10"/></svg>
-          </div>
-          <div class="notif-text">
-            <div class="notif-title">Sterilisasi Selesai</div>
-            <div class="notif-desc">Siklus #12 berhasil. Bakteri pada permukaan ompreng telah dibasmi.</div>
-            <div class="notif-time">2 menit lalu</div>
-          </div>
-        </div>
-        <div class="notif-item fade-in">
-          <div class="notif-icon teal">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-          </div>
-          <div class="notif-text">
-            <div class="notif-title">Ompreng Bersih</div>
-            <div class="notif-desc">Tingkat bakteri pada ompreng dalam batas aman setelah paparan UV-C.</div>
-            <div class="notif-time">14 menit lalu</div>
-          </div>
-        </div>
-        <div class="notif-item fade-in">
-          <div class="notif-icon yellow">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          </div>
-          <div class="notif-text">
-            <div class="notif-title">Sterilisasi Terjadwal</div>
-            <div class="notif-desc">Sterilisasi ompreng otomatis dijadwalkan pukul 14:30.</div>
-            <div class="notif-time">30 menit lalu</div>
-          </div>
-        </div>
-      </div>
+      <div id="notifList"></div>
     </div>
 
     <div style="height:12px;"></div>
@@ -320,35 +288,64 @@ onAuthStateChanged(auth, async (user) => {
     const today = new Date();
     today.setHours(0,0,0,0);
 
+    // Ambil cukup banyak log untuk memastikan hitungan hari ini akurat
+    // walau ada skipped yang diselingi (limit 200 lebih aman dari 50).
     const q = query(
       collection(db, 'users', user.uid, 'sterilization_logs'),
       orderBy('createdAt', 'desc'),
-      firestoreLimit(50)
+      firestoreLimit(200)
     );
     const snap = await getDocs(q);
 
-    let latestDate = null;
+    let latestSterilDate = null;
+    let latestSterilDuration = null;
     let todayCount = 0;
 
     snap.forEach(doc => {
-      const d = doc.data().createdAt?.toDate?.();
+      const data = doc.data();
+      // Hanya hitung siklus sterilisasi yang SELESAI. Log "Skipped" tidak
+      // relevan untuk "Last Cycle" / "Cycles Today".
+      if (data.status !== 'Sterilized') return;
+      const d = data.createdAt?.toDate?.();
       if (!d) return;
-      if (!latestDate) latestDate = d;
+      if (!latestSterilDate) {
+        latestSterilDate = d;
+        const dur = Number(data.durationMinutes);
+        if (Number.isFinite(dur) && dur > 0) latestSterilDuration = dur;
+      }
       if (d >= today) todayCount++;
     });
 
-    const timeLabel = (d) =>
-      d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }) +
-      (d.toDateString() === new Date().toDateString() ? ' today' : '');
+    // Pakai locale user (default browser) + penanda "today" via i18n kalau ada.
+    const locale = (navigator.language || navigator.languages?.[0] || 'en-GB');
+    const t = (k, fallback) =>
+      (window.SteriflowI18n && typeof window.SteriflowI18n.t === 'function')
+        ? (window.SteriflowI18n.t(k) || fallback) : fallback;
+    const timeLabel = (d) => {
+      const hhmm = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+      const isToday = d.toDateString() === new Date().toDateString();
+      return isToday ? `${hhmm} · ${t('common.today', 'today')}` : hhmm;
+    };
 
-    if (latestDate) {
-      const lastCycleInfo = document.getElementById('lastCycleInfo');
-      const lastSterilized = document.getElementById('lastSterilized');
-      if (lastCycleInfo)  lastCycleInfo.textContent  = timeLabel(latestDate);
-      if (lastSterilized) lastSterilized.textContent = timeLabel(latestDate);
+    const lastCycleInfo     = document.getElementById('lastCycleInfo');
+    const lastSterilized    = document.getElementById('lastSterilized');
+    const lastCycleDuration = document.getElementById('lastCycleDuration');
+    const cyclesTodayEl     = document.getElementById('cyclesToday');
+
+    if (latestSterilDate) {
+      if (lastCycleInfo)  lastCycleInfo.textContent  = timeLabel(latestSterilDate);
+      if (lastSterilized) lastSterilized.textContent = timeLabel(latestSterilDate);
+    } else {
+      if (lastCycleInfo)  lastCycleInfo.textContent  = '—';
+      if (lastSterilized) lastSterilized.textContent = '—';
     }
 
-    const cyclesTodayEl = document.getElementById('cyclesToday');
+    if (lastCycleDuration) {
+      lastCycleDuration.textContent = latestSterilDuration != null
+        ? `${latestSterilDuration} min`
+        : '—';
+    }
+
     if (cyclesTodayEl) cyclesTodayEl.textContent = todayCount;
 
   } catch(e) {

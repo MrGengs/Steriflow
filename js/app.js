@@ -220,8 +220,13 @@ function drawLineChart(canvasId, data, color, options = {}) {
   function xPos(i) { return padL + (i / (data.length - 1)) * chartW; }
   function yPos(v) { return padT + chartH - ((v - min) / (max - min)) * chartH; }
 
+  // Theme-aware axis/grid colors (kontras cukup di light & dark mode)
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const gridColor  = isLight ? 'rgba(26,26,46,0.08)'  : 'rgba(255,255,255,0.05)';
+  const labelColor = isLight ? 'rgba(26,26,46,0.7)'   : 'rgba(232,232,244,0.55)';
+
   // Grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.strokeStyle = gridColor;
   ctx.lineWidth = 1;
   for (let i = 0; i <= 4; i++) {
     const y = padT + (i / 4) * chartH;
@@ -232,7 +237,7 @@ function drawLineChart(canvasId, data, color, options = {}) {
   }
 
   // Y-axis labels
-  ctx.fillStyle = 'rgba(232,232,244,0.3)';
+  ctx.fillStyle = labelColor;
   ctx.font = `${10 / dpr + 10}px Outfit, sans-serif`;
   ctx.textAlign = 'left';
   const topLabel  = options.unit ? Math.round(max) + options.unit : Math.round(max);
@@ -322,8 +327,10 @@ function drawDualLineChart(canvasId, data1, data2, color1, color2, options = {})
   function xPos(i, len) { return padL + (i / (len - 1)) * chartW; }
   function yPos(v) { return padT + chartH - ((v - globalMin) / (globalMax - globalMin)) * chartH; }
 
-  // Grid
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  // Grid (theme-aware)
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const gridColor = isLight ? 'rgba(26,26,46,0.08)' : 'rgba(255,255,255,0.05)';
+  ctx.strokeStyle = gridColor;
   ctx.lineWidth = 1;
   for (let i = 0; i <= 4; i++) {
     const y = padT + (i / 4) * chartH;
@@ -383,6 +390,31 @@ function drawDualLineChart(canvasId, data1, data2, color1, color2, options = {})
 
   drawOneLine(data1, color1, 0.2);
   drawOneLine(data2, color2, 0.15);
+
+  // Y-axis labels: per-dataset min/max with optional unit, colored to match each line
+  ctx.font = `${10 / dpr + 10}px Outfit, sans-serif`;
+
+  if (data1 && data1.length) {
+    const max1 = Math.max(...data1);
+    const min1 = Math.min(...data1);
+    const top1 = options.unit1 ? Math.round(max1) + options.unit1 : Math.round(max1);
+    const bot1 = options.unit1 ? Math.round(min1) + options.unit1 : Math.round(min1);
+    ctx.fillStyle = color1;
+    ctx.textAlign = 'left';
+    ctx.fillText(top1, padL + 2, padT + 11);
+    ctx.fillText(bot1, padL + 2, padT + chartH - 3);
+  }
+
+  if (data2 && data2.length) {
+    const max2 = Math.max(...data2);
+    const min2 = Math.min(...data2);
+    const top2 = options.unit2 ? Math.round(max2) + options.unit2 : Math.round(max2);
+    const bot2 = options.unit2 ? Math.round(min2) + options.unit2 : Math.round(min2);
+    ctx.fillStyle = color2;
+    ctx.textAlign = 'right';
+    ctx.fillText(top2, padL + chartW - 2, padT + 11);
+    ctx.fillText(bot2, padL + chartW - 2, padT + chartH - 3);
+  }
 }
 
 /**
@@ -508,7 +540,8 @@ function renderCharts() {
       sensorState.tempHistory,
       sensorState.humidityHistory,
       CSS.accent2,
-      CSS.accent3
+      CSS.accent3,
+      { unit1: '°C', unit2: '%' }
     );
   }
 
@@ -756,6 +789,8 @@ function initCountdown() {
   const badgeEl    = el('nextCycleBadge');
   const statusEl   = el('nextCycleStatus');
 
+  const t = (k) => (window.SteriflowI18n ? window.SteriflowI18n.t(k) : k);
+
   function render() {
     const s = window.__sterilStatus;
     const now = Date.now();
@@ -774,29 +809,29 @@ function initCountdown() {
       countdownEl.style.background = '';
       countdownEl.style.webkitBackgroundClip = '';
       countdownEl.style.webkitTextFillColor = '';
-      if (labelEl)    labelEl.textContent    = 'Sisa waktu sterilisasi';
-      if (subtitleEl) subtitleEl.textContent = 'Proses sedang berjalan' + (s.deviceId ? ' · ' + s.deviceId : '');
+      if (labelEl)    labelEl.textContent    = t('dash.remaining_time');
+      if (subtitleEl) subtitleEl.textContent = t('dash.process_running') + (s.deviceId ? ' · ' + s.deviceId : '');
       if (badgeEl) {
-        badgeEl.textContent = 'In Progress';
+        badgeEl.textContent = t('dash.in_progress');
         badgeEl.className   = 'badge badge-sterilizing';
         badgeEl.style.fontSize = '0.62rem';
       }
       if (statusEl) {
-        statusEl.textContent = '⟳ Sterilizing';
+        statusEl.textContent = t('dash.sterilizing_pill');
         statusEl.style.color = 'var(--accent)';
       }
     } else {
       // Idle — alat siap digunakan
-      countdownEl.textContent = 'SIAP';
-      if (labelEl)    labelEl.textContent    = 'Status Alat';
-      if (subtitleEl) subtitleEl.textContent = 'Alat siap digunakan';
+      countdownEl.textContent = t('dash.ready');
+      if (labelEl)    labelEl.textContent    = t('dash.device_status');
+      if (subtitleEl) subtitleEl.textContent = t('dash.ready_desc');
       if (badgeEl) {
-        badgeEl.textContent = 'Ready';
+        badgeEl.textContent = t('dash.ready_badge');
         badgeEl.className   = 'badge badge-clean';
         badgeEl.style.fontSize = '0.62rem';
       }
       if (statusEl) {
-        statusEl.textContent = '✓ Siap';
+        statusEl.textContent = t('dash.ready_pill');
         statusEl.style.color = 'var(--accent2)';
       }
     }
@@ -806,6 +841,7 @@ function initCountdown() {
   window.__renderSterilCard = render;
   render();
   setInterval(render, 1000);
+  window.addEventListener('language:change', render);
 }
 
 /* ── Header Date ─────────────────────────────────────────── */
@@ -817,19 +853,9 @@ function initHeaderDate() {
 }
 
 /* ── Notification Badge ──────────────────────────────────── */
-function initNotifBadge() {
-  const notifBtn = el('notifBtn');
-  const notifDot = el('notifDot');
-  const countEl  = el('notifCount');
-
-  if (notifBtn) {
-    notifBtn.addEventListener('click', () => {
-      systemState.notifCount = 0;
-      if (notifDot) notifDot.style.display = 'none';
-      if (countEl) countEl.textContent = '0';
-    });
-  }
-}
+// NOTE: Klik #notifBtn ditangani sepenuhnya oleh realtime.js (membuka drawer
+// notifikasi global). Fungsi ini disengaja jadi no-op agar tidak konflik.
+function initNotifBadge() { /* handled by js/realtime.js */ }
 
 /* ── Refresh Button (Monitoring) ─────────────────────────── */
 function initRefreshBtn() {
