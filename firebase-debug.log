@@ -1,0 +1,65 @@
+[debug] [2026-04-24T07:22:49.612Z] ----------------------------------------------------------------------
+[debug] [2026-04-24T07:22:49.615Z] Command:       /home/mrgengs/.nvm/versions/node/v24.14.0/bin/node /home/mrgengs/.nvm/versions/node/v24.14.0/bin/firebase deploy
+[debug] [2026-04-24T07:22:49.615Z] CLI Version:   15.15.0
+[debug] [2026-04-24T07:22:49.616Z] Platform:      linux
+[debug] [2026-04-24T07:22:49.616Z] Node Version:  v24.14.0
+[debug] [2026-04-24T07:22:49.616Z] Time:          Fri Apr 24 2026 14:22:49 GMT+0700 (Western Indonesia Time)
+[debug] [2026-04-24T07:22:49.616Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-04-24T07:22:49.619Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-04-24T07:22:51.686Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-24T07:22:51.686Z] > authorizing via signed-in user (sugengmargono901@gmail.com)
+[debug] [2026-04-24T07:22:51.686Z] [iam] checking project steriflow-id for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-04-24T07:22:51.687Z] Checked if tokens are valid: false, expires at: 1776907750213
+[debug] [2026-04-24T07:22:51.687Z] Checked if tokens are valid: false, expires at: 1776907750213
+[debug] [2026-04-24T07:22:51.687Z] > refreshing access token with scopes: []
+[debug] [2026-04-24T07:22:51.688Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-04-24T07:22:51.688Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-04-24T07:22:52.376Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-04-24T07:22:52.377Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-04-24T07:22:52.387Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/steriflow-id:testIamPermissions [none]
+[debug] [2026-04-24T07:22:52.387Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/steriflow-id:testIamPermissions  x-goog-user-project=steriflow-id
+[debug] [2026-04-24T07:22:52.387Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/steriflow-id:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-04-24T07:22:52.720Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-04-24T07:22:52.721Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2026-04-24T07:22:52.983Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/steriflow-id:testIamPermissions 200
+[debug] [2026-04-24T07:22:52.983Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/steriflow-id:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-04-24T07:22:52.984Z] Checked if tokens are valid: true, expires at: 1777018971377
+[debug] [2026-04-24T07:22:52.984Z] Checked if tokens are valid: true, expires at: 1777018971377
+[debug] [2026-04-24T07:22:52.985Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/steriflow-id [none]
+[debug] [2026-04-24T07:22:53.603Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/steriflow-id 200
+[debug] [2026-04-24T07:22:53.603Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/steriflow-id {"projectId":"steriflow-id","projectNumber":"402736002594","displayName":"steriflow-id","name":"projects/steriflow-id","resources":{"hostingSite":"steriflow-id","realtimeDatabaseInstance":"steriflow-id-default-rtdb"},"state":"ACTIVE","etag":"1_78e645a5-0f65-4a05-911d-30057a4d4fd7"}
+[info] 
+[info] === Deploying to 'steriflow-id'...
+[info] 
+[info] i  deploying firestore, hosting 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[info] i  firestore: ensuring required API firestore.googleapis.com is enabled... 
+[debug] [2026-04-24T07:22:53.613Z] Checked if tokens are valid: true, expires at: 1777018971377
+[debug] [2026-04-24T07:22:53.613Z] Checked if tokens are valid: true, expires at: 1777018971377
+[debug] [2026-04-24T07:22:53.613Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/steriflow-id/databases/(default) [none]
+[debug] [2026-04-24T07:22:54.117Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/steriflow-id/databases/(default) 200
+[debug] [2026-04-24T07:22:54.117Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/steriflow-id/databases/(default) {"name":"projects/steriflow-id/databases/(default)","uid":"402a338c-8ffa-46a7-9e53-e6283b7753bb","createTime":"2026-03-25T14:54:35.595632Z","updateTime":"2026-03-25T14:54:35.595632Z","locationId":"asia-southeast1","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2026-04-24T06:22:54.201842Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"zas","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IMSCj5H6hZQDMLTslq/Fu5MD"}
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2026-04-24T07:22:54.122Z] Checked if tokens are valid: true, expires at: 1777018971377
+[debug] [2026-04-24T07:22:54.122Z] Checked if tokens are valid: true, expires at: 1777018971377
+[debug] [2026-04-24T07:22:54.122Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/steriflow-id:test [none]
+[debug] [2026-04-24T07:22:54.122Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/steriflow-id:test [omitted]
+[debug] [2026-04-24T07:22:54.735Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/steriflow-id:test 200
+[debug] [2026-04-24T07:22:54.735Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/steriflow-id:test {}
+[info] ✔  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2026-04-24T07:22:54.742Z] Checked if tokens are valid: true, expires at: 1777018971377
+[debug] [2026-04-24T07:22:54.742Z] Checked if tokens are valid: true, expires at: 1777018971377
+[debug] [2026-04-24T07:22:54.742Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/steriflow-id/versions [none]
+[debug] [2026-04-24T07:22:54.742Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/steriflow-id/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2026-04-24T07:22:56.358Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/steriflow-id/versions 200
+[debug] [2026-04-24T07:22:56.359Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/steriflow-id/versions {"name":"projects/402736002594/sites/steriflow-id/versions/ba67d3264c557600","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2026-04-24T07:22:56.360Z] Checked if tokens are valid: true, expires at: 1777018971377
+[debug] [2026-04-24T07:22:56.361Z] Checked if tokens are valid: true, expires at: 1777018971377
+[debug] [2026-04-24T07:22:56.362Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/steriflow-id/releases pageSize=10&pageToken=
+[debug] [2026-04-24T07:22:56.761Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/steriflow-id/releases 200
+[debug] [2026-04-24T07:22:56.762Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/steriflow-id/releases {"releases":[{"name":"projects/steriflow-id/releases/cloud.firestore","rulesetName":"projects/steriflow-id/rulesets/4514c4f0-38cb-4703-94bd-a8f202b334c5","createTime":"2026-03-25T02:02:14.065134Z","updateTime":"2026-04-22T17:39:47.623916Z"}]}
+[debug] [2026-04-24T07:22:56.762Z] Checked if tokens are valid: true, expires at: 1777018971377
+[debug] [2026-04-24T07:22:56.762Z] Checked if tokens are valid: true, expires at: 1777018971377
+[debug] [2026-04-24T07:22:56.762Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/steriflow-id/rulesets/4514c4f0-38cb-4703-94bd-a8f202b334c5 [none]

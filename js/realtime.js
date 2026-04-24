@@ -614,12 +614,12 @@ function updateMonitoringUI(dev, relayCmd) {
   }
 
   // Bacteria card (TVOC dari SGP30, satuan ppb).
-  // Progress bar: 0 → 2000 ppb = 0 → 100% (>2000 = Very Unhealthy).
+  // Progress bar: 0 → 2 ppb = 0 → 100% (batas aman < 1 ppb).
   const vocValue = document.getElementById('vocValue');
   const vocBar   = document.getElementById('vocBar');
   const vocStatusEl = document.getElementById('vocStatus');
   if (vocValue) vocValue.textContent = Math.round(tvoc).toString();
-  if (vocBar)   vocBar.style.width   = Math.min(100, (tvoc / 2000) * 100) + '%';
+  if (vocBar)   vocBar.style.width   = Math.min(100, (tvoc / 2) * 100) + '%';
   if (vocStatusEl) {
     const raw = String(tvocStatus).toUpperCase();
     vocStatusEl.textContent = raw;
@@ -652,7 +652,7 @@ function updateMonitoringUI(dev, relayCmd) {
   const humTrend = document.getElementById('humTrend');
   if (humTrend) {
     const alertText = status.hum_alert || 'NORMAL';
-    if (humidity > 80) {
+    if (humidity > 60) {
       humTrend.textContent = 'Too humid'; humTrend.style.color = 'var(--accent3)';
     } else if (humidity < 40) {
       humTrend.textContent = 'Too dry';   humTrend.style.color = 'var(--accent4)';
@@ -663,12 +663,12 @@ function updateMonitoringUI(dev, relayCmd) {
   }
 
   // Gas card (eCO2 dari SGP30, satuan ppm).
-  // Baseline udara bersih ≈ 400 ppm; normalisasi 400 → 3000 ppm menjadi 0 → 100%.
+  // Progress bar: 0 → 1 ppm = 0 → 100% (batas aman < 0.5 ppm).
   const gasValueEl  = document.getElementById('gasValue');
   const gasBarEl    = document.getElementById('gasBar');
   const gasStatusEl = document.getElementById('gasStatus');
   if (gasValueEl) gasValueEl.textContent = Math.round(eco2).toString();
-  if (gasBarEl)   gasBarEl.style.width   = Math.min(100, Math.max(0, (eco2 - 400) / 2600) * 100) + '%';
+  if (gasBarEl)   gasBarEl.style.width   = Math.min(100, (eco2 / 1) * 100) + '%';
   if (gasStatusEl) {
     const raw = String(eco2Status).toUpperCase();
     gasStatusEl.textContent = raw;

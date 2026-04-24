@@ -339,6 +339,7 @@
     'acc.info.method':       { id: 'Metode Login',      en: 'Login Method' },
     'acc.appearance':        { id: 'Tampilan',          en: 'Appearance' },
     'acc.light_mode':        { id: 'Mode Terang',       en: 'Light Mode' },
+    'acc.dark_mode':         { id: 'Mode Gelap',        en: 'Dark Mode' },
     'acc.language':          { id: 'Bahasa',            en: 'Language' },
     'acc.lang.hint':         { id: 'Indonesia / Inggris', en: 'Indonesian / English' },
     'acc.actions.logout':    { id: 'Keluar',            en: 'Logout' },

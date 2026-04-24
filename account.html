@@ -113,8 +113,12 @@
     <h3 class="account-section-title" data-i18n="acc.appearance">Appearance</h3>
     <div class="theme-toggle-row">
       <div class="theme-toggle-label">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        <span data-i18n="acc.light_mode">Light Mode</span>
+        <!-- Sun icon — visible in light mode -->
+        <svg class="theme-icon-light" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <!-- Moon icon — visible in dark mode -->
+        <svg class="theme-icon-dark" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span class="theme-label-light" data-i18n="acc.light_mode">Light Mode</span>
+        <span class="theme-label-dark" data-i18n="acc.dark_mode">Dark Mode</span>
       </div>
       <label class="theme-switch">
         <input type="checkbox" id="themeToggle" />
@@ -148,6 +152,18 @@
     .lang-seg-btn{appearance:none;border:0;background:transparent;color:var(--text-dim);font:600 0.78rem/1 'Outfit',sans-serif;padding:8px 16px;cursor:pointer;letter-spacing:0.04em;transition:all .2s ease;}
     .lang-seg-btn:hover{color:var(--text);}
     .lang-seg-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 2px 12px rgba(124,92,252,0.35);}
+
+    /* Theme label icon + text: dark mode (default) shows moon + "Dark Mode" */
+    .theme-icon-light { display:none; }
+    .theme-icon-dark  { display:block; }
+    .theme-label-light{ display:none; }
+    .theme-label-dark { display:inline; }
+
+    /* Light mode shows sun + "Light Mode" */
+    [data-theme="light"] .theme-icon-light { display:block; }
+    [data-theme="light"] .theme-icon-dark  { display:none; }
+    [data-theme="light"] .theme-label-light{ display:inline; }
+    [data-theme="light"] .theme-label-dark { display:none; }
   </style>
 
   <!-- Actions -->
